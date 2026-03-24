@@ -11,6 +11,8 @@ class Settings(BaseSettings):
     POSTGRES_DB: str
 
     # System
+    DEBUG: str
+    JWT_AT_KEY: str
     JWT_SECRET_KEY: str
     JWT_ALGORITHM: str
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: int
