@@ -2,3 +2,4 @@ fastapi[all]
 sqlmodel
 pyjwt
 pwdlib[argon2]
+alembic
