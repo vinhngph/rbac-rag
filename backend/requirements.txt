@@ -3,3 +3,4 @@ sqlmodel
 pyjwt
 pwdlib[argon2]
 alembic
+asyncpg
