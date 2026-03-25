@@ -3,7 +3,7 @@ from typing import List
 from uuid import UUID, uuid4
 from datetime import datetime
 
-from app.orm_models.links import UserRoleLink
+from app.orm_models.links import UserDepartmentRoleLink
 
 
 class UserBase(SQLModel):
@@ -17,8 +17,7 @@ class User(UserBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     hashed_password: str
 
-    roles: List["Role"] = Relationship(back_populates="users", link_model=UserRoleLink)  # type: ignore
-    documents: List["Document"] = Relationship(back_populates="creator")  # type: ignore
+    departments: List["Department"] = Relationship(back_populates="users", link_model=UserDepartmentRoleLink)  # type: ignore
 
 
 class UserCreate(UserBase):

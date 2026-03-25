@@ -1,14 +1,11 @@
-from sqlmodel import SQLModel
-from .links import UserRoleLink, DocumentPermissionLink
-from .role import Role
-from .user import User
-from .document import Document
+from app.orm_models.permission import Permission
+from app.orm_models.role import Role
+from app.orm_models.department import Department
+from app.orm_models.user import User
 
 __all__ = [
-    "SQLModel",
-    "UserRoleLink",
-    "DocumentPermissionLink",
+    "Permission",
     "Role",
+    "Department",
     "User",
-    "Document",
 ]
