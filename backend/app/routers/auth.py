@@ -3,7 +3,6 @@ from sqlmodel import select
 
 from app.http_models.auth import LoginRequest
 from app.orm_models.user import User, UserCreate
-from app.orm_models.role import Role
 from app.core.security import verify_password, create_access_token, get_password_hash
 from app.dependencies import DB_Dependency
 from app.core.config import settings
@@ -48,13 +47,6 @@ async def register(response: Response, user_in: UserCreate, db: DB_Dependency):
     hashed_pw = get_password_hash((user_in.password))
 
     new_user = User(email=user_in.email, name=user_in.name, hashed_password=hashed_pw)
-
-    role_st = select(Role).where(Role.name == "User")
-    role_rs = await db.exec(role_st)
-    default_role = role_rs.one_or_none()
-
-    if default_role:
-        new_user.roles.append(default_role)  # type: ignore
 
     db.add(new_user)
     await db.commit()
