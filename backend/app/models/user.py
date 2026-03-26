@@ -2,7 +2,6 @@ from sqlmodel import SQLModel, Field, Relationship, AutoString
 from pydantic import EmailStr, HttpUrl
 from typing import List, Optional
 from uuid import UUID, uuid4
-from datetime import datetime
 
 from app.models.links import UserDepartmentRoleLink
 
@@ -39,5 +38,6 @@ class UserPublic(UserBase):
 
 
 class UserAT(SQLModel):
-    sub: UUID
-    exp: datetime
+    sub: str
+    exp: int
+    iat: int

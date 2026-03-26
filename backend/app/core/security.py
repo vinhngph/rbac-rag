@@ -17,11 +17,12 @@ def get_password_hash(password: str) -> str:
 
 
 def create_access_token(user: User) -> str:
-    expire = datetime.now(timezone.utc) + timedelta(
-        minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES
-    )
+    now = datetime.now(timezone.utc)
+    expire = now + timedelta(minutes=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES)
 
-    payload = UserAT(sub=user.id, exp=expire).model_dump(mode="json")
+    payload = UserAT(
+        sub=str(user.id), exp=int(expire.timestamp()), iat=int(now.timestamp())
+    ).model_dump(mode="json")
 
     return jwt_encode(
         payload, settings.JWT_SECRET_KEY, algorithm=settings.JWT_ALGORITHM

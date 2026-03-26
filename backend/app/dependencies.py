@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.models.user import User
+from app.models.user import UserPublic, User
 
 DB_Dependency = Annotated[AsyncSession, Depends(get_db)]
 
@@ -26,15 +26,16 @@ def get_access_token_from_cookie(request: Request) -> str:
 async def get_current_user(
     token: Annotated[str, Depends(get_access_token_from_cookie)],
     db: DB_Dependency,
-) -> User:
+) -> UserPublic:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token"
     )
 
     try:
         payload = jwt_decode(
-            token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
+            token, key=settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM]
         )
+
         if payload.get("sub") is None:
             raise credentials_exception
     except InvalidTokenError:
@@ -47,4 +48,6 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
 
-    return user
+    return UserPublic(
+        email=user.email, name=user.name, avatar_url=user.avatar_url, id=user.id
+    )
