@@ -30,7 +30,7 @@ async def login(response: Response, login_data: UserLogin, db: DB_Dependency):
         httponly=True,
         secure=False if settings.DEBUG == "true" else True,
         samesite="lax",
-        max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        max_age=int(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
 
     return {"msg": "Login successfully"}
@@ -61,7 +61,7 @@ async def register(response: Response, user_in: UserRegister, db: DB_Dependency)
         httponly=True,
         secure=False if settings.DEBUG == "true" else True,
         samesite="lax",
-        max_age=settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        max_age=int(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
 
     return {"msg": "Register successfully"}
