@@ -6,12 +6,12 @@ from sqlmodel import select
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.orm_models.user import User
+from app.models.user import User
 
 DB_Dependency = Annotated[AsyncSession, Depends(get_db)]
 
 
-async def get_access_token_from_cookie(request: Request) -> str:
+def get_access_token_from_cookie(request: Request) -> str:
     """Get Access Token (access_token) from cookies"""
 
     ac_token = request.cookies.get(settings.JWT_AT_KEY)
