@@ -12,5 +12,8 @@ export const router = createBrowserRouter([
       { index: true, element: <SuspenseWrapper><HomePage /></SuspenseWrapper> }
     ]
   },
-  { path: "*", element: <SuspenseWrapper><NotFoundPage /></SuspenseWrapper> }
+  {
+    path: "*",
+    element: <SuspenseWrapper><NotFoundPage /></SuspenseWrapper>
+  }
 ]);
