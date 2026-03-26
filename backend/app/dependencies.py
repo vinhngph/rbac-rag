@@ -8,7 +8,7 @@ from app.core.config import settings
 from app.db.session import get_db
 from app.models.user import UserPublic, User
 
-DB_Dependency = Annotated[AsyncSession, Depends(get_db)]
+type DB_Dependency = Annotated[AsyncSession, Depends(get_db)]
 
 
 def get_access_token_from_cookie(request: Request) -> str:
