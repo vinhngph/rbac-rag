@@ -1,5 +1,5 @@
 import { useRef, useState } from "react";
-import { BookOpen, Bot, Code2, Copy, Globe, Lightbulb, Mic, Paperclip, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Bot, Copy, Globe, Lightbulb, Mic, Paperclip, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { APP_CONFIG } from "../config";
 
@@ -9,29 +9,6 @@ type Message = {
   content: string;
   timestamp: Date;
 }
-
-const SUGGESTIONS = [
-  {
-    icon: <Lightbulb className="w-4 h-4" />,
-    label: "Explain RAG",
-    prompt: "Explain what Retrieval-Augmented Generation (RAG) is and how it works?"
-  },
-  {
-    icon: <Code2 className="w-4 h-4" />,
-    label: "What is RBAC?",
-    prompt: "How does Role-Based Access Control (RBAC) work within a system?"
-  },
-  {
-    icon: <Globe className="w-4 h-4" />,
-    label: "Vector search",
-    prompt: "How to optimize vector search with embedding models?"
-  },
-  {
-    icon: <BookOpen className="w-4 h-4" />,
-    label: "FastAPI + JWT",
-    prompt: "Guide to implementing JWT authentication with FastAPI"
-  }
-];
 
 function Home() {
   const [messages, setMessages] = useState<Message[]>([]);
@@ -107,25 +84,6 @@ function Home() {
               <p className="text-sm text-text/40 text-center max-w-md">
                 An AI assistant with role-based document search capabilities.
               </p>
-            </div>
-
-            {/* Suggestions */}
-            <div className="grid grid-cols-2 gap-2 w-full max-w-xl">
-              {SUGGESTIONS.map(s => (
-                <button
-                  key={s.label}
-                  onClick={() => handleSend(s.prompt)}
-                  className="flex items-start cursor-pointer gap-3 p-3.5 rounded-2xl bg-bg-prompt hover:bg-bg-prompt/30 border border-white/5 hover:border-white/10 transition-all text-left group "
-                >
-                  <span className="mt-0.5 text-emerald-400/70 group-hover:text-emerald-400 transition-colors shrink-0">
-                    {s.icon}
-                  </span>
-                  <div>
-                    <p className="text-sm font-medium text-text/90">{s.label}</p>
-                    <p className="text-xs text-text/40 mt-0.5 line-clamp-2">{s.prompt}</p>
-                  </div>
-                </button>
-              ))}
             </div>
           </div>
           :
