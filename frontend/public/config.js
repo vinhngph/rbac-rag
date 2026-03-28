@@ -1,3 +1,4 @@
 globalThis.__ENV__ = {
-  APP_NAME: "RBAC-RAG"
+  APP_NAME: "RBAC-RAG",
+  APP_BE_API: "http://127.0.0.1:8000"
 };
