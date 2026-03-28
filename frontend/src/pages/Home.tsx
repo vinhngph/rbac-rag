@@ -232,7 +232,7 @@ function Home() {
               </div>
 
               <div className="flex items-center gap-1">
-                <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Voice">
+                <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Voice">
                   <Mic className="w-4 h-4" />
                 </button>
                 <button
