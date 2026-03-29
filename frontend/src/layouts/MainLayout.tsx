@@ -5,6 +5,7 @@ import { Outlet, useLocation, useNavigate } from "react-router";
 import { APP_CONFIG } from "../config";
 import AuthModal from "../components/AuthModal";
 import { useAuth } from "../modules/auth/useAuth";
+import { logout } from "../modules/auth/auth.service";
 
 const mockChats = [
   { id: 1, title: "What is RAG?" },
@@ -26,10 +27,16 @@ function MainLayout() {
 
   const isLoginOpen = location.pathname === "/login";
 
-  const handleLogout = () => {
-    setUser(null);
-    setIsUserMenu(false);
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setUser(null);
+      setIsUserMenu(false);
+      navigate("/login");
+    }
   };
 
   return (
