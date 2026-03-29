@@ -65,3 +65,10 @@ async def register(response: Response, user_in: UserRegister, db: DB_Dependency)
     )
 
     return {"msg": "Register successfully"}
+
+
+@router.post("/logout")
+async def logout(response: Response):
+    response.delete_cookie(key=settings.JWT_AT_KEY)
+
+    return {"msg": "Logged out"}
