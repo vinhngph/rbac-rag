@@ -1,7 +1,10 @@
 import { useState } from "react";
-import { Bot, ChevronDown, MessageSquare, PanelLeftClose, PanelLeftOpen, Search, SquarePen } from "lucide-react";
-import { Outlet } from "react-router";
+import { Bot, ChevronDown, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Search, SquarePen, User } from "lucide-react";
+import { Outlet, useLocation, useNavigate } from "react-router";
+
 import { APP_CONFIG } from "../config";
+import AuthModal from "../components/AuthModal";
+import { useAuth } from "../modules/auth/useAuth";
 
 const mockChats = [
   { id: 1, title: "What is RAG?" },
@@ -13,10 +16,21 @@ const mockChats = [
 ];
 
 function MainLayout() {
-  const [collapsed, setCollapsed] = useState(false);
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [collapsed, setCollapsed] = useState<boolean>(false);
   const [activeChat, setActiveChat] = useState<number | null>(null);
+  const [isUserMenu, setIsUserMenu] = useState<boolean>(false);
 
-  const user = { name: "Nguyễn Phúc Vinh", email: "vinh@example.com" };
+  const { user, setUser } = useAuth();
+
+  const isLoginOpen = location.pathname === "/login";
+
+  const handleLogout = () => {
+    setUser(null);
+    setIsUserMenu(false);
+    navigate("/login");
+  };
 
   return (
     <div className="flex h-screen bg-bg text-text font-sans overflow-hidden">
@@ -49,6 +63,7 @@ function MainLayout() {
             {/* New chat button */}
             <div className="px-3 pb-3">
               <button
+                onClick={() => navigate("/")}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-white/8 transition-colors text-sm text-text/80 cursor-pointer"
               >
                 <SquarePen className="w-4 h-4" />
@@ -82,18 +97,63 @@ function MainLayout() {
               ))}
             </div>
 
-            {/* User profile */}
+            {/* User profile | Login */}
             <div className="border-t border-white/5 p-2">
-              <button className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-white/10 transition-colors group cursor-pointer">
-                <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400 to-cyan-500 flex items-center justify-center text-xs font-bold text-text shrink-0">
-                  {user.name.charAt(0)}
+              {user
+                // Logged in
+                ? <div className="relative">
+                  <button
+                    onClick={() => setIsUserMenu(!isUserMenu)}
+                    className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-white/10 transition-colors group cursor-pointer"
+                  >
+                    {/* User avatar */}
+                    {user.avatar_url
+                      ? <img
+                        src={user.avatar_url}
+                        alt={user.name}
+                        className="w-8 h-8 rounded-full object-cover shrink-0"
+                      />
+                      : <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400 to-cyan-5000 flex items-center justify-center text-xs font-bold text-text shrink-0">
+                        {user.name.charAt(0).toUpperCase()}
+                      </div>
+                    }
+
+                    {/* User metadata */}
+                    <div className="flex-1 text-left min-w-0">
+                      <p className="text-sm font-medium text-text truncate">{user.name}</p>
+                      <p className="text-[11px] text-text/40 truncate">{user.email}</p>
+                    </div>
+
+                    <ChevronDown
+                      className={`w-3.5 h-3.5 text-text/40 group-hover:text-text/70 transition-all ${isUserMenu ? "rotate-180 " : ""
+                      }`}
+                    />
+                  </button>
+
+                  {isUserMenu && (
+                    <div className="absolute bottom-full left-0 right-0 mb-1 bg-bg-menu border border-white/10 rounded-xl shadow-xl overflow-hidden">
+                      <button
+                        onClick={handleLogout}
+                        className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-red-400 hover:bg-red-500/10 transition-colors cursor-pointer"
+                      >
+                        <LogOut className="w-4 h-4" />
+                        <span>Logout</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
-                <div className="flex-1 text-left min-w-0">
-                  <p className="text-sm font-medium text-text truncate">{user.name}</p>
-                  <p className="text-[11px] text-text/40 truncate">{user.email}</p>
-                </div>
-                <ChevronDown className="w-3.5 h-3.5 text-text/40 group-hover:text-text/70 transition-colors" />
-              </button>
+                : // Guest
+                <button
+                  onClick={() => navigate("/login")}
+                  className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white/8 flex items-center justify-center shrink-0">
+                    <User className="w-4 h-4 text-text/50 group-hover:text-text/80 transition-colors" />
+                  </div>
+                  <div className="text-left"></div>
+                  <p className="text-sm font-medium text-text/70 group-hover:text-text transition-colors">Login</p>
+                </button>
+              }
             </div>
           </>
         )}
@@ -102,6 +162,7 @@ function MainLayout() {
         {collapsed && (
           <div className="flex flex-col items-center gap-1 px-2 flex-1">
             <button
+              onClick={() => navigate("/")}
               className="p-2.5 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
               title="New chat"
             >
@@ -112,8 +173,9 @@ function MainLayout() {
       </aside>
 
       {/* MAIN */}
-      <main className="flex-1 overflow-hidden">
+      <main className="flex-1 overflow-hidden relative">
         <Outlet />
+        {isLoginOpen && <AuthModal />}
       </main>
     </div>
   );
