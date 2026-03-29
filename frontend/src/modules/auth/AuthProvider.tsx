@@ -1,13 +1,13 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { getMe } from "./auth.service";
-import { AuthContext } from "./auth.context";
+import { AuthContext, type User } from "./auth.context";
 
 interface AuthProviderProps {
   readonly children: ReactNode
 }
 
 function AuthProvider({ children }: AuthProviderProps) {
-  const [user, setUser] = useState<unknown>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
