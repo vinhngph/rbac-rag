@@ -1,12 +1,13 @@
 from sqlmodel import SQLModel, Field, Relationship
 from uuid import UUID, uuid4
-from typing import List
+from typing import List, Optional
 
 from app.models.links import UserDepartmentRoleLink
+from app.core.types import NonEmptyString
 
 
 class DepartmentBase(SQLModel):
-    name: str = Field(index=True)
+    name: NonEmptyString = Field(index=True)
 
 
 class Department(DepartmentBase, table=True):
@@ -21,5 +22,13 @@ class Department(DepartmentBase, table=True):
     roles: List["Role"] = Relationship(back_populates="department")  # type: ignore
 
 
+class DepartmentCreate(DepartmentBase):
+    pass
+
+
 class DepartmentRead(DepartmentBase):
     id: UUID
+
+
+class DepartmentUpdate(SQLModel):
+    name: Optional[str] = None
