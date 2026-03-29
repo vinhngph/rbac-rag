@@ -25,7 +25,7 @@ function MainLayout() {
 
   const { user, setUser } = useAuth();
 
-  const isLoginOpen = location.pathname === "/login";
+  const isLoginOpen = location.pathname === "/auth";
 
   const handleLogout = async () => {
     try {
@@ -35,7 +35,7 @@ function MainLayout() {
     } finally {
       setUser(null);
       setIsUserMenu(false);
-      navigate("/login");
+      navigate("/auth");
     }
   };
 
@@ -151,7 +151,7 @@ function MainLayout() {
                 </div>
                 : // Guest
                 <button
-                  onClick={() => navigate("/login")}
+                  onClick={() => navigate("/auth")}
                   className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer group"
                 >
                   <div className="w-8 h-8 rounded-full bg-white/8 flex items-center justify-center shrink-0">
