@@ -21,5 +21,5 @@ export const logout = () => {
 };
 
 export const getMe = () => {
-  return api.get("/users/me");
+  return api.get("/user/metadata");
 };
