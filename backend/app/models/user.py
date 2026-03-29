@@ -2,8 +2,12 @@ from sqlmodel import SQLModel, Field, Relationship, AutoString
 from pydantic import EmailStr, HttpUrl
 from typing import List, Optional
 from uuid import UUID, uuid4
+from typing import TYPE_CHECKING
 
 from app.models.links import UserDepartmentRoleLink
+
+if TYPE_CHECKING:
+    from app.models.department import Department
 
 
 class UserBase(SQLModel):
@@ -33,7 +37,7 @@ class UserLogin(SQLModel):
     plain_text_password: str
 
 
-class UserPublic(UserBase):
+class UserRead(UserBase):
     id: UUID
 
 

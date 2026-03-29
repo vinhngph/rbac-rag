@@ -6,7 +6,7 @@ from sqlmodel import select
 
 from app.core.config import settings
 from app.db.session import get_db
-from app.models.user import UserPublic, User
+from app.models.user import User
 
 type DB_Dependency = Annotated[AsyncSession, Depends(get_db)]
 
@@ -26,7 +26,7 @@ def get_access_token_from_cookie(request: Request) -> str:
 async def get_current_user(
     token: Annotated[str, Depends(get_access_token_from_cookie)],
     db: DB_Dependency,
-) -> UserPublic:
+) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token"
     )
@@ -48,6 +48,4 @@ async def get_current_user(
     if user is None:
         raise credentials_exception
 
-    return UserPublic(
-        email=user.email, name=user.name, avatar_url=user.avatar_url, id=user.id
-    )
+    return user
