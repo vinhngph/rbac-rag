@@ -8,6 +8,7 @@ from app.core.types import NonEmptyString
 
 class DepartmentBase(SQLModel):
     name: NonEmptyString = Field(index=True)
+    status: bool = Field(default=True, index=True)
 
 
 class Department(DepartmentBase, table=True):

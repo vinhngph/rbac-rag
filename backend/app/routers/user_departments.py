@@ -12,7 +12,10 @@ from app.models.department import (
 from app.models.role import Role
 from app.models.permission import Permission
 from app.models.links import UserDepartmentRoleLink, RolePermissionLink
-from app.dependencies import CurrentUser, DB_Session
+from app.dependencies import CurrentUser, Allow
+from app.db.session import DB_Session
+from app.core.constants import PermissionName
+from app.core.messages import ErrorMessages, SystemMessages
 
 router = APIRouter(prefix="/departments", tags=["Departments"])
 
@@ -22,7 +25,7 @@ async def get_departments(user: CurrentUser, db: DB_Session):
     stm = (
         select(Department)
         .join(UserDepartmentRoleLink)
-        .where(UserDepartmentRoleLink.user_id == user.id)
+        .where(UserDepartmentRoleLink.user_id == user.id, Department.status == True)
     )
 
     rs = await db.exec(statement=stm)
@@ -38,7 +41,7 @@ async def create_new_department(
     new_department: DepartmentCreate,
 ):
     # 1. Get permissions for admin role
-    admin_permission_names = ["Edit", "View"]
+    admin_permission_names = [p.value for p in PermissionName]
     stm = select(Permission).where(col(Permission.name).in_(admin_permission_names))
     rs = await db.exec(statement=stm)
     permissions = rs.all()
@@ -46,7 +49,7 @@ async def create_new_department(
     if len(permissions) != len(admin_permission_names):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="System configuration error: Missing required permissions in database.",
+            detail=SystemMessages.DATABASE_SEED,
         )
 
     # 2. Create new Department
@@ -81,22 +84,19 @@ async def create_new_department(
 
 
 @router.get("/{department_id}", response_model=DepartmentRead)
-async def get_department(department_id: UUID, user: CurrentUser, db: DB_Session):
-    stm = (
-        select(Department)
-        .join(UserDepartmentRoleLink)
-        .where(
-            Department.id == department_id, UserDepartmentRoleLink.user_id == user.id
-        )
-    )
-    rs = await db.exec(statement=stm)
-    department = rs.one_or_none()
-
+async def get_department(
+    department_id: UUID,
+    user: CurrentUser,
+    db: DB_Session,
+    _can_view: Allow.VIEW,
+):
+    department = await db.get(Department, department_id)
     if not department:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Department not found or you don't have permission to access it.",
+            detail=ErrorMessages.DEPARTMENT_NOT_FOUND,
         )
+
     return department
 
 
@@ -106,22 +106,14 @@ async def update_department(
     update_data: DepartmentUpdate,
     user: CurrentUser,
     db: DB_Session,
+    _can_edit: Allow.EDIT,
 ):
-    # Check status of department and user role
-    stm = (
-        select(Department)
-        .join(UserDepartmentRoleLink)
-        .where(
-            Department.id == department_id, UserDepartmentRoleLink.user_id == user.id
-        )
-    )
-    rs = await db.exec(statement=stm)
-    department = rs.one_or_none()
+    department = await db.get(Department, department_id)
 
     if not department:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Department not found or permission denied.",
+            detail=ErrorMessages.DEPARTMENT_NOT_FOUND,
         )
 
     update_dict = update_data.model_dump(exclude_unset=True)
@@ -134,3 +126,23 @@ async def update_department(
     await db.refresh(department)
 
     return department
+
+
+@router.delete("/{department_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_department(
+    department_id: UUID, user: CurrentUser, db: DB_Session, _can_delete: Allow.DELETE
+):
+    department = await db.get(Department, department_id)
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=ErrorMessages.DEPARTMENT_NOT_FOUND,
+        )
+
+    # Soft delete
+    department.status = False
+
+    db.add(department)
+    await db.commit()
+
+    return None
