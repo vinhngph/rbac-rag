@@ -1,15 +1,14 @@
-from fastapi import APIRouter, Depends
-from typing import Annotated
+from fastapi import APIRouter
 
 from app.routers.user_departments import router as user_departments_router
-from app.models.user import User, UserRead
-from app.dependencies import get_current_user
+from app.models.user import UserRead
+from app.dependencies import CurrentUser
 
 router = APIRouter(prefix="/user", tags=["User"])
 
 
 @router.get("/metadata", response_model=UserRead)
-async def metadata(user: Annotated[User, Depends(get_current_user)]):
+async def metadata(user: CurrentUser):
     return user
 
 
