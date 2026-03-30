@@ -3,7 +3,12 @@ from typing import List
 from sqlmodel import select, col
 from uuid import UUID
 
-from app.models.department import DepartmentRead, Department, DepartmentCreate
+from app.models.department import (
+    Department,
+    DepartmentRead,
+    DepartmentCreate,
+    DepartmentUpdate,
+)
 from app.models.role import Role
 from app.models.permission import Permission
 from app.models.links import UserDepartmentRoleLink, RolePermissionLink
@@ -24,26 +29,6 @@ async def get_departments(user: CurrentUser, db: DB_Dependency):
     user_departments = rs.all()
 
     return user_departments
-
-
-@router.get("/{department_id}", response_model=DepartmentRead)
-async def get_department(department_id: UUID, user: CurrentUser, db: DB_Dependency):
-    stm = (
-        select(Department)
-        .join(UserDepartmentRoleLink)
-        .where(
-            Department.id == department_id, UserDepartmentRoleLink.user_id == user.id
-        )
-    )
-    rs = await db.exec(statement=stm)
-    department = rs.one_or_none()
-
-    if not department:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Department not found or you don't have permission to access it.",
-        )
-    return department
 
 
 @router.post("/", response_model=DepartmentRead, status_code=status.HTTP_201_CREATED)
@@ -89,6 +74,62 @@ async def create_new_department(
     db.add(link)
 
     # 7. Commit database
+    await db.commit()
+    await db.refresh(department)
+
+    return department
+
+
+@router.get("/{department_id}", response_model=DepartmentRead)
+async def get_department(department_id: UUID, user: CurrentUser, db: DB_Dependency):
+    stm = (
+        select(Department)
+        .join(UserDepartmentRoleLink)
+        .where(
+            Department.id == department_id, UserDepartmentRoleLink.user_id == user.id
+        )
+    )
+    rs = await db.exec(statement=stm)
+    department = rs.one_or_none()
+
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found or you don't have permission to access it.",
+        )
+    return department
+
+
+@router.patch("/{department_id}", response_model=DepartmentRead)
+async def update_department(
+    department_id: UUID,
+    update_data: DepartmentUpdate,
+    user: CurrentUser,
+    db: DB_Dependency,
+):
+    # Check status of department and user role
+    stm = (
+        select(Department)
+        .join(UserDepartmentRoleLink)
+        .where(
+            Department.id == department_id, UserDepartmentRoleLink.user_id == user.id
+        )
+    )
+    rs = await db.exec(statement=stm)
+    department = rs.one_or_none()
+
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Department not found or permission denied.",
+        )
+
+    update_dict = update_data.model_dump(exclude_unset=True)
+
+    for key, value in update_dict.items():
+        setattr(department, key, value)
+
+    db.add(department)
     await db.commit()
     await db.refresh(department)
 
