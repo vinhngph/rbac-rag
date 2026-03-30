@@ -19,13 +19,14 @@ const mockChats = [
 function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
+
   const [leftCollapsed, setLeftCollapsed] = useState<boolean>(false);
   const [activeChat, setActiveChat] = useState<number | null>(null);
   const [isUserMenu, setIsUserMenu] = useState<boolean>(false);
 
   const { user, setUser } = useAuth();
 
-  const isLoginOpen = location.pathname === "/auth";
+  const isAuthOpen = location.pathname === "/auth";
 
   const handleLogout = async () => {
     try {
@@ -41,7 +42,7 @@ function MainLayout() {
 
   return (
     <div className="flex h-screen bg-bg text-text font-sans overflow-hidden">
-      {/* SIDEBAR */}
+      {/* LEFT SIDEBAR */}
       <aside className={`flex flex-col transition-all duration-300 ease-in-out bg-bg-sidebar border-r border-white/5 ${leftCollapsed ? "w-15" : "w-65"}`}>
         {/* Top bar */}
         <div className="flex items-center justify-between px-3 py-3 h-13">
@@ -182,7 +183,7 @@ function MainLayout() {
       {/* MAIN */}
       <main className="flex-1 overflow-hidden relative">
         <Outlet />
-        {isLoginOpen && <AuthModal />}
+        {isAuthOpen && <AuthModal />}
       </main>
     </div>
   );
