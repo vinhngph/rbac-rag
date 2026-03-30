@@ -70,7 +70,7 @@ function AuthModal() {
       />
 
       {/* Modal card */}
-      <div className="relative z-10 w-full max-w-sm mx-4 bg-bg-login-modal border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
+      <div className="relative z-10 w-full max-w-sm mx-4 bg-bg-modal border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
       >
         {/* Close button */}
         <button
