@@ -19,7 +19,7 @@ const mockChats = [
 function MainLayout() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [leftCollapsed, setLeftCollapsed] = useState<boolean>(false);
   const [activeChat, setActiveChat] = useState<number | null>(null);
   const [isUserMenu, setIsUserMenu] = useState<boolean>(false);
 
@@ -42,22 +42,22 @@ function MainLayout() {
   return (
     <div className="flex h-screen bg-bg text-text font-sans overflow-hidden">
       {/* SIDEBAR */}
-      <aside className={`flex flex-col transition-all duration-300 ease-in-out bg-bg-sidebar border-r border-white/5 ${collapsed ? "w-15" : "w-65"}`}>
+      <aside className={`flex flex-col transition-all duration-300 ease-in-out bg-bg-sidebar border-r border-white/5 ${leftCollapsed ? "w-15" : "w-65"}`}>
         {/* Top bar */}
         <div className="flex items-center justify-between px-3 py-3 h-13">
-          {!collapsed && (
+          {!leftCollapsed && (
             <div className="flex items-center gap-2 px-1">
               <Bot className="w-5 h-5 text-emerald-400 shrink-0" />
               <span className="text-[15px] font-semibold tracking-tight text-zinc-300">{APP_CONFIG.APP_NAME}</span>
             </div>
           )}
-          <div className={`flex items-center gap-1 ${collapsed ? "mx-auto" : ""}`}>
+          <div className={`flex items-center gap-1 ${leftCollapsed ? "mx-auto" : ""}`}>
             <button
-              onClick={() => setCollapsed(!collapsed)}
+              onClick={() => setLeftCollapsed(!leftCollapsed)}
               className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer"
-              title={collapsed ? "Open sidebar" : "Close sidebar"}
+              title={leftCollapsed ? "Open sidebar" : "Close sidebar"}
             >
-              {collapsed
+              {leftCollapsed
                 ? <PanelLeftOpen className="w-4 h-4 text-text/70" />
                 : <PanelLeftClose className="w-4 h-4 text-text/70" />
               }
@@ -65,7 +65,7 @@ function MainLayout() {
           </div>
         </div>
 
-        {!collapsed && (
+        {!leftCollapsed && (
           <>
             {/* New chat button */}
             <div className="px-3 pb-3">
@@ -165,8 +165,8 @@ function MainLayout() {
           </>
         )}
 
-        {/* Collapsed: icon-only buttons */}
-        {collapsed && (
+        {/* LeftCollapsed: icon-only buttons */}
+        {leftCollapsed && (
           <div className="flex flex-col items-center gap-1 px-2 flex-1">
             <button
               onClick={() => navigate("/")}
