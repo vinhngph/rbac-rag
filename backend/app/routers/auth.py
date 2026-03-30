@@ -3,14 +3,14 @@ from sqlmodel import select
 
 from app.models.user import User, UserLogin, UserRegister
 from app.core.security import verify_password, create_access_token, get_password_hash
-from app.dependencies import DB_Dependency
+from app.dependencies import DB_Session
 from app.core.config import settings
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/login")
-async def login(response: Response, login_data: UserLogin, db: DB_Dependency):
+async def login(response: Response, login_data: UserLogin, db: DB_Session):
     statement = select(User).where(User.email == login_data.email)
     result = await db.exec(statement)
     user = result.one_or_none()
@@ -37,7 +37,7 @@ async def login(response: Response, login_data: UserLogin, db: DB_Dependency):
 
 
 @router.post("/register")
-async def register(response: Response, user_in: UserRegister, db: DB_Dependency):
+async def register(response: Response, user_in: UserRegister, db: DB_Session):
     statement = select(User).where(User.email == user_in.email)
     result = await db.exec(statement)
     if result.one_or_none():

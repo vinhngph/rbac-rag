@@ -12,13 +12,13 @@ from app.models.department import (
 from app.models.role import Role
 from app.models.permission import Permission
 from app.models.links import UserDepartmentRoleLink, RolePermissionLink
-from app.dependencies import CurrentUser, DB_Dependency
+from app.dependencies import CurrentUser, DB_Session
 
 router = APIRouter(prefix="/departments", tags=["Departments"])
 
 
 @router.get("/", response_model=List[DepartmentRead])
-async def get_departments(user: CurrentUser, db: DB_Dependency):
+async def get_departments(user: CurrentUser, db: DB_Session):
     stm = (
         select(Department)
         .join(UserDepartmentRoleLink)
@@ -34,7 +34,7 @@ async def get_departments(user: CurrentUser, db: DB_Dependency):
 @router.post("/", response_model=DepartmentRead, status_code=status.HTTP_201_CREATED)
 async def create_new_department(
     user: CurrentUser,
-    db: DB_Dependency,
+    db: DB_Session,
     new_department: DepartmentCreate,
 ):
     # 1. Get permissions for admin role
@@ -81,7 +81,7 @@ async def create_new_department(
 
 
 @router.get("/{department_id}", response_model=DepartmentRead)
-async def get_department(department_id: UUID, user: CurrentUser, db: DB_Dependency):
+async def get_department(department_id: UUID, user: CurrentUser, db: DB_Session):
     stm = (
         select(Department)
         .join(UserDepartmentRoleLink)
@@ -105,7 +105,7 @@ async def update_department(
     department_id: UUID,
     update_data: DepartmentUpdate,
     user: CurrentUser,
-    db: DB_Dependency,
+    db: DB_Session,
 ):
     # Check status of department and user role
     stm = (

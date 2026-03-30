@@ -1,14 +1,11 @@
 from fastapi import Request, HTTPException, status, Depends
 from jwt import decode as jwt_decode, InvalidTokenError  # type: ignore
 from typing import Annotated
-from sqlmodel.ext.asyncio.session import AsyncSession
 from sqlmodel import select
 
 from app.core.config import settings
-from app.db.session import get_db
+from app.db.session import DB_Session
 from app.models.user import User
-
-type DB_Dependency = Annotated[AsyncSession, Depends(get_db)]
 
 
 def get_access_token_from_cookie(request: Request) -> str:
@@ -25,7 +22,7 @@ def get_access_token_from_cookie(request: Request) -> str:
 
 async def get_current_user(
     token: Annotated[str, Depends(get_access_token_from_cookie)],
-    db: DB_Dependency,
+    db: DB_Session,
 ) -> User:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid Token"
