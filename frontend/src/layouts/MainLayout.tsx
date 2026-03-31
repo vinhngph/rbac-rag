@@ -137,7 +137,12 @@ function MainLayout() {
         <div className="flex items-center justify-between px-3 py-3 h-13">
           {!leftCollapsed && (
             <div className="flex items-center gap-2 px-1">
-              <Bot className="w-5 h-5 text-emerald-400 shrink-0" />
+              <button
+                className="cursor-pointer"
+                onClick={() => navigate("/")}
+              >
+                <Bot className="w-5 h-5 text-emerald-400 shrink-0" />
+              </button>
               <span className="text-[15px] font-semibold tracking-tight text-zinc-300">{APP_CONFIG.APP_NAME}</span>
             </div>
           )}
