@@ -1,24 +1,28 @@
+from typing import Any
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+from app.core.types import NonEmptyString
 
 
 class Settings(BaseSettings):
-    PROJECT_NAME: str = "RBAC-RAG"
+    PROJECT_NAME: NonEmptyString = "RBAC-RAG"
 
     # PostgreSQL
-    POSTGRES_USER: str
-    POSTGRES_PASSWORD: str
-    POSTGRES_SERVER: str
-    POSTGRES_DB: str
+    POSTGRES_USER: NonEmptyString
+    POSTGRES_PASSWORD: NonEmptyString
+    POSTGRES_SERVER: NonEmptyString
+    POSTGRES_DB: NonEmptyString
 
     # System
-    DEBUG: str
-    JWT_AT_KEY: str
-    JWT_SECRET_KEY: str
-    JWT_ALGORITHM: str
+    DEBUG: NonEmptyString
+    JWT_AT_KEY: NonEmptyString
+    JWT_SECRET_KEY: NonEmptyString
+    JWT_ALGORITHM: NonEmptyString
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: float
 
     # Front-end
-    FRONTEND_ORIGIN: str
+    FRONTEND_ORIGIN: NonEmptyString
 
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
@@ -26,5 +30,8 @@ class Settings(BaseSettings):
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
+    def __init__(self, **kwds: Any) -> None:
+        super().__init__(**kwds)
 
-settings = Settings()  # type: ignore
+
+settings = Settings()
