@@ -2,7 +2,7 @@ from sqlmodel import SQLModel, Field, Relationship, AutoString
 from pydantic import EmailStr, HttpUrl
 from typing import List, Optional
 from uuid import UUID, uuid4
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from app.models.links import UserDepartmentRoleLink
 from app.core.types import NonEmptyString
@@ -21,12 +21,14 @@ class UserBase(SQLModel):
 
 
 class User(UserBase, table=True):
-    __tablename__ = "users"  # type: ignore
+    __tablename__: Any = "users"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     hashed_password: str
 
-    departments: List["Department"] = Relationship(back_populates="users", link_model=UserDepartmentRoleLink)  # type: ignore
+    departments: List["Department"] = Relationship(
+        back_populates="users", link_model=UserDepartmentRoleLink
+    )
 
 
 class UserRegister(UserBase):
