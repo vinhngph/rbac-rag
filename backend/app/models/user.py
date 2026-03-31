@@ -9,6 +9,7 @@ from app.core.types import NonEmptyString
 
 if TYPE_CHECKING:
     from app.models.department import Department
+    from app.models.knowledge import Knowledge
 
 
 class UserBase(SQLModel):
@@ -29,6 +30,7 @@ class User(UserBase, table=True):
     departments: List["Department"] = Relationship(
         back_populates="users", link_model=UserDepartmentRoleLink
     )
+    knowledges: List["Knowledge"] = Relationship(back_populates="uploader")
 
 
 class UserRegister(UserBase):

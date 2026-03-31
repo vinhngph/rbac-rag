@@ -8,6 +8,7 @@ from app.core.types import NonEmptyString
 if TYPE_CHECKING:
     from app.models.user import User
     from app.models.role import Role
+    from app.models.knowledge import Knowledge
 
 
 class DepartmentBase(SQLModel):
@@ -25,6 +26,7 @@ class Department(DepartmentBase, table=True):
     )
 
     roles: List["Role"] = Relationship(back_populates="department")
+    knowledges: List["Knowledge"] = Relationship(back_populates="department")
 
 
 class DepartmentCreate(DepartmentBase):
