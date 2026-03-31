@@ -21,6 +21,9 @@ class Settings(BaseSettings):
     JWT_ALGORITHM: NonEmptyString
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: float
 
+    # Store service
+    STORAGE_DIR: NonEmptyString
+
     # Front-end
     FRONTEND_ORIGIN: NonEmptyString
 
