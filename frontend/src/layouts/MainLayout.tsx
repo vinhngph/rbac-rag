@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Bot, Building2, ChevronDown, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen, Plus, Search, SquarePen, User } from "lucide-react";
 import { Outlet, useLocation, useNavigate } from "react-router";
 
@@ -6,7 +6,9 @@ import { APP_CONFIG } from "../config";
 import AuthModal from "../components/AuthModal";
 import { useAuth } from "../modules/auth/useAuth";
 import { logout } from "../modules/auth/auth.service";
-import { createDepartment, type DepartmentRead } from "../modules/department/department.service";
+import { createDepartment, deleteDepartment, getDepartments, updateDepartment, type DepartmentRead } from "../modules/department/department.service";
+import DepartmentItem from "../components/DepartmentItem";
+import RenameModal from "../components/RenameModal";
 
 const mockChats = [
   { id: 1, title: "What is RAG?" },
@@ -29,10 +31,20 @@ function MainLayout() {
   const [isAddingDepartment, setIsAddingDepartment] = useState<boolean>(false);
   const [newDepartmentName, setNewDepartmentName] = useState<string>("");
   const [departments, setDepartments] = useState<DepartmentRead[]>([]);
+  const [checkedDepartments, setCheckedDepartments] = useState<Set<string>>(new Set());
+  const [renameTarget, setRenameTarget] = useState<{ id: string; name: string } | null>(null);
 
   const { user, setUser } = useAuth();
 
   const isAuthOpen = location.pathname === "/auth";
+
+  // Load active departments
+  useEffect(() => {
+    if (!user) return;
+    getDepartments()
+      .then((res) => setDepartments(res.data))
+      .catch(console.error);
+  }, [user]);
 
   const handleLogout = async () => {
     try {
@@ -41,6 +53,7 @@ function MainLayout() {
       console.error(err);
     } finally {
       setUser(null);
+      setDepartments([]);
       setIsUserMenu(false);
       navigate("/auth");
     }
@@ -64,6 +77,55 @@ function MainLayout() {
     if (e.key === "Escape") {
       setIsAddingDepartment(false);
       setNewDepartmentName("");
+    }
+  };
+
+  const handleToggleCheck = (id: string) => {
+    setCheckedDepartments((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) {
+        next.delete(id);
+      } else {
+        next.add(id);
+      }
+      return next;
+    });
+  };
+
+  const handleDepartmentNavigate = (id: string) => {
+    if (location.pathname === `/department/${id}`) {
+      navigate("/");
+    } else {
+      navigate(`/department/${id}`);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteDepartment(id);
+      setDepartments((prev) => prev.filter((d) => d.id !== id));
+      setCheckedDepartments((prev) => {
+        const n = new Set(prev);
+        n.delete(id);
+        return n;
+      });
+
+      if (location.pathname === `/department/${id}`)
+        navigate("/");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleRenameConfirm = async (name: string) => {
+    if (!renameTarget) return;
+    try {
+      const res = await updateDepartment(renameTarget.id, { name });
+      setDepartments((prev) => prev.map((d) => d.id === renameTarget.id ? res.data : d));
+    } catch (error) {
+      console.error(error);
+    } finally {
+      setRenameTarget(null);
     }
   };
 
@@ -291,9 +353,64 @@ function MainLayout() {
             )}
 
             {/* Knowledge context badge */}
+            {(checkedDepartments.size > 0) && (
+              <div className="mx-3 mt-2.5 px-2.5 py-1.5 bg-emerald-500/8 border border-emerald-500/15 rounded-xl">
+                <p className="text-[11px] text-emerald-400/80 leading-snug">
+                  Chat uses{" "}
+                  <span className="font-semibold text-emerald-400">
+                    {`${checkedDepartments.size} department${checkedDepartments.size > 1 ? "s" : ""}`}
+                  </span>
+                  {" "}
+                  as context
+                </p>
+              </div>
+            )}
+            {/* List active departments */}
+            <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
+              {departments.length === 0
+                ? <div className="flex flex-col items-center justify-center h-32 gap-2">
+                  <Building2 className="w-7 h-7 text-text/10" />
+                  <p className="text-xs text-text/25">No departments yet</p>
+                  <button
+                    onClick={() => setIsAddingDepartment(true)}
+                    className="text-xs text-emerald-400/60 hover:text-emerald-400 transition-colors cursor-pointer"
+                  >
+                    + Create one
+                  </button>
+                </div>
+                : (
+                  departments.map((department) => (
+                    <DepartmentItem
+                      key={department.id}
+                      department={department}
+                      isActive={location.pathname === `/department/${department.id}`}
+                      isChecked={checkedDepartments.has(department.id)}
+                      onToggleCheck={handleToggleCheck}
+                      onNavigate={handleDepartmentNavigate}
+                      onRename={(id, name) => setRenameTarget({ id, name })}
+                      onDelete={handleDelete}
+                    />
+                  ))
+                )}
+            </div>
+
+            {/* Footer */}
+            <div className="border-t border-white/5 px-4 py-2.5">
+              <p className="text-[10px] text-text/20 leading-relaxed">
+                ✓ Check department{"(s)"} to include in chat context
+              </p>
+            </div>
           </>
         )}
       </aside>
+
+      {renameTarget && (
+        <RenameModal
+          initialName={renameTarget.name}
+          onConfirm={handleRenameConfirm}
+          onCancel={() => setRenameTarget(null)}
+        />
+      )}
     </div>
   );
 }
