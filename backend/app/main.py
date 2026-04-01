@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from sqlmodel.ext.asyncio.session import AsyncSession
+from logging import getLogger
 
 from app.core.config import settings
 from app.core.seed_db import seed_db
@@ -9,10 +10,12 @@ from app.routers import auth, user
 from app.db.session import engine
 from app.services.zero_trust import zero_trust
 
+logger = getLogger("uvicorn.error")
+
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    print(f"Starting {settings.PROJECT_NAME}...")
+    logger.info(f"Starting {settings.PROJECT_NAME}...")
 
     async with AsyncSession(engine) as session:
         await seed_db(session)
@@ -20,7 +23,6 @@ async def lifespan(app: FastAPI):
     await zero_trust.initialize()
 
     yield
-    print("Shutting down...")
 
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
