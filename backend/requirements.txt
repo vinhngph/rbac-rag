@@ -4,3 +4,4 @@ pyjwt
 pwdlib[argon2]
 alembic
 asyncpg
+pillow
