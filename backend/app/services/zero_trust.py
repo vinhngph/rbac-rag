@@ -1,11 +1,6 @@
 from anyio import open_file, Path as AsyncPath, to_thread
 from fastapi import UploadFile, HTTPException, status
-from logging import (
-    basicConfig,
-    INFO as logging_INFO,
-    info as logging_info,
-    error as logging_error,
-)
+from logging import info as logging_info, error as logging_error
 from re import sub as re_sub
 from uuid import uuid4, UUID
 from hashlib import sha256
@@ -14,8 +9,6 @@ from pydantic import BaseModel
 
 from app.services.store import store_service
 from app.core.types import NonEmptyString
-
-basicConfig(level=logging_INFO, format="[ZeroTrust] %(levelname)s: %(message)s")
 
 
 class FileMetadata(BaseModel):
@@ -181,3 +174,6 @@ class ZeroTrust:
                 await self.store.delete_from_quarantine(file_id)
 
             raise e
+
+
+zero_trust = ZeroTrust()
