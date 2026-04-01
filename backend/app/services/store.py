@@ -1,7 +1,7 @@
 from os import makedirs
-from os.path import abspath, join as path_join, dirname
+from os.path import abspath, join as path_join, commonpath
 from fastapi import UploadFile
-from anyio import open_file
+from anyio import open_file, Path as AsyncPath
 
 from app.core.config import settings
 
@@ -18,7 +18,15 @@ class StoreService:
     def get_quarantine_path(self, relative_path: str):
         full_path = abspath(path_join(self.quarantine_dir, relative_path))
 
-        if not full_path.startswith(self.quarantine_dir):
+        if commonpath([self.quarantine_dir, full_path]) != self.quarantine_dir:
+            raise ValueError("Security Alert: Path Traversal attack detected!")
+
+        return full_path
+
+    def get_safe_path(self, relative_path: str):
+        full_path = abspath(path_join(self.safe_dir, relative_path))
+
+        if commonpath([self.safe_dir, full_path]) != self.safe_dir:
             raise ValueError("Security Alert: Path Traversal attack detected!")
 
         return full_path
@@ -28,7 +36,7 @@ class StoreService:
 
         full_path = self.get_quarantine_path(relative_path)
 
-        makedirs(dirname(full_path), exist_ok=True)
+        await AsyncPath(full_path).parent.mkdir(parents=True, exist_ok=True)
 
         await file.seek(0)
 
@@ -38,3 +46,39 @@ class StoreService:
                 await buffer.write(chunk)
 
         return full_path
+
+    async def move_to_safe_zone(self, relative_path: str):
+        q_path = self.get_quarantine_path(relative_path)
+        s_path = self.get_safe_path(relative_path)
+
+        async_q_path = AsyncPath(q_path)
+        async_s_path = AsyncPath(s_path)
+
+        if await async_s_path.exists():
+            raise FileExistsError(
+                f"Conflict: File already exists in safe zone at {relative_path}"
+            )
+
+        await async_s_path.parent.mkdir(parents=True, exist_ok=True)
+
+        try:
+            await async_q_path.rename(s_path)
+        except FileNotFoundError:
+            raise FileNotFoundError("Security Alert: File not found in quarantine.")
+        except IsADirectoryError:
+            raise ValueError("Security Alert: Target is a directory, not a file.")
+
+        return s_path
+
+    async def delete_from_quarantine(self, relative_path: str):
+        q_path = self.get_quarantine_path(relative_path)
+        async_q_path = AsyncPath(q_path)
+
+        try:
+            await async_q_path.unlink()
+        except FileNotFoundError:
+            pass
+        except (IsADirectoryError, PermissionError):
+            raise ValueError(
+                "Security Alert: Attempted to delete a directory! Activity logged."
+            )
