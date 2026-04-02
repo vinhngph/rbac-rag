@@ -1,14 +1,16 @@
 from sqlmodel import SQLModel, Field, Relationship, Column, DateTime
 from uuid import UUID, uuid4
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List
 
 from app.core.types import NonEmptyString
 from app.core.constants import KnowledgeStatus, FileType
+from app.models.links import KnowledgeRoleLink
 
 if TYPE_CHECKING:
     from app.models.department import Department
     from app.models.user import User
+    from app.models.role import Role
 
 
 class KnowledgeBase(SQLModel):
@@ -34,6 +36,9 @@ class Knowledge(KnowledgeBase, table=True):
 
     department: "Department" = Relationship(back_populates="knowledges")
     uploader: "User" = Relationship(back_populates="knowledges")
+    allowed_roles: List["Role"] = Relationship(
+        link_model=KnowledgeRoleLink, back_populates="knowledges"
+    )
 
 
 class KnowledgeRead(KnowledgeBase):

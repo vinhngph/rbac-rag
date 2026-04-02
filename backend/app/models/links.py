@@ -16,3 +16,10 @@ class UserDepartmentRoleLink(SQLModel, table=True):
     user_id: UUID = Field(foreign_key="users.id", primary_key=True)
     department_id: UUID = Field(foreign_key="departments.id", primary_key=True)
     role_id: UUID = Field(foreign_key="roles.id", primary_key=True)
+
+
+class KnowledgeRoleLink(SQLModel, table=True):
+    __tablename__: Any = "knowledges_roles"
+
+    knowledge_id: UUID = Field(foreign_key="knowledges.id", primary_key=True)
+    role_id: UUID = Field(foreign_key="roles.id", primary_key=True)
