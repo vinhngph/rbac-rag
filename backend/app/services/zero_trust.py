@@ -1,16 +1,17 @@
 from anyio import open_file, Path as AsyncPath, to_thread
 from fastapi import UploadFile, HTTPException, status
-from logging import info as logging_info, error as logging_error
 from re import sub as re_sub
 from uuid import UUID
 from hashlib import sha256
 from PIL import Image
+from logging import getLogger
 
 from app.services.store import store_service
 from app.core.constants import FileType, MAGIC_BYTES_RULES
 from app.models.knowledge import Knowledge
 from app.models.user import User
-from app.main import logger
+
+logger = getLogger("uvicorn.error")
 
 
 def _clean_image(img_path: str):
@@ -100,7 +101,7 @@ class ZeroTrust:
                 sha256_hash.update(chunk)
         file_hash = sha256_hash.hexdigest()
 
-        logging_info(f"File hash: {file_hash}")
+        logger.info(f"File hash: {file_hash}")
         # API VirusTotal
 
         # 2: ClamAV scan
@@ -118,7 +119,7 @@ class ZeroTrust:
             q_path = store_service.get_quarantine_path(knowledge.id)
             try:
                 await to_thread.run_sync(_clean_image, q_path)
-                logging_info(
+                logger.info(
                     "Layer 4: The image has been extracted and reconstructed cleanly."
                 )
             except Exception as e:
@@ -147,11 +148,11 @@ class ZeroTrust:
             await self._layer4_cdr_disarm(knowledge)
             await self._layer5_approval_and_distribute(knowledge)
 
-            logging_info(f"{knowledge.title} has been scanned.")
+            logger.info(f"{knowledge.title} has been scanned.")
 
             return knowledge
         except Exception as e:
-            logging_error(e)
+            logger.error(e)
 
             if file_id:
                 await store_service.delete_from_quarantine(file_id)
