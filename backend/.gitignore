@@ -208,3 +208,7 @@ __marimo__/
 
 # alembic
 migrations/versions/*
+
+# storage
+storage/quarantine
+storage/safe
