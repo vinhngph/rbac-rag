@@ -3,18 +3,21 @@ from fastapi import (
     status,
     BackgroundTasks,
     UploadFile,
-    File,
     HTTPException,
+    File,
     Header,
+    Form,
 )
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
 from uuid import UUID
-from typing import Annotated
+from typing import Annotated, List
 from json import dumps as json_dumps
 from asyncio import sleep as async_sleep
+from sqlmodel import select, col
 
 from app.models.knowledge import KnowledgeRead, Knowledge
+from app.models.role import Role
 from app.db.session import DB_Session
 from app.dependencies import CurrentUser, Allow
 from app.services.zero_trust import zero_trust
@@ -29,11 +32,12 @@ router = APIRouter(
 @router.post("/", response_model=KnowledgeRead, status_code=status.HTTP_201_CREATED)
 async def upload_knowledge(
     department_id: UUID,
-    background_tasks: BackgroundTasks,
     file: Annotated[UploadFile, File()],
+    background_tasks: BackgroundTasks,
     db: DB_Session,
     user: CurrentUser,
     _can_edit: Allow.EDIT,
+    allowed_role_ids: Annotated[List[UUID] | None, Form()] = None,
 ):
     try:
         knowledge = await zero_trust.execute_security_pipeline(
@@ -45,6 +49,21 @@ async def upload_knowledge(
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail=f"Security Error: {str(e)}"
         )
+
+    if allowed_role_ids:
+        query = select(Role).where(
+            col(Role.id).in_(allowed_role_ids),
+            col(Role.department_id) == department_id,
+        )
+        valid_roles = (await db.exec(query)).all()
+
+        if len(valid_roles) != len(allowed_role_ids):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid allowed_role_ids",
+            )
+        else:
+            knowledge.allowed_roles = list(valid_roles)
 
     db.add(knowledge)
     await db.commit()
