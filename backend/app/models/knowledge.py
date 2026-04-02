@@ -1,4 +1,4 @@
-from sqlmodel import SQLModel, Field, Relationship
+from sqlmodel import SQLModel, Field, Relationship, Column, DateTime
 from uuid import UUID, uuid4
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any
@@ -14,11 +14,8 @@ if TYPE_CHECKING:
 class KnowledgeBase(SQLModel):
     title: NonEmptyString = Field(index=True)
     file_type: FileType = Field(description=f"{[t.value for t in FileType]}")
-    file_path: NonEmptyString = Field(
-        unique=True, description="Relative path in local storage."
-    )
     status: KnowledgeStatus = Field(
-        default=KnowledgeStatus.PROCESSING,
+        default=KnowledgeStatus.SCANNING,
         description=f"{[s.value for s in KnowledgeStatus]}",
     )
 
@@ -30,7 +27,10 @@ class Knowledge(KnowledgeBase, table=True):
     __tablename__: Any = "knowledges"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True)),
+    )
 
     department: "Department" = Relationship(back_populates="knowledges")
     uploader: "User" = Relationship(back_populates="knowledges")

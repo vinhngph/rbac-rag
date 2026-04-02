@@ -10,6 +10,13 @@ class PermissionName(str, Enum):
 
 
 class KnowledgeStatus(str, Enum):
+    SCANNING = "scanning"
+    SAFE = "safe"
+
+    EXTRACTING = "extracting"
+    CHUNKING = "chunking"
+    EMBEDDING = "embedding"
+
     COMPLETED = "completed"
     FAILED = "failed"
 
