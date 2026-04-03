@@ -25,7 +25,7 @@ from app.services.worker.knowledge import process_knowledge
 from app.core.constants import KnowledgeStatus
 
 router = APIRouter(
-    prefix="/departments/{department_id}/knowledge", tags=["Knowledge Base"]
+    prefix="/departments/{department_id}/knowledges", tags=["Knowledge Base"]
 )
 
 

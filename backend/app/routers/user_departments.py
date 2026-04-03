@@ -36,29 +36,28 @@ async def get_departments(user: CurrentUser, db: DB_Session):
 
 @router.post("/", response_model=DepartmentRead, status_code=status.HTTP_201_CREATED)
 async def create_new_department(
+    department_in: DepartmentCreate,
     user: CurrentUser,
     db: DB_Session,
-    new_department: DepartmentCreate,
 ):
-    # 1. Get permissions for admin role
-    admin_permission_names = [p.value for p in PermissionName]
-    stm = select(Permission).where(col(Permission.name).in_(admin_permission_names))
-    rs = await db.exec(statement=stm)
-    permissions = rs.all()
+    # 1. Get permissions for owner role
+    owner_permission_names = [p.value for p in PermissionName]
+    stm = select(Permission).where(col(Permission.name).in_(owner_permission_names))
+    permissions = (await db.exec(statement=stm)).all()
 
-    if len(permissions) != len(admin_permission_names):
+    if len(permissions) != len(owner_permission_names):
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail=SystemMessages.DATABASE_SEED,
         )
 
     # 2. Create new Department
-    department = Department.model_validate(new_department)
+    department = Department(name=department_in.name, status=True, owner_id=user.id)
     db.add(department)
 
-    # 3. Create new Role - "Admin" by creator
-    admin_role = Role(name="Admin", department_id=department.id)
-    db.add(admin_role)
+    # 3. Create new Role - "Owner"
+    owner_role = Role(name="Owner", department_id=department.id)
+    db.add(owner_role)
 
     # 4. Add Department and Role to transaction
     await db.flush()
@@ -66,13 +65,13 @@ async def create_new_department(
     # 5. Assign permissions for Role
     for perm in permissions:
         role_perm_link = RolePermissionLink(
-            role_id=admin_role.id, permission_id=perm.id
+            role_id=owner_role.id, permission_id=perm.id
         )
         db.add(role_perm_link)
 
     # 6. Link User - Department - Role
     link = UserDepartmentRoleLink(
-        user_id=user.id, department_id=department.id, role_id=admin_role.id
+        user_id=user.id, department_id=department.id, role_id=owner_role.id
     )
     db.add(link)
 

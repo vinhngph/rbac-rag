@@ -31,6 +31,7 @@ class User(UserBase, table=True):
         back_populates="users", link_model=UserDepartmentRoleLink
     )
     knowledges: List["Knowledge"] = Relationship(back_populates="uploader")
+    owned_departments: List["Department"] = Relationship(back_populates="owner")
 
 
 class UserRegister(UserBase):

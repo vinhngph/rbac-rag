@@ -13,20 +13,21 @@ if TYPE_CHECKING:
 
 class DepartmentBase(SQLModel):
     name: NonEmptyString = Field(index=True)
-    status: bool = Field(default=True, index=True)
 
 
 class Department(DepartmentBase, table=True):
     __tablename__: Any = "departments"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+    owner_id: UUID = Field(foreign_key="users.id", index=True)
+    status: bool = Field(default=True, index=True)
 
     users: List["User"] = Relationship(
         back_populates="departments", link_model=UserDepartmentRoleLink
     )
-
     roles: List["Role"] = Relationship(back_populates="department")
     knowledges: List["Knowledge"] = Relationship(back_populates="department")
+    owner: "User" = Relationship(back_populates="owned_departments")
 
 
 class DepartmentCreate(DepartmentBase):
@@ -35,6 +36,8 @@ class DepartmentCreate(DepartmentBase):
 
 class DepartmentRead(DepartmentBase):
     id: UUID
+    owner_id: UUID
+    status: bool
 
 
 class DepartmentUpdate(SQLModel):

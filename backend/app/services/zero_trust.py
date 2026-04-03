@@ -4,14 +4,12 @@ from re import sub as re_sub
 from uuid import UUID
 from hashlib import sha256
 from PIL import Image
-from logging import getLogger
 
 from app.services.store import store_service
 from app.core.constants import FileType, MAGIC_BYTES_RULES
 from app.models.knowledge import Knowledge
 from app.models.user import User
-
-logger = getLogger("uvicorn.error")
+from app.core.logger import logger_info, logger_error
 
 
 def _clean_image(img_path: str):
@@ -42,7 +40,7 @@ class ZeroTrust:
     async def _layer1_gatekeeping(
         self, file: UploadFile, user: User, department_id: UUID
     ):
-        logger.info("Execute Layer 1: Gatekeeping...")
+        logger_info("ZeroTrust", "Execute Layer 1: Gatekeeping...")
 
         # 1: Size limit
         if file.size and (file.size > self.max_file_size):
@@ -83,14 +81,14 @@ class ZeroTrust:
         )
 
     async def _layer2_quarantine(self, file: UploadFile, knowledge: Knowledge):
-        logger.info("Execute Layer 2: Quarantine...")
+        logger_info("ZeroTrust", "Execute Layer 2: Quarantine...")
 
         await store_service.save_to_quarantine_zone(
             file, file_id=knowledge.id, max_size=self.max_file_size
         )
 
     async def _layer3_deep_scanning(self, knowledge: Knowledge):
-        logger.info("Execute Layer 3: Deep Scanning (Hash & Antivirus)...")
+        logger_info("ZeroTrust", "Execute Layer 3: Deep Scanning (Hash & Antivirus)...")
 
         # 1: Hash Check (SHA-256)
         sha256_hash = sha256()
@@ -101,7 +99,7 @@ class ZeroTrust:
                 sha256_hash.update(chunk)
         file_hash = sha256_hash.hexdigest()
 
-        logger.info(f"File hash: {file_hash}")
+        logger_info("ZeroTrust", f"Layer 3: {file_hash}")
         # API VirusTotal
 
         # 2: ClamAV scan
@@ -113,14 +111,15 @@ class ZeroTrust:
             raise Exception("Layer 3 Error: Malware/Virus Detected.")
 
     async def _layer4_cdr_disarm(self, knowledge: Knowledge):
-        logger.info("Execute Layer 4: Data disinfection (CDR)")
+        logger_info("ZeroTrust", "Execute Layer 4: Data disinfection (CDR)")
 
         if knowledge.file_type in [FileType.PNG, FileType.JPG, FileType.JPEG]:
             q_path = store_service.get_quarantine_path(knowledge.id)
             try:
                 await to_thread.run_sync(_clean_image, q_path)
-                logger.info(
-                    "Layer 4: The image has been extracted and reconstructed cleanly."
+                logger_info(
+                    "ZeroTrust",
+                    "Layer 4: The image has been extracted and reconstructed cleanly.",
                 )
             except Exception as e:
                 raise ValueError(
@@ -131,7 +130,7 @@ class ZeroTrust:
             pass
 
     async def _layer5_approval_and_distribute(self, knowledge: Knowledge):
-        logger.info("Execute Layer 6: Approval and distribute")
+        logger_info("ZeroTrust", "Execute Layer 6: Approval and distribute")
 
         await store_service.move_to_safe_zone(file_id=knowledge.id)
 
@@ -148,11 +147,11 @@ class ZeroTrust:
             await self._layer4_cdr_disarm(knowledge)
             await self._layer5_approval_and_distribute(knowledge)
 
-            logger.info(f"{knowledge.title} has been scanned.")
+            logger_info("ZeroTrust", f"{knowledge.title} has been scanned.")
 
             return knowledge
         except Exception as e:
-            logger.error(e)
+            logger_error("ZeroTrust", str(e))
 
             if file_id:
                 await store_service.delete_from_quarantine(file_id)

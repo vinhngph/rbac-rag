@@ -5,8 +5,8 @@ class PermissionName(str, Enum):
     EDIT = "Edit"
     VIEW = "View"
     DELETE = "Delete"
-    MANAGE_USERS = "Manage_Users"
-    ASSIGN_ROLES = "Assign_Roles"
+    MANAGE_USERS = "Manage users"
+    MANAGE_ROLES = "Manage roles"
 
 
 class KnowledgeStatus(str, Enum):
