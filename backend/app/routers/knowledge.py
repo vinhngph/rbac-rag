@@ -10,14 +10,20 @@ from fastapi import (
 )
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from sqlmodel import or_, col
+from sqlalchemy.orm import selectinload
 from collections.abc import AsyncIterable
 from uuid import UUID
-from typing import Annotated, List
+from typing import Annotated, List, cast, Any
 from json import dumps as json_dumps
 from asyncio import sleep as async_sleep
 from sqlmodel import select, col
 
-from app.models.knowledge import KnowledgeRead, Knowledge
+from app.models.knowledge import (
+    KnowledgeRead,
+    Knowledge,
+    KnowledgeUpdate,
+    KnowledgeUpdateBase,
+)
 from app.models.role import Role
 from app.models.department import Department
 from app.models.links import UserDepartmentRoleLink
@@ -104,6 +110,57 @@ async def upload_knowledge(
     await db.refresh(knowledge)
 
     background_tasks.add_task(process_knowledge, knowledge_id=knowledge.id)
+
+    return knowledge
+
+
+@router.patch("/{knowledge_id}", response_model=KnowledgeRead)
+async def update_knowledge_informations(
+    department_id: UUID,
+    knowledge_id: UUID,
+    knowledge_update: KnowledgeUpdate,
+    user: CurrentUser,
+    db: DB_Session,
+):
+    stm = (
+        select(Knowledge)
+        .where(Knowledge.id == knowledge_id)
+        .options(selectinload(cast(Any, Knowledge.allowed_roles)))
+    )
+    knowledge = (await db.exec(stm)).one_or_none()
+
+    if not knowledge:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Knowledge not found."
+        )
+
+    update_data = knowledge_update.model_dump(
+        exclude_unset=True, include=set(KnowledgeUpdateBase.model_fields)
+    )
+
+    for key, value in update_data.items():
+        setattr(knowledge, key, value)
+
+    if role_ids_in := knowledge_update.allowed_role_ids:
+        query = select(Role).where(
+            col(Role.id).in_(role_ids_in),
+            col(Role.department_id) == department_id,
+        )
+        valid_roles = (await db.exec(query)).all()
+
+        if len(valid_roles) != len(role_ids_in):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Invalid allowed_role_ids",
+            )
+        else:
+            knowledge.allowed_roles = list(valid_roles)
+    else:
+        knowledge.allowed_roles = []
+
+    db.add(knowledge)
+    await db.commit()
+    await db.refresh(knowledge)
 
     return knowledge
 

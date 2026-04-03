@@ -1,7 +1,7 @@
 from sqlmodel import SQLModel, Field, Relationship, Column, DateTime
 from uuid import UUID, uuid4
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from app.core.types import NonEmptyString
 from app.core.constants import KnowledgeStatus, FileType
@@ -44,3 +44,12 @@ class Knowledge(KnowledgeBase, table=True):
 class KnowledgeRead(KnowledgeBase):
     id: UUID
     created_at: datetime
+
+
+class KnowledgeUpdateBase(SQLModel):
+    status: Optional[KnowledgeStatus] = None
+    title: Optional[NonEmptyString] = None
+
+
+class KnowledgeUpdate(KnowledgeUpdateBase):
+    allowed_role_ids: Optional[List[UUID]] = None
