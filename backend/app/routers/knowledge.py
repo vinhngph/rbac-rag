@@ -9,6 +9,7 @@ from fastapi import (
     Form,
 )
 from fastapi.sse import EventSourceResponse, ServerSentEvent
+from sqlmodel import or_, col
 from collections.abc import AsyncIterable
 from uuid import UUID
 from typing import Annotated, List
@@ -18,6 +19,8 @@ from sqlmodel import select, col
 
 from app.models.knowledge import KnowledgeRead, Knowledge
 from app.models.role import Role
+from app.models.department import Department
+from app.models.links import UserDepartmentRoleLink
 from app.db.session import DB_Session
 from app.dependencies import CurrentUser, Allow
 from app.services.zero_trust import zero_trust
@@ -27,6 +30,37 @@ from app.core.constants import KnowledgeStatus
 router = APIRouter(
     prefix="/departments/{department_id}/knowledges", tags=["Knowledge Base"]
 )
+
+
+@router.get("/", response_model=List[Knowledge])
+async def get_knowledges(
+    department_id: UUID, user: CurrentUser, db: DB_Session, _can_view: Allow.VIEW
+):
+    department = await db.get(Department, department_id)
+    if not department:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Department not found."
+        )
+
+    query = select(Knowledge).where(Knowledge.department_id == department_id)
+
+    if department.owner_id == user.id:
+        user_roles_query = select(UserDepartmentRoleLink.role_id).where(
+            UserDepartmentRoleLink.department_id == department.id,
+            UserDepartmentRoleLink.user_id == user.id,
+        )
+        role_ids = (await db.exec(user_roles_query)).all()
+
+        query = query.where(
+            or_(
+                # Public knowledge
+                ~col(Knowledge.allowed_roles).any(),
+                # Roles based knowledge
+                col(Knowledge.allowed_roles).any(col(Role.id).in_(role_ids)),
+            )
+        )
+
+    return (await db.exec(query)).unique().all()
 
 
 @router.post("/", response_model=KnowledgeRead, status_code=status.HTTP_201_CREATED)
@@ -79,6 +113,7 @@ async def stream_knowledge_status(
     department_id: UUID,
     knowledge_id: UUID,
     db: DB_Session,
+    _can_view: Allow.VIEW,
     last_event_id: Annotated[str | None, Header()] = None,
 ) -> AsyncIterable[ServerSentEvent]:
     last_sent_status = last_event_id
