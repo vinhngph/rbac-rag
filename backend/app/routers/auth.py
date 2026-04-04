@@ -4,7 +4,7 @@ from sqlmodel import select
 from app.models.user import User, UserLogin, UserRegister
 from app.core.security import verify_password, create_access_token, get_password_hash
 from app.core.config import settings
-from app.db.session import DB_Session
+from app.dependencies import DB_Session
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 

@@ -58,7 +58,7 @@ class RoleCreate(RoleBase):
 
 
 class RoleRead(RoleBase):
-    pass
+    id: UUID
 
 
 class RoleUpdate(SQLModel):
