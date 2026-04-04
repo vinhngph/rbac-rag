@@ -4,11 +4,11 @@ from typing import List, Optional
 from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Any
 
-from app.models.links import UserDepartmentRoleLink
 from app.core.types import NonEmptyString
+from app.models.links import UserRoleLink
 
 if TYPE_CHECKING:
-    from app.models.department import Department
+    from app.models.role import Role
     from app.models.knowledge import Knowledge
 
 
@@ -25,13 +25,13 @@ class User(UserBase, table=True):
     __tablename__: Any = "users"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    hashed_password: str
+    hashed_password: NonEmptyString
 
-    departments: List["Department"] = Relationship(
-        back_populates="users", link_model=UserDepartmentRoleLink
+    roles: List["Role"] = Relationship(
+        back_populates="members", link_model=UserRoleLink.Model
     )
-    knowledges: List["Knowledge"] = Relationship(back_populates="uploader")
-    owned_departments: List["Department"] = Relationship(back_populates="owner")
+
+    knowledges: List["Knowledge"] = Relationship(back_populates="author")
 
 
 class UserRegister(UserBase):

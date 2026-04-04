@@ -2,11 +2,10 @@ from enum import Enum
 
 
 class PermissionName(str, Enum):
-    EDIT = "Edit"
-    VIEW = "View"
-    DELETE = "Delete"
-    MANAGE_USERS = "Manage users"
-    MANAGE_ROLES = "Manage roles"
+    CREATE = "create"
+    READ = "read"
+    UPDATE = "update"
+    DELETE = "delete"
 
 
 class KnowledgeStatus(str, Enum):
