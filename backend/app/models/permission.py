@@ -20,7 +20,7 @@ class Permission(PermissionBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
 
     roles: List["Role"] = Relationship(
-        back_populates="permissions", link_model=RolePermissionLink.Model
+        back_populates="permissions", link_model=RolePermissionLink
     )
 
 

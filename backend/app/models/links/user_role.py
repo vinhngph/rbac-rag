@@ -3,7 +3,7 @@ from typing import Any
 from uuid import UUID
 
 
-class Model(SQLModel, table=True):
+class UserRoleLink(SQLModel, table=True):
     __tablename__: Any = "users_roles"
 
     user_id: UUID = Field(foreign_key="users.id", primary_key=True)

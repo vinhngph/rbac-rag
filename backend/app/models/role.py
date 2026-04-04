@@ -43,11 +43,11 @@ class Role(RoleBase, table=True):
     )
 
     members: List["User"] = Relationship(
-        back_populates="roles", link_model=UserRoleLink.Model
+        back_populates="roles", link_model=UserRoleLink
     )
 
     permissions: List["Permission"] = Relationship(
-        back_populates="roles", link_model=RolePermissionLink.Model
+        back_populates="roles", link_model=RolePermissionLink
     )
 
     knowledges: List["Knowledge"] = Relationship(back_populates="role")

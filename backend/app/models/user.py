@@ -28,7 +28,7 @@ class User(UserBase, table=True):
     hashed_password: NonEmptyString
 
     roles: List["Role"] = Relationship(
-        back_populates="members", link_model=UserRoleLink.Model
+        back_populates="members", link_model=UserRoleLink
     )
 
     knowledges: List["Knowledge"] = Relationship(back_populates="author")
