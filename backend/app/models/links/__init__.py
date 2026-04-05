@@ -1,4 +1,3 @@
-from .role_permission import RolePermissionLink
-from .user_role import UserRoleLink
+from .user_role_permission import UserRolePermissionLink
 
-__all__ = ["RolePermissionLink", "UserRoleLink"]
+__all__ = ["UserRolePermissionLink"]

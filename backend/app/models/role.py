@@ -2,12 +2,10 @@ from sqlmodel import SQLModel, Field, Relationship
 from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Any, List, Optional
 
-from app.models.links import RolePermissionLink, UserRoleLink
-
 if TYPE_CHECKING:
     from app.models.user import User
-    from app.models.permission import Permission
     from app.models.knowledge import Knowledge
+    from app.models.links import UserRolePermissionLink
 
 
 class RoleBase(SQLModel):
@@ -21,6 +19,10 @@ class RoleBase(SQLModel):
         index=True,
         nullable=True,
         description="NULL means this is the root role in the department.",
+    )
+
+    original_parent_id: Optional[UUID] = Field(
+        default=None, foreign_key="roles.id", nullable=True
     )
 
 
@@ -42,15 +44,16 @@ class Role(RoleBase, table=True):
         sa_relationship_kwargs={"foreign_keys": "[Role.parent_id]"},
     )
 
-    members: List["User"] = Relationship(
-        back_populates="roles", link_model=UserRoleLink
-    )
-
-    permissions: List["Permission"] = Relationship(
-        back_populates="roles", link_model=RolePermissionLink
-    )
-
     knowledges: List["Knowledge"] = Relationship(back_populates="role")
+
+    user_links: List["UserRolePermissionLink"] = Relationship(back_populates="role")
+
+    @property
+    def users(self) -> List["User"]:
+        unique_users = {
+            link.user.id: link.user for link in self.user_links if link.user
+        }
+        return list(unique_users.values())
 
 
 class RoleCreate(RoleBase):
@@ -64,3 +67,19 @@ class RoleRead(RoleBase):
 class RoleUpdate(SQLModel):
     name: Optional[str] = None
     parent_id: Optional[UUID] = None
+
+
+class RootRoleBase(SQLModel):
+    name: str = "Untitled"
+
+
+class RootRoleCreate(RootRoleBase):
+    pass
+
+
+class RootRoleRead(RootRoleBase):
+    id: UUID
+
+
+class RootRoleUpdate(SQLModel):
+    name: Optional[str] = None

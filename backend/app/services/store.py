@@ -1,8 +1,9 @@
 from os import makedirs
 from os.path import abspath, join as path_join, commonpath
-from fastapi import UploadFile
+from fastapi import UploadFile, Depends
 from anyio import open_file, Path as AsyncPath
 from uuid import UUID
+from typing import Annotated
 
 from app.core.config import settings
 
@@ -32,28 +33,6 @@ class StoreService:
 
         return full_path
 
-    async def save_to_quarantine_zone(
-        self, file: UploadFile, file_id: UUID, max_size: int = 10 * 1024 * 1024
-    ):
-        """Save uploaded file to quarantine zone"""
-
-        full_path = self.get_quarantine_path(file_id)
-
-        await AsyncPath(full_path).parent.mkdir(parents=True, exist_ok=True)
-
-        await file.seek(0)
-
-        total_bytes = 0
-        async with await open_file(full_path, "wb") as buffer:
-            chunk_size = 1024 * 1024
-            while chunk := await file.read(chunk_size):
-                total_bytes += len(chunk)
-                if total_bytes > max_size:
-                    raise ValueError(
-                        "Security Alert: File exceeds maximum allowed size during transmission."
-                    )
-                await buffer.write(chunk)
-
     async def delete_from_quarantine(self, file_id: UUID):
         q_path = self.get_quarantine_path(file_id)
         async_q_path = AsyncPath(q_path)
@@ -67,6 +46,47 @@ class StoreService:
                 "Security Alert: Attempted to delete a directory! Activity logged."
             )
 
+    async def delete_from_safe(self, file_id: UUID):
+        s_path = self.get_safe_path(file_id)
+        async_s_path = AsyncPath(s_path)
+
+        try:
+            await async_s_path.unlink()
+        except FileNotFoundError:
+            pass
+        except (IsADirectoryError, PermissionError):
+            raise ValueError(
+                "Security Alert: Attempted to delete a directory! Activity logged."
+            )
+
+    async def save_to_quarantine_zone(
+        self, file: UploadFile, file_id: UUID, max_size: int = 10 * 1024 * 1024
+    ):
+        """Save uploaded file to quarantine zone"""
+
+        full_path = self.get_quarantine_path(file_id)
+        async_full_path = AsyncPath(full_path)
+
+        await async_full_path.parent.mkdir(parents=True, exist_ok=True)
+
+        await file.seek(0)
+
+        total_bytes = 0
+
+        try:
+            async with await open_file(full_path, "wb") as buffer:
+                chunk_size = 1024 * 1024
+                while chunk := await file.read(chunk_size):
+                    total_bytes += len(chunk)
+                    if total_bytes > max_size:
+                        raise ValueError(
+                            "Security Alert: File exceeds maximum allowed size during transmission."
+                        )
+                    await buffer.write(chunk)
+        except Exception as e:
+            await self.delete_from_quarantine(file_id)
+            raise e
+
     async def move_to_safe_zone(self, file_id: UUID):
         q_path = self.get_quarantine_path(file_id)
         s_path = self.get_safe_path(file_id)
@@ -75,6 +95,7 @@ class StoreService:
         async_s_path = AsyncPath(s_path)
 
         if await async_s_path.exists():
+            await self.delete_from_quarantine(file_id)
             raise FileExistsError(
                 f"Conflict: File already exists in safe zone at {file_id}"
             )
@@ -84,11 +105,13 @@ class StoreService:
         try:
             await async_q_path.rename(s_path)
         except FileNotFoundError:
+            await self.delete_from_quarantine(file_id)
             raise FileNotFoundError("Security Alert: File not found in quarantine.")
         except IsADirectoryError:
+            await self.delete_from_quarantine(file_id)
             raise ValueError("Security Alert: Target is a directory, not a file.")
 
         return s_path
 
 
-store_service = StoreService()
+type UseStoreService = Annotated[StoreService, Depends(StoreService)]

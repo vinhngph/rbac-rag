@@ -5,11 +5,11 @@ from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Any
 
 from app.core.types import NonEmptyString
-from app.models.links import UserRoleLink
 
 if TYPE_CHECKING:
     from app.models.role import Role
     from app.models.knowledge import Knowledge
+    from app.models.links import UserRolePermissionLink
 
 
 class UserBase(SQLModel):
@@ -27,11 +27,16 @@ class User(UserBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     hashed_password: NonEmptyString
 
-    roles: List["Role"] = Relationship(
-        back_populates="members", link_model=UserRoleLink
-    )
+    role_links: List["UserRolePermissionLink"] = Relationship(back_populates="user")
 
     knowledges: List["Knowledge"] = Relationship(back_populates="author")
+
+    @property
+    def roles(self) -> List["Role"]:
+        unique_roles = {
+            link.role.id: link.role for link in self.role_links if link.role
+        }
+        return list(unique_roles.values())
 
 
 class UserRegister(UserBase):

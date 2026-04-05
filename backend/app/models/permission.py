@@ -3,11 +3,10 @@ from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Any, List
 
 from app.core.constants import PermissionName
-from app.models.links import RolePermissionLink
-
 
 if TYPE_CHECKING:
-    from app.models.role import Role
+    from app.models.user import User
+    from app.models.links import UserRolePermissionLink
 
 
 class PermissionBase(SQLModel):
@@ -19,9 +18,16 @@ class Permission(PermissionBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
 
-    roles: List["Role"] = Relationship(
-        back_populates="permissions", link_model=RolePermissionLink
+    user_links: List["UserRolePermissionLink"] = Relationship(
+        back_populates="permission"
     )
+
+    @property
+    def users(self) -> List["User"]:
+        unique_users = {
+            link.user.id: link.user for link in self.user_links if link.user
+        }
+        return list(unique_users.values())
 
 
 class PermissionCreate(PermissionBase):
