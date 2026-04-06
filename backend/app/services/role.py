@@ -4,6 +4,7 @@ from typing import List, Annotated
 from uuid import UUID
 
 from app.dependencies.db_session import DB_Session
+from app.core.messages import ErrorMessages
 from app.models.user import User
 from app.models.role import Role, RootRoleCreate, RootRoleUpdate
 from app.models.links import UserRolePermissionLink
@@ -15,13 +16,30 @@ class RoleService:
     def __init__(self, db: DB_Session):
         self.db = db
 
-    async def get_role(self, role_id: UUID) -> Role:
-        role = await self.db.get(Role, role_id)
+    async def get_user_role(self, user: User, role_id: UUID) -> Role:
+        stm = (
+            select(Role)
+            .where(Role.id == role_id)
+            .join(UserRolePermissionLink)
+            .where(UserRolePermissionLink.user_id == user.id)
+            .distinct()
+        )
+
+        role = (await self.db.exec(stm)).one_or_none()
 
         if not role:
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Role not found."
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=ErrorMessages.ROLE_ACCESS_BLOCK,
             )
+
+        root_role = await self.get_root_of_role(role)
+        if root_role.name == "Trash":
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=ErrorMessages.ROLE_ACCESS_BLOCK,
+            )
+
         return role
 
     async def get_user_roles(self, user: User) -> List[Role]:
@@ -92,7 +110,7 @@ class RoleService:
         if not user_role:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not belong to this department or have no assigned roles here.",
+                detail=ErrorMessages.ROLE_ACCESS_BLOCK,
             )
 
         return user_role
@@ -216,6 +234,39 @@ class RoleService:
         await trash_service.move_to_trash(department)
 
         return None
+
+    async def get_role(self, role_id: UUID) -> Role | None:
+        return (
+            await self.db.exec(select(Role).where(Role.id == role_id))
+        ).one_or_none()
+
+    async def is_children_of_role(self, child_role: Role, parent_role: Role) -> bool:
+        if (
+            (child_role.parent_id is None)
+            or (child_role.parent_id == parent_role.parent_id)
+            or (child_role.id == parent_role.id)
+        ):
+            return False
+        elif child_role.parent_id == parent_role.id:
+            return True
+
+        hierarchy = (
+            select(Role.parent_id)
+            .where(Role.id == child_role.id)
+            .cte(name="check_parents_cte", recursive=True)
+        )
+        hierarchy = hierarchy.union_all(
+            select(Role.parent_id).join(
+                hierarchy, col(Role.id) == hierarchy.c.parent_id
+            )
+        )
+
+        stm = select(hierarchy.c.parent_id).where(
+            hierarchy.c.parent_id == parent_role.id
+        )
+        rs = (await self.db.exec(stm)).first()
+
+        return rs is not None
 
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]

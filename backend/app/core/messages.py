@@ -1,5 +1,11 @@
 class ErrorMessages:
-    DEPARTMENT_NOT_FOUND = "Department not found"
+    ROLE_ACCESS_BLOCK = (
+        "You do not belong to this department or have no assigned roles here."
+    )
+    MISSING_PERMISSIONS = "You do not have permission(s)."
+    KNOWLEDGE_NOT_FOUND = "Knowledge not found."
+    KNOWLEDGE_BLOCK = "Knowledge access denied."
+    KNOWLEDGE_INVALID_MOVE = "Cannot move knowledge."
 
 
 class SystemMessages:

@@ -29,8 +29,8 @@ class ZeroTrust:
     The multi-layered defense system (Defense in Depth) applies the Zero Trust philosophy to file uploads.
     """
 
-    def __init__(self, max_file_size: int = 10 * 1024 * 1024) -> None:
-        self.max_file_size = max_file_size
+    def __init__(self) -> None:
+        self.max_file_size = 10 * 1024 * 1024  # 10MB
         self.store_service = StoreService()
 
     async def initialize(self):

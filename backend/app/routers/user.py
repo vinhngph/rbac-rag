@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.routers import user_departments, knowledge
+from app.routers import user_departments
 from app.models.user import UserRead
 from app.dependencies import CurrentUser
 
@@ -13,4 +13,3 @@ async def metadata(user: CurrentUser):
 
 
 router.include_router(user_departments.router)
-router.include_router(knowledge.router)

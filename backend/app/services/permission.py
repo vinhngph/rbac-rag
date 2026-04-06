@@ -41,6 +41,7 @@ class PermissionService:
                 UserRolePermissionLink.role_id == role.id,
             )
         )
+        
         return list((await self.db.exec(stm)).all())
 
     def has_any_permission(

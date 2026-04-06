@@ -18,15 +18,15 @@ async def process_knowledge(knowledge_id: UUID):
         try:
             knowledge.status = KnowledgeStatus.EXTRACTING
             await db.commit()
-            await async_sleep(2)  # Simulation
+            await async_sleep(10)  # Simulation
 
             knowledge.status = KnowledgeStatus.CHUNKING
             await db.commit()
-            await async_sleep(2)  # Simulation
+            await async_sleep(10)  # Simulation
 
             knowledge.status = KnowledgeStatus.EMBEDDING
             await db.commit()
-            await async_sleep(2)  # Simulation
+            await async_sleep(10)  # Simulation
 
             knowledge.status = KnowledgeStatus.COMPLETED
             await db.commit()

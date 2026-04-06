@@ -18,18 +18,20 @@ class KnowledgeBase(SQLModel):
         default=KnowledgeStatus.SCANNING,
         description=f"{[s.value for s in KnowledgeStatus]}",
     )
+
     role_id: UUID = Field(foreign_key="roles.id", index=True)
     author_id: UUID = Field(foreign_key="users.id")
+
+    created_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True)),
+    )
 
 
 class Knowledge(KnowledgeBase, table=True):
     __tablename__: Any = "knowledges"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
-    created_at: datetime = Field(
-        default_factory=lambda: datetime.now(timezone.utc),
-        sa_column=Column(DateTime(timezone=True)),
-    )
 
     role: "Role" = Relationship(back_populates="knowledges")
     author: "User" = Relationship(back_populates="knowledges")
@@ -37,7 +39,6 @@ class Knowledge(KnowledgeBase, table=True):
 
 class KnowledgeRead(KnowledgeBase):
     id: UUID
-    created_at: datetime
 
 
 class KnowledgeUpdate(SQLModel):

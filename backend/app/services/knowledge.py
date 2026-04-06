@@ -1,11 +1,13 @@
 from fastapi import Depends, UploadFile, HTTPException, status
-from typing import Annotated
+from sqlmodel import select
+from typing import Annotated, List
 from uuid import UUID
 
 from app.dependencies.db_session import DB_Session
+from app.core.messages import ErrorMessages
 from app.core.constants import PermissionName
 from app.models.user import User
-from app.models.knowledge import Knowledge
+from app.models.knowledge import Knowledge, KnowledgeUpdate
 from app.services.role import RoleService
 from app.services.zero_trust import ZeroTrust
 from app.services.permission import PermissionService
@@ -24,7 +26,7 @@ class KnowledgeService:
         zero_trust: ZeroTrust,
         permissions_service: PermissionService,
     ) -> Knowledge:
-        user_role = await role_service.get_role(role_id)
+        user_role = await role_service.get_user_role(user, role_id)
 
         user_permissions = await permissions_service.get_user_permissions_of_role(
             user, user_role
@@ -37,7 +39,7 @@ class KnowledgeService:
         ):
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to upload knowledge.",
+                detail=ErrorMessages.MISSING_PERMISSIONS,
             )
 
         knowledge = await zero_trust.execute_security_pipeline(file, user, user_role)
@@ -47,6 +49,116 @@ class KnowledgeService:
         await self.db.refresh(knowledge)
 
         return knowledge
+
+    async def get_role_knowledges_on_user(
+        self,
+        user: User,
+        role_id: UUID,
+        role_service: RoleService,
+        permission_service: PermissionService,
+    ) -> List[Knowledge]:
+        user_role = await role_service.get_user_role(user, role_id)
+
+        user_permissions = await permission_service.get_user_permissions_of_role(
+            user, user_role
+        )
+        granted_permission_names = [p.name for p in user_permissions]
+
+        if not permission_service.has_all_permissions(
+            granted_permission_names, [PermissionName.VIEW]
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=ErrorMessages.MISSING_PERMISSIONS,
+            )
+
+        stm = select(Knowledge).where(Knowledge.role_id == role_id)
+        knowledges = (await self.db.exec(stm)).all()
+
+        return list(knowledges)
+
+    async def update_knowledge(
+        self,
+        user: User,
+        role_id: UUID,
+        knowledge_id: UUID,
+        knowledge_update: KnowledgeUpdate,
+        role_service: RoleService,
+        permission_service: PermissionService,
+    ) -> Knowledge:
+        stm = select(Knowledge).where(Knowledge.id == knowledge_id)
+
+        knowledge = (await self.db.exec(stm)).one_or_none()
+        if not knowledge:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=ErrorMessages.KNOWLEDGE_NOT_FOUND,
+            )
+
+        if knowledge.role_id != role_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=ErrorMessages.KNOWLEDGE_BLOCK,
+            )
+
+        user_role = await role_service.get_user_role(user, knowledge.role_id)
+        user_permissions = await permission_service.get_user_permissions_of_role(
+            user, user_role
+        )
+        granted_permission_names = [p.name for p in user_permissions]
+
+        if not permission_service.has_all_permissions(
+            granted_permission_names, [PermissionName.VIEW, PermissionName.EDIT]
+        ):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=ErrorMessages.MISSING_PERMISSIONS,
+            )
+
+        if update_role_id := knowledge_update.role_id:
+            if not (update_role := await role_service.get_role(update_role_id)) or not (
+                await role_service.is_children_of_role(update_role, user_role)
+            ):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail=ErrorMessages.KNOWLEDGE_INVALID_MOVE,
+                )
+
+        update_data = knowledge_update.model_dump(exclude_unset=True)
+
+        for key, value in update_data.items():
+            setattr(knowledge, key, value)
+
+        self.db.add(knowledge)
+        await self.db.commit()
+        await self.db.refresh(knowledge)
+
+        return knowledge
+
+    async def can_user_access(
+        self,
+        user: User,
+        knowledge_id: UUID,
+        required: List[PermissionName],
+        role_service: RoleService,
+        permission_service: PermissionService,
+    ) -> bool:
+        user_role = await role_service.get_user_role(user, knowledge_id)
+        user_permissions = await permission_service.get_user_permissions_of_role(
+            user, user_role
+        )
+        granted_permission_names = [p.name for p in user_permissions]
+
+        if not permission_service.has_all_permissions(
+            granted_permission_names, required
+        ):
+            return False
+        return True
+
+    async def get_knowledge(self, knowledge_id: UUID) -> Knowledge | None:
+        return (
+            await self.db.exec(select(Knowledge).where(Knowledge.id == knowledge_id))
+        ).one_or_none()
 
 
 type UseKnowledgeService = Annotated[KnowledgeService, Depends(KnowledgeService)]
