@@ -138,12 +138,12 @@ class KnowledgeService:
     async def can_user_access(
         self,
         user: User,
-        knowledge_id: UUID,
+        knowledge: Knowledge,
         required: List[PermissionName],
         role_service: RoleService,
         permission_service: PermissionService,
     ) -> bool:
-        user_role = await role_service.get_user_role(user, knowledge_id)
+        user_role = await role_service.get_user_role(user, knowledge.role_id)
         user_permissions = await permission_service.get_user_permissions_of_role(
             user, user_role
         )

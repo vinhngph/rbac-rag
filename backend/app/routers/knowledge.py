@@ -103,7 +103,7 @@ async def stream_knowledge_status(
         )
 
     if not await knowledge_service.can_user_access(
-        user, knowledge_id, [PermissionName.VIEW], role_service, permission_service
+        user, knowledge, [PermissionName.VIEW], role_service, permission_service
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
