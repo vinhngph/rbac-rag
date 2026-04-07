@@ -23,7 +23,7 @@ class TrashService:
 
         return trash
 
-    async def move_to_trash(self, role: Role) -> None:
+    async def move_role_to_trash(self, role: Role) -> None:
         trash = await self.get_trash_role()
 
         if role.id == trash.id:

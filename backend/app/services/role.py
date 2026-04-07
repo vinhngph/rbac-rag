@@ -231,7 +231,7 @@ class RoleService:
                 detail="You do not have permission to delete this department.",
             )
 
-        await trash_service.move_to_trash(department)
+        await trash_service.move_role_to_trash(department)
 
         return None
 
