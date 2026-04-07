@@ -3,6 +3,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.core.exceptions.http_handler import http_exception_handler
+from app.core.exceptions.app_exception import AppException
 from app.core.config import settings
 from app.core.seed_db import seed_db
 from app.routers import auth, user, role, knowledge, departments
@@ -36,6 +38,8 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+app.add_exception_handler(AppException, http_exception_handler)
 
 app.include_router(auth.router)
 app.include_router(user.router)

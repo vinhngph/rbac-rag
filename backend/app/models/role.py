@@ -44,7 +44,10 @@ class Role(RoleBase, table=True):
         sa_relationship_kwargs={"foreign_keys": "[Role.parent_id]"},
     )
 
-    knowledges: List["Knowledge"] = Relationship(back_populates="role")
+    knowledges: List["Knowledge"] = Relationship(
+        back_populates="role",
+        sa_relationship_kwargs={"foreign_keys": "[Knowledge.role_id]"},
+    )
 
     user_links: List["UserRolePermissionLink"] = Relationship(back_populates="role")
 

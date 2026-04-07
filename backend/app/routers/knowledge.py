@@ -19,6 +19,7 @@ from app.core.constants import PermissionName, KnowledgeStatus
 from app.services.knowledge import UseKnowledgeService
 from app.services.role import UseRoleService
 from app.services.permission import UsePermissionService
+from app.services.trash import UseTrashService
 
 
 router = APIRouter(prefix="/knowledges", tags=["Knowledge Base"])
@@ -35,6 +36,20 @@ async def update_knowledge(
 ):
     return await knowledge_service.update_knowledge(
         user, knowledge_id, knowledge_update, role_service, permission_service
+    )
+
+
+@router.delete("/{knowledge_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_knowledge(
+    knowledge_id: UUID,
+    user: CurrentUser,
+    knowledge_service: UseKnowledgeService,
+    role_service: UseRoleService,
+    permission_service: UsePermissionService,
+    trash_service: UseTrashService,
+):
+    return await knowledge_service.delete_knowledge(
+        user, knowledge_id, role_service, permission_service, trash_service
     )
 
 

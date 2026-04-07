@@ -19,6 +19,9 @@ class KnowledgeBase(SQLModel):
         description=f"{[s.value for s in KnowledgeStatus]}",
     )
 
+    original_role_id: Optional[UUID] = Field(
+        default=None, foreign_key="roles.id", nullable=True
+    )
     role_id: UUID = Field(foreign_key="roles.id", index=True)
     author_id: UUID = Field(foreign_key="users.id")
 
@@ -33,7 +36,10 @@ class Knowledge(KnowledgeBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
 
-    role: "Role" = Relationship(back_populates="knowledges")
+    role: "Role" = Relationship(
+        back_populates="knowledges",
+        sa_relationship_kwargs={"foreign_keys": "[Knowledge.role_id]"},
+    )
     author: "User" = Relationship(back_populates="knowledges")
 
 

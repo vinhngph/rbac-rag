@@ -5,12 +5,14 @@ from uuid import UUID
 
 from app.dependencies.db_session import DB_Session
 from app.core.messages import ErrorMessages
-from app.core.constants import PermissionName
+from app.core.constants import PermissionName, KnowledgeStatus
+from app.core.exceptions.app_exception import AppException
 from app.models.user import User
 from app.models.knowledge import Knowledge, KnowledgeUpdate
 from app.services.role import RoleService
 from app.services.zero_trust import ZeroTrust
 from app.services.permission import PermissionService
+from app.services.trash import TrashService
 
 
 class KnowledgeService:
@@ -152,6 +154,42 @@ class KnowledgeService:
         return (
             await self.db.exec(select(Knowledge).where(Knowledge.id == knowledge_id))
         ).one_or_none()
+
+    async def delete_knowledge(
+        self,
+        user: User,
+        knowledge_id: UUID,
+        role_service: RoleService,
+        permission_service: PermissionService,
+        trash_service: TrashService,
+    ) -> None:
+        knowledge = await self.get_knowledge(knowledge_id)
+
+        if not knowledge:
+            raise AppException(404, "Knowledge not found")
+
+        if not await self.can_user_access(
+            user,
+            knowledge,
+            [PermissionName.EDIT, PermissionName.VIEW],
+            role_service,
+            permission_service,
+        ):
+            raise AppException(403, "Knowledge access denied.")
+
+        trash_role = await trash_service.get_trash_role()
+
+        if knowledge.role_id == trash_role.id:
+            raise AppException(400, "Knowledge already in trash.")
+
+        if knowledge.status not in [KnowledgeStatus.COMPLETED, KnowledgeStatus.FAILED]:
+            raise AppException(400, "Knowledge is processing.")
+
+        knowledge.original_role_id = knowledge.role_id
+        knowledge.role_id = trash_role.id
+
+        self.db.add(knowledge)
+        await self.db.commit()
 
 
 type UseKnowledgeService = Annotated[KnowledgeService, Depends(KnowledgeService)]
