@@ -26,7 +26,7 @@ from app.services.zero_trust import UseZeroTrust
 from app.services.permission import UsePermissionService
 
 
-router = APIRouter(prefix="/knowledges", tags=["Knowledge Base"])
+router = APIRouter(prefix="/roles/{role_id}/knowledges", tags=["Knowledge Base"])
 
 
 @router.get("/", response_model=List[KnowledgeRead])

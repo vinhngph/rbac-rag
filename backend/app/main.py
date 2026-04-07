@@ -5,7 +5,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.core.config import settings
 from app.core.seed_db import seed_db
-from app.routers import auth, user, role
+from app.routers import auth, user, role, knowledge
 from app.db.session import engine
 from app.services.zero_trust import ZeroTrust
 from app.core.logger import logger_info
@@ -40,6 +40,7 @@ app.add_middleware(
 app.include_router(auth.router)
 app.include_router(user.router)
 app.include_router(role.router)
+app.include_router(knowledge.router)
 
 
 @app.get("/health", tags=["System"])
