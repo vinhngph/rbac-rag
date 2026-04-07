@@ -15,6 +15,9 @@ router = APIRouter(prefix="/departments", tags=["Departments"])
 async def get_departments(
     user: CurrentUser, role_service: UseRoleService, trash_service: UseTrashService
 ):
+    """
+    **List all joined departments of user**
+    """
     return await role_service.get_user_departments(user, trash_service)
 
 
@@ -36,6 +39,9 @@ async def get_department(
     user: CurrentUser,
     role_service: UseRoleService,
 ):
+    """
+    **Get tree roles (flat) of department - JSON list format**
+    """
     return await role_service.get_department(user, department_id)
 
 
