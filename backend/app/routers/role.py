@@ -15,7 +15,9 @@ router = APIRouter(prefix="/roles", tags=["Role Organization"])
 
 
 @router.post(
-    "/{role_id}", response_model=KnowledgeRead, status_code=status.HTTP_201_CREATED
+    "/{role_id}/knowledges",
+    response_model=KnowledgeRead,
+    status_code=status.HTTP_201_CREATED,
 )
 async def upload_knowledge(
     role_id: UUID,
@@ -36,7 +38,7 @@ async def upload_knowledge(
     return knowledge
 
 
-@router.get("/{role_id}", response_model=List[KnowledgeRead])
+@router.get("/{role_id}/knowledges", response_model=List[KnowledgeRead])
 async def get_role_knowledges(
     role_id: UUID,
     user: CurrentUser,
