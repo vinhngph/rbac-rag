@@ -4,6 +4,7 @@ from uuid import UUID
 
 from app.dependencies.current_user import CurrentUser
 from app.models.knowledge import KnowledgeRead
+from app.schemas.member import MemberRead
 from app.services.knowledge import UseKnowledgeService
 from app.services.role import UseRoleService
 from app.services.permission import UsePermissionService
@@ -49,3 +50,10 @@ async def get_role_knowledges(
     return await knowledge_service.get_role_knowledges_on_user(
         user, role_id, role_service, permission_service
     )
+
+
+@router.get("/{role_id}/members", response_model=List[MemberRead])
+async def get_role_members(
+    role_id: UUID, user: CurrentUser, role_service: UseRoleService
+):
+    return await role_service.get_members_of_role(user, role_id)

@@ -4,10 +4,13 @@ from typing import List, Annotated
 from uuid import UUID
 
 from app.dependencies.db_session import DB_Session
+from app.core.exceptions.app_exception import AppException
 from app.core.messages import ErrorMessages
 from app.models.user import User
+from app.models.permission import Permission
 from app.models.role import Role, RootRoleCreate, RootRoleUpdate
 from app.models.links import UserRolePermissionLink
+from app.schemas.member import MemberRead, MemberDict
 from app.services.permission import PermissionService
 from app.services.trash import TrashService
 
@@ -267,6 +270,67 @@ class RoleService:
         rs = (await self.db.exec(stm)).first()
 
         return rs is not None
+
+    async def get_members_of_role(self, user: User, role_id: UUID) -> List[MemberRead]:
+        current_role = await self.get_role(role_id)
+        if not current_role:
+            raise AppException(404, "Role not found.")
+
+        department = await self.get_root_of_role(current_role)
+        if not department:
+            raise AppException(404, "Department not found.")
+
+        user_role = await self.get_user_role_of_department(
+            user, department_id=department.id
+        )
+
+        members: List[MemberRead] = []
+
+        if await self.is_children_of_role(current_role, user_role):
+            stm = (
+                select(User, Permission)
+                .join(UserRolePermissionLink)
+                .where(UserRolePermissionLink.role_id == current_role.id)
+            )
+            rs = (await self.db.exec(stm)).all()
+
+            users_map: dict[UUID, MemberDict] = {}
+            for user, permission in rs:
+                if user.id not in users_map:
+                    users_map[user.id] = {"user": user, "permissions": []}
+                users_map[user.id]["permissions"].append(permission.name)
+
+            for user_data in users_map.values():
+                u = user_data["user"]
+                members.append(
+                    MemberRead(
+                        id=u.id,
+                        email=u.email,
+                        name=u.name,
+                        avatar_url=u.avatar_url,
+                        permissions=user_data["permissions"],
+                    )
+                )
+        else:
+            stm = (
+                select(User)
+                .join(UserRolePermissionLink)
+                .where(UserRolePermissionLink.role_id == current_role.id)
+                .distinct()
+            )
+            rs = (await self.db.exec(stm)).all()
+
+            for user in rs:
+                members.append(
+                    MemberRead(
+                        id=user.id,
+                        email=user.email,
+                        name=user.name,
+                        avatar_url=user.avatar_url,
+                    )
+                )
+
+        return members
 
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]
