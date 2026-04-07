@@ -34,6 +34,12 @@ async def update_knowledge(
     role_service: UseRoleService,
     permission_service: UsePermissionService,
 ):
+    """
+    **Update Knowledge**
+
+    * **Rename**: Change knowledge's name by "name".
+    * **Move**: Move knowledge to another role by "role_id".
+    """
     return await knowledge_service.update_knowledge(
         user, knowledge_id, knowledge_update, role_service, permission_service
     )
@@ -63,6 +69,9 @@ async def stream_knowledge_status(
     db: DB_Session,
     last_event_id: Annotated[str | None, Header()] = None,
 ) -> AsyncIterable[ServerSentEvent]:
+    """
+    **Stream Knowledge Status (SSE standard)**
+    """
     knowledge = await knowledge_service.get_knowledge(knowledge_id)
 
     if not knowledge:
