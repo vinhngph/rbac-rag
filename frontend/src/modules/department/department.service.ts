@@ -15,16 +15,16 @@ export interface DepartmentUpdate {
 }
 
 export const getDepartments = () =>
-  api.get<DepartmentRead[]>("/user/departments");
+  api.get<DepartmentRead[]>("/departments");
 
 export const getDepartment = (id: string) =>
-  api.get<DepartmentRead>(`/user/departments/${id}`);
+  api.get<DepartmentRead>(`/departments/${id}`);
 
 export const createDepartment = (data: DepartmentCreate) =>
-  api.post<DepartmentRead>("/user/departments", data);
+  api.post<DepartmentRead>("/departments", data);
 
 export const updateDepartment = (id: string, data: DepartmentUpdate) =>
-  api.patch<DepartmentRead>(`/user/departments/${id}`, data);
+  api.patch<DepartmentRead>(`/departments/${id}`, data);
 
 export const deleteDepartment = (id: string) =>
-  api.delete(`/user/departments/${id}`);
+  api.delete(`/departments/${id}`);
