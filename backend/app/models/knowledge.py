@@ -49,5 +49,4 @@ class KnowledgeRead(KnowledgeBase):
 
 class KnowledgeUpdate(SQLModel):
     name: Optional[NonEmptyString] = None
-    status: Optional[KnowledgeStatus] = None
     role_id: Optional[UUID] = None
