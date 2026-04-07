@@ -80,7 +80,6 @@ class KnowledgeService:
     async def update_knowledge(
         self,
         user: User,
-        role_id: UUID,
         knowledge_id: UUID,
         knowledge_update: KnowledgeUpdate,
         role_service: RoleService,
@@ -93,12 +92,6 @@ class KnowledgeService:
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail=ErrorMessages.KNOWLEDGE_NOT_FOUND,
-            )
-
-        if knowledge.role_id != role_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=ErrorMessages.KNOWLEDGE_BLOCK,
             )
 
         user_role = await role_service.get_user_role(user, knowledge.role_id)

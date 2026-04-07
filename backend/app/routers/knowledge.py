@@ -1,16 +1,13 @@
 from fastapi import (
     APIRouter,
     status,
-    UploadFile,
-    File,
-    BackgroundTasks,
     Header,
     HTTPException,
 )
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
 from uuid import UUID
-from typing import Annotated, List
+from typing import Annotated
 from json import dumps as json_dumps
 from asyncio import sleep as async_sleep
 
@@ -19,52 +16,16 @@ from app.dependencies.db_session import DB_Session
 from app.models.knowledge import KnowledgeRead, KnowledgeUpdate
 from app.core.messages import ErrorMessages
 from app.core.constants import PermissionName, KnowledgeStatus
-from app.services.worker.knowledge import process_knowledge
 from app.services.knowledge import UseKnowledgeService
 from app.services.role import UseRoleService
-from app.services.zero_trust import UseZeroTrust
 from app.services.permission import UsePermissionService
 
 
-router = APIRouter(prefix="/roles/{role_id}/knowledges", tags=["Knowledge Base"])
-
-
-@router.get("/", response_model=List[KnowledgeRead])
-async def get_role_knowledges_on_user(
-    role_id: UUID,
-    user: CurrentUser,
-    knowledge_service: UseKnowledgeService,
-    role_service: UseRoleService,
-    permission_service: UsePermissionService,
-):
-    return await knowledge_service.get_role_knowledges_on_user(
-        user, role_id, role_service, permission_service
-    )
-
-
-@router.post("/", response_model=KnowledgeRead, status_code=status.HTTP_201_CREATED)
-async def upload_knowledge(
-    role_id: UUID,
-    file: Annotated[UploadFile, File()],
-    background_tasks: BackgroundTasks,
-    user: CurrentUser,
-    knowledge_service: UseKnowledgeService,
-    role_service: UseRoleService,
-    zero_trust: UseZeroTrust,
-    permissions_service: UsePermissionService,
-):
-    knowledge = await knowledge_service.create_knowledge(
-        user, file, role_id, role_service, zero_trust, permissions_service
-    )
-
-    background_tasks.add_task(process_knowledge, knowledge_id=knowledge.id)
-
-    return knowledge
+router = APIRouter(prefix="/knowledges", tags=["Knowledge Base"])
 
 
 @router.patch("/{knowledge_id}", response_model=KnowledgeRead)
 async def update_knowledge(
-    role_id: UUID,
     knowledge_id: UUID,
     knowledge_update: KnowledgeUpdate,
     user: CurrentUser,
@@ -73,13 +34,12 @@ async def update_knowledge(
     permission_service: UsePermissionService,
 ):
     return await knowledge_service.update_knowledge(
-        user, role_id, knowledge_id, knowledge_update, role_service, permission_service
+        user, knowledge_id, knowledge_update, role_service, permission_service
     )
 
 
 @router.get("/{knowledge_id}/status", response_class=EventSourceResponse)
 async def stream_knowledge_status(
-    role_id: UUID,
     knowledge_id: UUID,
     knowledge_service: UseKnowledgeService,
     role_service: UseRoleService,
@@ -94,12 +54,6 @@ async def stream_knowledge_status(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=ErrorMessages.KNOWLEDGE_NOT_FOUND,
-        )
-
-    if knowledge.role_id != role_id:
-        raise HTTPException(
-            status_code=status.HTTP_403_FORBIDDEN,
-            detail=ErrorMessages.KNOWLEDGE_BLOCK,
         )
 
     if not await knowledge_service.can_user_access(
