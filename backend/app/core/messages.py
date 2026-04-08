@@ -7,6 +7,8 @@ class ErrorMessages:
     KNOWLEDGE_BLOCK = "Knowledge access denied."
     KNOWLEDGE_INVALID_MOVE = "Cannot move knowledge."
 
+    DEPARTMENT_NOT_FOUND = "Department not found."
+
 
 class SystemMessages:
     DATABASE_SEED = (

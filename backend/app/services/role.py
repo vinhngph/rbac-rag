@@ -198,7 +198,8 @@ class RoleService:
         department = await self.db.get(Role, department_id)
         if (not department) or (department.parent_id is not None):
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Department not found."
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=ErrorMessages.DEPARTMENT_NOT_FOUND,
             )
 
         user_role = await self.get_user_role_of_department(user, department_id)
@@ -225,7 +226,8 @@ class RoleService:
         department = await self.db.get(Role, department_id)
         if (not department) or (department.parent_id is not None):
             raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND, detail="Department not found."
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=ErrorMessages.DEPARTMENT_NOT_FOUND,
             )
         user_role = await self.get_user_role_of_department(user, department_id)
         if user_role.id != department_id:
@@ -278,7 +280,7 @@ class RoleService:
 
         department = await self.get_root_of_role(current_role)
         if not department:
-            raise AppException(404, "Department not found.")
+            raise AppException(404, ErrorMessages.DEPARTMENT_NOT_FOUND)
 
         user_role = await self.get_user_role_of_department(
             user, department_id=department.id
