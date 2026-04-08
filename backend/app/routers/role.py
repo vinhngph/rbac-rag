@@ -4,7 +4,7 @@ from uuid import UUID
 
 from app.dependencies.current_user import CurrentUser
 from app.models.knowledge import KnowledgeRead
-from app.models.role import RoleRead, RoleCreate
+from app.models.role import RoleRead, RoleCreate, RoleUpdate
 from app.schemas.member import MemberRead
 from app.services.knowledge import UseKnowledgeService
 from app.services.role import UseRoleService
@@ -21,6 +21,16 @@ async def create_role(
     role_create: RoleCreate, user: CurrentUser, role_service: UseRoleService
 ):
     return await role_service.create_role(user, role_create)
+
+
+@router.patch("/{role_id}", response_model=RoleRead)
+async def update_role(
+    role_id: UUID,
+    role_update: RoleUpdate,
+    user: CurrentUser,
+    role_service: UseRoleService,
+):
+    return await role_service.update_role(user, role_id, role_update)
 
 
 @router.post(

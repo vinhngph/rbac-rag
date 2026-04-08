@@ -8,7 +8,7 @@ from app.core.exceptions.app_exception import AppException
 from app.core.messages import ErrorMessages
 from app.models.user import User
 from app.models.permission import Permission
-from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate
+from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate, RoleUpdate
 from app.models.links import UserRolePermissionLink
 from app.schemas.member import MemberRead, MemberDict
 from app.services.permission import PermissionService
@@ -240,10 +240,15 @@ class RoleService:
 
         return None
 
-    async def get_role(self, role_id: UUID) -> Role | None:
-        return (
+    async def get_role(self, role_id: UUID) -> Role:
+        role = (
             await self.db.exec(select(Role).where(Role.id == role_id))
         ).one_or_none()
+
+        if not role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
+
+        return role
 
     async def is_children_of_role(self, child_role: Role, parent_role: Role) -> bool:
         if (
@@ -275,8 +280,6 @@ class RoleService:
 
     async def get_members_of_role(self, user: User, role_id: UUID) -> List[MemberRead]:
         current_role = await self.get_role(role_id)
-        if not current_role:
-            raise AppException(404, "Role not found.")
 
         department = await self.get_root_of_role(current_role)
         if not department:
@@ -334,15 +337,22 @@ class RoleService:
 
         return members
 
-    async def create_role(self, user: User, role_create: RoleCreate) -> Role:
-        parent_role = await self.db.get(Role, role_create.parent_id)
-        if not parent_role:
-            raise AppException(404, "Role not found.")
+    async def can_user_edit_role(
+        self, user: User, role: Role, strict_higher: bool
+    ) -> bool:
+        """
+        - strict_higher=False: Use for CREATE child role.
+        - strict_higher=True: Use for EDIT this role.
+        """
+        start_node_id = role.parent_id if strict_higher else role.id
+
+        if strict_higher and not start_node_id:
+            return False
 
         # Can user access parent
         hierarchy = (
             select(Role.id, Role.parent_id)
-            .where(Role.id == parent_role.id)
+            .where(Role.id == start_node_id)
             .cte(name="is_user_parent_of_role_cte", recursive=True)
         )
         hierarchy = hierarchy.union_all(
@@ -361,8 +371,14 @@ class RoleService:
                 .where(UserRolePermissionLink.user_id == user.id)
             )
         )
-        has_access = await self.db.scalar(stm)
-        if not has_access:
+        return bool(await self.db.scalar(stm))
+
+    async def create_role(self, user: User, role_create: RoleCreate) -> Role:
+        parent_role = await self.db.get(Role, role_create.parent_id)
+        if not parent_role:
+            raise AppException(404, "Role not found.")
+
+        if not (await self.can_user_edit_role(user, parent_role, strict_higher=False)):
             raise AppException(403, "Access denied.")
 
         new_role = Role.model_validate(role_create)
@@ -372,6 +388,52 @@ class RoleService:
         await self.db.refresh(new_role)
 
         return new_role
+
+    async def update_role(
+        self, user: User, role_id: UUID, role_update: RoleUpdate
+    ) -> Role:
+        role = await self.get_role(role_id)
+
+        if not (await self.can_user_edit_role(user, role, strict_higher=True)):
+            raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+        update_dict = role_update.model_dump(exclude_unset=True)
+
+        if "parent_id" in update_dict:
+            new_parent_id = update_dict["parent_id"]
+
+            if new_parent_id is None:
+                raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+            dest_role = await self.get_role(new_parent_id)
+
+            if (
+                role.id == dest_role.id
+                or (
+                    not await self.can_user_edit_role(
+                        user, dest_role, strict_higher=False
+                    )
+                )
+                or (await self.is_children_of_role(dest_role, role))
+            ):
+                raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+            be_move_root_role = await self.get_root_of_role(role)
+            dest_move_root_role = await self.get_root_of_role(dest_role)
+
+            if be_move_root_role.id != dest_move_root_role.id:
+                raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+            role.original_parent_id = dest_role.id
+
+        for key, value in update_dict.items():
+            setattr(role, key, value)
+
+        self.db.add(role)
+        await self.db.commit()
+        await self.db.refresh(role)
+
+        return role
 
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]

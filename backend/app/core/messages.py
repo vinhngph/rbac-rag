@@ -9,6 +9,10 @@ class ErrorMessages:
 
     DEPARTMENT_NOT_FOUND = "Department not found."
 
+    ROLE_NOT_FOUND = "Role not found."
+
+    ACCESS_DENIED = "Access denied."
+
 
 class SystemMessages:
     DATABASE_SEED = (
