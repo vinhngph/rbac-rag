@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status
-from sqlmodel import select, col
+from sqlmodel import select, col, exists
 from typing import List, Annotated
 from uuid import UUID
 
@@ -8,7 +8,7 @@ from app.core.exceptions.app_exception import AppException
 from app.core.messages import ErrorMessages
 from app.models.user import User
 from app.models.permission import Permission
-from app.models.role import Role, RootRoleCreate, RootRoleUpdate
+from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate
 from app.models.links import UserRolePermissionLink
 from app.schemas.member import MemberRead, MemberDict
 from app.services.permission import PermissionService
@@ -331,6 +331,45 @@ class RoleService:
                 )
 
         return members
+
+    async def create_role(self, user: User, role_create: RoleCreate) -> Role:
+        parent_role = await self.db.get(Role, role_create.parent_id)
+        if not parent_role:
+            raise AppException(404, "Role not found.")
+
+        # Can user access parent
+        hierarchy = (
+            select(Role.id, Role.parent_id)
+            .where(Role.id == parent_role.id)
+            .cte(name="is_user_parent_of_role_cte", recursive=True)
+        )
+        hierarchy = hierarchy.union_all(
+            select(Role.id, Role.parent_id).join(
+                hierarchy, col(Role.id) == hierarchy.c.parent_id
+            )
+        )
+        stm = select(
+            exists(
+                select(1)
+                .select_from(UserRolePermissionLink)
+                .join(
+                    hierarchy,
+                    col(UserRolePermissionLink.role_id) == hierarchy.c.id,
+                )
+                .where(UserRolePermissionLink.user_id == user.id)
+            )
+        )
+        has_access = await self.db.scalar(stm)
+        if not has_access:
+            raise AppException(403, "Access denied.")
+
+        new_role = Role.model_validate(role_create)
+
+        self.db.add(new_role)
+        await self.db.commit()
+        await self.db.refresh(new_role)
+
+        return new_role
 
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]

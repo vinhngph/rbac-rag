@@ -59,8 +59,9 @@ class Role(RoleBase, table=True):
         return list(unique_users.values())
 
 
-class RoleCreate(RoleBase):
-    pass
+class RoleCreate(SQLModel):
+    name: str = "Untitled"
+    parent_id: UUID
 
 
 class RoleRead(RoleBase):

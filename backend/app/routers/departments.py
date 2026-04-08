@@ -2,7 +2,7 @@ from fastapi import APIRouter, status
 from typing import List
 from uuid import UUID
 
-from app.models.role import RootRoleRead, RootRoleCreate, RootRoleUpdate
+from app.models.role import RootRoleRead, RootRoleCreate, RootRoleUpdate, RoleRead
 from app.dependencies import CurrentUser
 from app.services.role import UseRoleService
 from app.services.permission import UsePermissionService
@@ -33,7 +33,7 @@ async def create_new_department(
     )
 
 
-@router.get("/{department_id}", response_model=List[RootRoleRead])
+@router.get("/{department_id}", response_model=List[RoleRead])
 async def get_department(
     department_id: UUID,
     user: CurrentUser,
