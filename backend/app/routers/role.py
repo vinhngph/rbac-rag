@@ -5,7 +5,7 @@ from uuid import UUID
 from app.dependencies.current_user import CurrentUser
 from app.models.knowledge import KnowledgeRead
 from app.models.role import RoleRead, RoleCreate, RoleUpdate
-from app.schemas.member import MemberRead
+from app.schemas.member import MemberRead, MemberCreate
 from app.services.knowledge import UseKnowledgeService
 from app.services.role import UseRoleService
 from app.services.permission import UsePermissionService
@@ -75,3 +75,13 @@ async def get_role_members(
     role_id: UUID, user: CurrentUser, role_service: UseRoleService
 ):
     return await role_service.get_members_of_role(user, role_id)
+
+
+@router.post("/{role_id}/members", response_model=List[MemberRead])
+async def add_member_to_role(
+    role_id: UUID,
+    members_create: List[MemberCreate],
+    user: CurrentUser,
+    role_service: UseRoleService,
+):
+    return await role_service.add_members_to_role(user, members_create, role_id)

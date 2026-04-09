@@ -2,6 +2,7 @@ from fastapi import Depends, HTTPException, status
 from sqlmodel import select, col, exists
 from typing import List, Annotated
 from uuid import UUID
+from functools import cached_property
 
 from app.dependencies.db_session import DB_Session
 from app.core.exceptions.app_exception import AppException
@@ -10,14 +11,29 @@ from app.models.user import User
 from app.models.permission import Permission
 from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate, RoleUpdate
 from app.models.links import UserRolePermissionLink
-from app.schemas.member import MemberRead, MemberDict
+from app.schemas.member import MemberRead, MemberDict, MemberCreate
 from app.services.permission import PermissionService
 from app.services.trash import TrashService
+from app.repositories.user import UserRepository
+from app.repositories.role import RoleRepository
+from app.repositories.permission import PermissionRepository
 
 
 class RoleService:
     def __init__(self, db: DB_Session):
         self.db = db
+
+    @cached_property
+    def user_repo(self) -> UserRepository:
+        return UserRepository(self.db)
+
+    @cached_property
+    def role_repo(self) -> RoleRepository:
+        return RoleRepository(self.db)
+
+    @cached_property
+    def permission_repo(self) -> PermissionRepository:
+        return PermissionRepository(self.db)
 
     async def get_user_role(self, user: User, role_id: UUID) -> Role:
         stm = (
@@ -36,7 +52,7 @@ class RoleService:
                 detail=ErrorMessages.ROLE_ACCESS_BLOCK,
             )
 
-        root_role = await self.get_root_of_role(role)
+        root_role = await self.role_repo.get_root_of_role(role)
         if root_role.name == "Trash":
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -86,66 +102,6 @@ class RoleService:
 
         return list((await self.db.exec(stmt)).all())
 
-    async def get_user_role_of_department(
-        self, user: User, department_id: UUID
-    ) -> Role:
-        dept_hierarchy = (
-            select(Role.id)
-            .where(col(Role.id) == department_id)
-            .cte(name="dept_hierarchy_cte", recursive=True)
-        )
-        dept_hierarchy = dept_hierarchy.union_all(
-            select(Role.id).join(
-                dept_hierarchy, col(Role.parent_id) == dept_hierarchy.c.id
-            )
-        )
-
-        stm = (
-            select(Role)
-            .join(UserRolePermissionLink)
-            .join(dept_hierarchy, col(Role.id) == dept_hierarchy.c.id)
-            .where(UserRolePermissionLink.user_id == user.id)
-            .distinct()
-        )
-
-        user_role = (await self.db.exec(stm)).one_or_none()
-
-        if not user_role:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=ErrorMessages.ROLE_ACCESS_BLOCK,
-            )
-
-        return user_role
-
-    async def get_root_of_role(self, role: Role) -> Role:
-        if not role.parent_id:
-            return role
-
-        hierarchy = (
-            select(Role.id, Role.parent_id)
-            .where(Role.id == role.id)
-            .cte(name="root_of_role_cte", recursive=True)
-        )
-        hierarchy = hierarchy.union_all(
-            select(Role.id, Role.parent_id).join(
-                hierarchy, col(Role.id) == hierarchy.c.parent_id
-            )
-        )
-
-        stm = (
-            select(Role)
-            .join(hierarchy, col(Role.id) == hierarchy.c.id)
-            .where(col(Role.parent_id).is_(None))
-            .distinct()
-        )
-
-        root = (await self.db.exec(stm)).one_or_none()
-        if not root:
-            return role
-
-        return root
-
     async def create_user_department(
         self,
         user: User,
@@ -172,7 +128,13 @@ class RoleService:
         return department
 
     async def get_department(self, user: User, department_id: UUID) -> List[Role]:
-        user_role = await self.get_user_role_of_department(user, department_id)
+        department = await self.role_repo.get_by_id(department_id)
+        if not department:
+            raise AppException(404, ErrorMessages.DEPARTMENT_NOT_FOUND)
+
+        user_role = await self.role_repo.get_user_role_of_department(user, department)
+        if not user_role:
+            raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
 
         visible_hierarchy = (
             select(Role.id)
@@ -195,14 +157,14 @@ class RoleService:
     async def update_department(
         self, user: User, department_id: UUID, update_data: RootRoleUpdate
     ) -> Role:
-        department = await self.db.get(Role, department_id)
-        if (not department) or (department.parent_id is not None):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=ErrorMessages.DEPARTMENT_NOT_FOUND,
-            )
+        department = await self.role_repo.get_by_id(department_id)
+        if not department:
+            raise AppException(404, ErrorMessages.DEPARTMENT_NOT_FOUND)
 
-        user_role = await self.get_user_role_of_department(user, department_id)
+        user_role = await self.role_repo.get_user_role_of_department(user, department)
+        if not user_role:
+            raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
+
         if user_role.id != department_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -223,13 +185,14 @@ class RoleService:
     async def delete_department(
         self, user: User, department_id: UUID, trash_service: TrashService
     ) -> None:
-        department = await self.db.get(Role, department_id)
-        if (not department) or (department.parent_id is not None):
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=ErrorMessages.DEPARTMENT_NOT_FOUND,
-            )
-        user_role = await self.get_user_role_of_department(user, department_id)
+        department = await self.role_repo.get_by_id(department_id)
+        if not department:
+            raise AppException(404, ErrorMessages.DEPARTMENT_NOT_FOUND)
+
+        user_role = await self.role_repo.get_user_role_of_department(user, department)
+        if not user_role:
+            raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
+
         if user_role.id != department_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
@@ -279,22 +242,26 @@ class RoleService:
         return rs is not None
 
     async def get_members_of_role(self, user: User, role_id: UUID) -> List[MemberRead]:
-        current_role = await self.get_role(role_id)
+        current_role = await self.role_repo.get_by_id(role_id)
+        if not current_role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
 
-        department = await self.get_root_of_role(current_role)
+        department = await self.role_repo.get_root_of_role(current_role)
         if not department:
             raise AppException(404, ErrorMessages.DEPARTMENT_NOT_FOUND)
 
-        user_role = await self.get_user_role_of_department(
-            user, department_id=department.id
-        )
+        user_role = await self.role_repo.get_user_role_of_department(user, department)
+        if not user_role:
+            raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
 
         members: List[MemberRead] = []
 
         if await self.is_children_of_role(current_role, user_role):
             stm = (
                 select(User, Permission)
+                .select_from(User)
                 .join(UserRolePermissionLink)
+                .join(Permission)
                 .where(UserRolePermissionLink.role_id == current_role.id)
             )
             rs = (await self.db.exec(stm)).all()
@@ -418,8 +385,8 @@ class RoleService:
             ):
                 raise AppException(403, ErrorMessages.ACCESS_DENIED)
 
-            be_move_root_role = await self.get_root_of_role(role)
-            dest_move_root_role = await self.get_root_of_role(dest_role)
+            be_move_root_role = await self.role_repo.get_root_of_role(role)
+            dest_move_root_role = await self.role_repo.get_root_of_role(dest_role)
 
             if be_move_root_role.id != dest_move_root_role.id:
                 raise AppException(403, ErrorMessages.ACCESS_DENIED)
@@ -434,6 +401,66 @@ class RoleService:
         await self.db.refresh(role)
 
         return role
+
+    async def add_members_to_role(
+        self, user: User, members_create: List[MemberCreate], role_id: UUID
+    ) -> List[MemberRead]:
+        """
+        Only add members to this role if current user's role level is higher.
+        """
+        role = await self.role_repo.get_by_id(role_id)
+        if not role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
+
+        if not await self.can_user_edit_role(user, role, strict_higher=True):
+            raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+        department = await self.role_repo.get_root_of_role(role)
+
+        result_members: List[MemberRead] = []
+        for member in members_create:
+            member_user = await self.user_repo.get_user_by_email(member.email)
+            if not member_user:
+                raise AppException(404, f"User {member.email} not found.")
+
+            member_role_in_department = (
+                await self.role_repo.get_user_role_of_department(
+                    member_user, department
+                )
+            )
+            permission_ids = await self.permission_repo.get_ids_by_name(
+                member.permissions
+            )
+            if not member_role_in_department:
+                # New member
+                await self.role_repo.add_user_to_role(member_user, permission_ids, role)
+            else:
+                # Old member
+                if member_role_in_department.id == role.id:
+                    continue
+
+                if not await self.can_user_edit_role(
+                    user, member_role_in_department, strict_higher=True
+                ):
+                    raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+                await self.role_repo.delete_user_role(
+                    member_user, member_role_in_department
+                )
+                await self.role_repo.add_user_to_role(member_user, permission_ids, role)
+
+            result_members.append(
+                MemberRead(
+                    id=member_user.id,
+                    email=member_user.email,
+                    name=member_user.name,
+                    permissions=member.permissions,
+                )
+            )
+
+        await self.db.commit()
+
+        return result_members
 
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]

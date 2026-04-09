@@ -1,3 +1,5 @@
+from sqlmodel import SQLModel
+from pydantic import EmailStr
 from typing import Optional, List, TypedDict
 
 from app.models.user import UserRead, User
@@ -10,4 +12,9 @@ class MemberRead(UserRead):
 
 class MemberDict(TypedDict):
     user: User
+    permissions: List[PermissionName]
+
+
+class MemberCreate(SQLModel):
+    email: EmailStr
     permissions: List[PermissionName]
