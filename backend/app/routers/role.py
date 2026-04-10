@@ -85,3 +85,10 @@ async def add_member_to_role(
     role_service: UseRoleService,
 ):
     return await role_service.add_member_to_role(user, member_create, role_id)
+
+
+@router.delete("/{role_id}/members", status_code=status.HTTP_204_NO_CONTENT)
+async def remove_member_from_role(
+    role_id: UUID, member_id: UUID, user: CurrentUser, role_service: UseRoleService
+):
+    return await role_service.delete_member_from_role(user, member_id, role_id)

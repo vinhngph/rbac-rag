@@ -2,12 +2,13 @@ from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import Optional
 
+from app.repositories.base import BaseRepository
 from app.models.user import User
 
 
-class UserRepository:
+class UserRepository(BaseRepository[User]):
     def __init__(self, db: AsyncSession) -> None:
-        self.db = db
+        super().__init__(User, db)
 
     async def get_user_by_email(self, email: str) -> Optional[User]:
         stm = select(User).where(User.email == email)

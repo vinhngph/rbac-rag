@@ -14,6 +14,10 @@ class ErrorMessages:
     ACCESS_DENIED = "Access denied."
 
     MEMBER_ADD_ERROR = "Cannot add member."
+    MEMBER_NOT_FOUND = "Member not found."
+    MEMBER_ROLE_CONFLICT = "Member role conflict."
+
+    USER_NOT_FOUND = "User not found."
 
 
 class SystemMessages:

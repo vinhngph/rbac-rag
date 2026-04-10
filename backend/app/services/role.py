@@ -454,5 +454,35 @@ class RoleService:
             permissions=member_create.permissions,
         )
 
+    async def delete_member_from_role(
+        self, user: User, member_id: UUID, role_id: UUID
+    ) -> None:
+        role = await self.role_repo.get_by_id(role_id)
+        if not role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
+
+        if not await self.can_user_edit_role(user, role, strict_higher=True):
+            raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+        member_user = await self.user_repo.get_by_id(member_id)
+        if not member_user:
+            raise AppException(404, ErrorMessages.USER_NOT_FOUND)
+
+        department = await self.role_repo.get_root_of_role(role)
+
+        member_role_in_department = await self.role_repo.get_user_role_of_department(
+            member_user, department
+        )
+
+        if not member_role_in_department:
+            raise AppException(400, ErrorMessages.MEMBER_NOT_FOUND)
+
+        if member_role_in_department.id != role.id:
+            raise AppException(400, ErrorMessages.MEMBER_ROLE_CONFLICT)
+
+        await self.role_repo.delete_user_role(member_user, member_role_in_department)
+
+        await self.db.commit()
+
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]
