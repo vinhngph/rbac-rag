@@ -10,6 +10,7 @@ class ErrorMessages:
     DEPARTMENT_NOT_FOUND = "Department not found."
 
     ROLE_NOT_FOUND = "Role not found."
+    ROLE_UPDATE_DENIED = "You cannot update this role."
 
     ACCESS_DENIED = "Access denied."
 

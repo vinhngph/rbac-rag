@@ -121,3 +121,29 @@ class RoleRepository(BaseRepository[Role]):
             )
         )
         return bool(await self.db.scalar(stm))
+
+    async def delete_user_role_permissions(
+        self, user_id: UUID, role_id: UUID, permission_ids: List[UUID] | None = None
+    ) -> None:
+        stm = delete(UserRolePermissionLink).where(
+            col(UserRolePermissionLink.user_id) == user_id,
+            col(UserRolePermissionLink.role_id) == role_id,
+        )
+
+        if permission_ids:
+            stm = stm.where(
+                col(UserRolePermissionLink.permission_id).in_(permission_ids)
+            )
+
+        await self.db.exec(stm)
+
+    async def add_user_role_permissions(
+        self, user_id: UUID, role_id: UUID, permission_ids: List[UUID]
+    ) -> None:
+        links = [
+            UserRolePermissionLink(
+                user_id=user_id, role_id=role_id, permission_id=permission_id
+            )
+            for permission_id in permission_ids
+        ]
+        self.db.add_all(links)

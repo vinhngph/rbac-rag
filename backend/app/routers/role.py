@@ -5,7 +5,7 @@ from uuid import UUID
 from app.dependencies.current_user import CurrentUser
 from app.models.knowledge import KnowledgeRead
 from app.models.role import RoleRead, RoleCreate, RoleUpdate
-from app.schemas.member import MemberRead, MemberCreate
+from app.schemas.member import MemberRead, MemberCreate, MemberUpdate
 from app.services.knowledge import UseKnowledgeService
 from app.services.role import UseRoleService
 from app.services.permission import UsePermissionService
@@ -92,3 +92,13 @@ async def remove_member_from_role(
     role_id: UUID, member_id: UUID, user: CurrentUser, role_service: UseRoleService
 ):
     return await role_service.delete_member_from_role(user, member_id, role_id)
+
+
+@router.patch("/{role_id}/members", response_model=MemberRead)
+async def update_member_permissions_in_role(
+    role_id: UUID,
+    member_update: MemberUpdate,
+    user: CurrentUser,
+    role_service: UseRoleService,
+):
+    return await role_service.update_user_role_permissions(user, role_id, member_update)

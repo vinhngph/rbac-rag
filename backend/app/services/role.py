@@ -11,7 +11,7 @@ from app.models.user import User
 from app.models.permission import Permission
 from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate, RoleUpdate
 from app.models.links import UserRolePermissionLink
-from app.schemas.member import MemberRead, MemberDict, MemberCreate
+from app.schemas.member import MemberRead, MemberDict, MemberCreate, MemberUpdate
 from app.services.permission import PermissionService
 from app.services.trash import TrashService
 from app.repositories.user import UserRepository
@@ -453,6 +453,48 @@ class RoleService:
         await self.role_repo.delete_user_role(member_user, member_role_in_department)
 
         await self.db.commit()
+
+    async def update_user_role_permissions(
+        self, user: User, role_id: UUID, member_update: MemberUpdate
+    ) -> MemberRead:
+        role = await self.role_repo.get_by_id(role_id)
+        if not role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
+
+        if not await self.role_repo.can_user_edit_role(user, role, strict_higher=True):
+            raise AppException(403, ErrorMessages.ROLE_UPDATE_DENIED)
+
+        department = await self.role_repo.get_root_of_role(role)
+
+        member_user = await self.user_repo.get_by_id(member_update.id)
+        if not member_user:
+            raise AppException(404, ErrorMessages.MEMBER_NOT_FOUND)
+
+        member_role = await self.role_repo.get_user_role_of_department(
+            member_user, department
+        )
+        if not member_role:
+            raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
+
+        if member_role.id != role_id:
+            raise AppException(403, ErrorMessages.MEMBER_ROLE_CONFLICT)
+
+        permission_ids = await self.permission_repo.get_ids_by_name(
+            member_update.permissions
+        )
+        await self.role_repo.delete_user_role_permissions(member_user.id, role.id)
+        await self.role_repo.add_user_role_permissions(
+            member_user.id, role.id, permission_ids
+        )
+
+        await self.db.commit()
+
+        return MemberRead(
+            id=member_user.id,
+            email=member_user.email,
+            name=member_user.name,
+            permissions=member_update.permissions,
+        )
 
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]
