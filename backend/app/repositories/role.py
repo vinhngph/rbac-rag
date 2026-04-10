@@ -1,5 +1,5 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select, col, delete
+from sqlmodel import select, col, delete, exists
 from typing import Optional, List
 from uuid import UUID
 
@@ -85,3 +85,39 @@ class RoleRepository(BaseRepository[Role]):
             col(UserRolePermissionLink.role_id) == role.id,
         )
         await self.db.exec(stm)
+
+    async def can_user_edit_role(
+        self, user: User, role: Role, strict_higher: bool
+    ) -> bool:
+        """
+        - strict_higher=False: Use for CREATE child role.
+        - strict_higher=True: Use for EDIT this role.
+        """
+        start_node_id = role.parent_id if strict_higher else role.id
+
+        if strict_higher and not start_node_id:
+            return False
+
+        # Can user access parent
+        hierarchy = (
+            select(Role.id, Role.parent_id)
+            .where(Role.id == start_node_id)
+            .cte(name="is_user_parent_of_role_cte", recursive=True)
+        )
+        hierarchy = hierarchy.union_all(
+            select(Role.id, Role.parent_id).join(
+                hierarchy, col(Role.id) == hierarchy.c.parent_id
+            )
+        )
+        stm = select(
+            exists(
+                select(1)
+                .select_from(UserRolePermissionLink)
+                .join(
+                    hierarchy,
+                    col(UserRolePermissionLink.role_id) == hierarchy.c.id,
+                )
+                .where(UserRolePermissionLink.user_id == user.id)
+            )
+        )
+        return bool(await self.db.scalar(stm))

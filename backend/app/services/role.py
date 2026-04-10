@@ -1,5 +1,5 @@
 from fastapi import Depends, HTTPException, status
-from sqlmodel import select, col, exists
+from sqlmodel import select, col
 from typing import List, Annotated
 from uuid import UUID
 from functools import cached_property
@@ -304,48 +304,16 @@ class RoleService:
 
         return members
 
-    async def can_user_edit_role(
-        self, user: User, role: Role, strict_higher: bool
-    ) -> bool:
-        """
-        - strict_higher=False: Use for CREATE child role.
-        - strict_higher=True: Use for EDIT this role.
-        """
-        start_node_id = role.parent_id if strict_higher else role.id
-
-        if strict_higher and not start_node_id:
-            return False
-
-        # Can user access parent
-        hierarchy = (
-            select(Role.id, Role.parent_id)
-            .where(Role.id == start_node_id)
-            .cte(name="is_user_parent_of_role_cte", recursive=True)
-        )
-        hierarchy = hierarchy.union_all(
-            select(Role.id, Role.parent_id).join(
-                hierarchy, col(Role.id) == hierarchy.c.parent_id
-            )
-        )
-        stm = select(
-            exists(
-                select(1)
-                .select_from(UserRolePermissionLink)
-                .join(
-                    hierarchy,
-                    col(UserRolePermissionLink.role_id) == hierarchy.c.id,
-                )
-                .where(UserRolePermissionLink.user_id == user.id)
-            )
-        )
-        return bool(await self.db.scalar(stm))
-
     async def create_role(self, user: User, role_create: RoleCreate) -> Role:
         parent_role = await self.db.get(Role, role_create.parent_id)
         if not parent_role:
             raise AppException(404, "Role not found.")
 
-        if not (await self.can_user_edit_role(user, parent_role, strict_higher=False)):
+        if not (
+            await self.role_repo.can_user_edit_role(
+                user, parent_role, strict_higher=False
+            )
+        ):
             raise AppException(403, "Access denied.")
 
         new_role = Role.model_validate(role_create)
@@ -361,7 +329,9 @@ class RoleService:
     ) -> Role:
         role = await self.get_role(role_id)
 
-        if not (await self.can_user_edit_role(user, role, strict_higher=True)):
+        if not (
+            await self.role_repo.can_user_edit_role(user, role, strict_higher=True)
+        ):
             raise AppException(403, ErrorMessages.ACCESS_DENIED)
 
         update_dict = role_update.model_dump(exclude_unset=True)
@@ -377,7 +347,7 @@ class RoleService:
             if (
                 role.id == dest_role.id
                 or (
-                    not await self.can_user_edit_role(
+                    not await self.role_repo.can_user_edit_role(
                         user, dest_role, strict_higher=False
                     )
                 )
@@ -412,7 +382,7 @@ class RoleService:
         if not role:
             raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
 
-        if not await self.can_user_edit_role(user, role, strict_higher=True):
+        if not await self.role_repo.can_user_edit_role(user, role, strict_higher=True):
             raise AppException(403, ErrorMessages.ACCESS_DENIED)
 
         department = await self.role_repo.get_root_of_role(role)
@@ -435,7 +405,7 @@ class RoleService:
             if member_role_in_department.id == role.id:
                 raise AppException(400, ErrorMessages.MEMBER_ADD_ERROR)
 
-            if not await self.can_user_edit_role(
+            if not await self.role_repo.can_user_edit_role(
                 user, member_role_in_department, strict_higher=True
             ):
                 raise AppException(403, ErrorMessages.ACCESS_DENIED)
@@ -461,7 +431,7 @@ class RoleService:
         if not role:
             raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
 
-        if not await self.can_user_edit_role(user, role, strict_higher=True):
+        if not await self.role_repo.can_user_edit_role(user, role, strict_higher=True):
             raise AppException(403, ErrorMessages.ACCESS_DENIED)
 
         member_user = await self.user_repo.get_by_id(member_id)
