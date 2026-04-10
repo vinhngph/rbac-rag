@@ -13,6 +13,8 @@ class ErrorMessages:
 
     ACCESS_DENIED = "Access denied."
 
+    MEMBER_ADD_ERROR = "Cannot add member."
+
 
 class SystemMessages:
     DATABASE_SEED = (

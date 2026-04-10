@@ -402,11 +402,11 @@ class RoleService:
 
         return role
 
-    async def add_members_to_role(
-        self, user: User, members_create: List[MemberCreate], role_id: UUID
-    ) -> List[MemberRead]:
+    async def add_member_to_role(
+        self, user: User, member_create: MemberCreate, role_id: UUID
+    ) -> MemberRead:
         """
-        Only add members to this role if current user's role level is higher.
+        Only add member to this role if current user's role level is higher.
         """
         role = await self.role_repo.get_by_id(role_id)
         if not role:
@@ -417,50 +417,42 @@ class RoleService:
 
         department = await self.role_repo.get_root_of_role(role)
 
-        result_members: List[MemberRead] = []
-        for member in members_create:
-            member_user = await self.user_repo.get_user_by_email(member.email)
-            if not member_user:
-                raise AppException(404, f"User {member.email} not found.")
+        member_user = await self.user_repo.get_user_by_email(member_create.email)
+        if not member_user:
+            raise AppException(404, f"User {member_create.email} not found.")
 
-            member_role_in_department = (
-                await self.role_repo.get_user_role_of_department(
-                    member_user, department
-                )
+        member_role_in_department = await self.role_repo.get_user_role_of_department(
+            member_user, department
+        )
+        permission_ids = await self.permission_repo.get_ids_by_name(
+            member_create.permissions
+        )
+        if not member_role_in_department:
+            # New member
+            await self.role_repo.add_user_to_role(member_user, permission_ids, role)
+        else:
+            # Old member
+            if member_role_in_department.id == role.id:
+                raise AppException(400, ErrorMessages.MEMBER_ADD_ERROR)
+
+            if not await self.can_user_edit_role(
+                user, member_role_in_department, strict_higher=True
+            ):
+                raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+            await self.role_repo.delete_user_role(
+                member_user, member_role_in_department
             )
-            permission_ids = await self.permission_repo.get_ids_by_name(
-                member.permissions
-            )
-            if not member_role_in_department:
-                # New member
-                await self.role_repo.add_user_to_role(member_user, permission_ids, role)
-            else:
-                # Old member
-                if member_role_in_department.id == role.id:
-                    continue
-
-                if not await self.can_user_edit_role(
-                    user, member_role_in_department, strict_higher=True
-                ):
-                    raise AppException(403, ErrorMessages.ACCESS_DENIED)
-
-                await self.role_repo.delete_user_role(
-                    member_user, member_role_in_department
-                )
-                await self.role_repo.add_user_to_role(member_user, permission_ids, role)
-
-            result_members.append(
-                MemberRead(
-                    id=member_user.id,
-                    email=member_user.email,
-                    name=member_user.name,
-                    permissions=member.permissions,
-                )
-            )
+            await self.role_repo.add_user_to_role(member_user, permission_ids, role)
 
         await self.db.commit()
 
-        return result_members
+        return MemberRead(
+            id=member_user.id,
+            email=member_user.email,
+            name=member_user.name,
+            permissions=member_create.permissions,
+        )
 
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]

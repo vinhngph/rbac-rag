@@ -77,11 +77,11 @@ async def get_role_members(
     return await role_service.get_members_of_role(user, role_id)
 
 
-@router.post("/{role_id}/members", response_model=List[MemberRead])
+@router.post("/{role_id}/members", response_model=MemberRead)
 async def add_member_to_role(
     role_id: UUID,
-    members_create: List[MemberCreate],
+    member_create: MemberCreate,
     user: CurrentUser,
     role_service: UseRoleService,
 ):
-    return await role_service.add_members_to_role(user, members_create, role_id)
+    return await role_service.add_member_to_role(user, member_create, role_id)
