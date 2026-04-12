@@ -1,4 +1,4 @@
-import { AlertCircle, Bot, Eye, EyeOff, Loader2, X } from "lucide-react";
+import { AlertCircle, Bot, Eye, EyeOff, X } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
 import { APP_CONFIG } from "../../../core/config";
@@ -6,6 +6,7 @@ import { APP_CONFIG } from "../../../core/config";
 import { getMe, login, register } from "../services/auth.service";
 import { useAuth } from "../hooks/useAuth";
 import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
+import RequestButton from "../../../shared/components/RequestButton";
 
 type Tab = "login" | "register";
 
@@ -182,14 +183,14 @@ function AuthModal() {
           )}
 
           {/* Submit */}
-          <button
+          <RequestButton
             type="submit"
+            isLoading={loading}
             disabled={handleDisable()}
-            className="w-full mt-1 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-500/40 text-text disabled:text-text/50 font-medium text-sm py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed"
+            className="w-full mt-1 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-500/40 text-text disabled:text-text/50 text-sm py-2.5 rounded-xl"
           >
-            {loading && <Loader2 className="w-4 h-4 animate-spin" />}
             {tab === "login" ? "Login" : "Register"}
-          </button>
+          </RequestButton>
         </form>
       </div>
     </div>
