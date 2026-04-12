@@ -1,9 +1,8 @@
-import { api } from "../../core/api/axios";
+import { api } from "../../../core/api/axios";
 
 export interface DepartmentRead {
-  id: string;
+  id: string
   name: string
-  status: boolean
 }
 
 export interface DepartmentCreate {
@@ -15,13 +14,13 @@ export interface DepartmentUpdate {
 }
 
 export const getDepartments = () =>
-  api.get<DepartmentRead[]>("/departments");
+  api.get<DepartmentRead[]>("/departments/");
 
 export const getDepartment = (id: string) =>
   api.get<DepartmentRead>(`/departments/${id}`);
 
 export const createDepartment = (data: DepartmentCreate) =>
-  api.post<DepartmentRead>("/departments", data);
+  api.post<DepartmentRead>("/departments/", data);
 
 export const updateDepartment = (id: string, data: DepartmentUpdate) =>
   api.patch<DepartmentRead>(`/departments/${id}`, data);

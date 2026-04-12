@@ -1,4 +1,4 @@
-import { api } from "../../core/api/axios";
+import { api } from "../../../core/api/axios";
 
 export const login = (data: {
   email: string,

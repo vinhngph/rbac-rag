@@ -1,8 +1,8 @@
 import { createBrowserRouter } from "react-router";
 
 import MainLayout from "../layouts/MainLayout";
-import SuspenseWrapper from "../components/SuspenseWrapper";
-import { HomePage, DepartmentPage, NotFoundPage } from "../pages";
+import SuspenseWrapper from "../shared/components/SuspenseWrapper";
+import { HomePage, NotFoundPage } from "../pages";
 
 export const router = createBrowserRouter([
   {
@@ -11,7 +11,7 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <SuspenseWrapper><HomePage /></SuspenseWrapper> },
       { path: "auth", element: <SuspenseWrapper><HomePage /></SuspenseWrapper> },
-      { path: "department/:id", element: <SuspenseWrapper><DepartmentPage /></SuspenseWrapper> }
+      { path: "department/:id", element: <SuspenseWrapper><HomePage /></SuspenseWrapper> }
     ]
   },
   {

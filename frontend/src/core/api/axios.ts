@@ -1,6 +1,6 @@
 import axios, { AxiosError } from "axios";
 
-import { APP_CONFIG } from "../../config";
+import { APP_CONFIG } from "../config";
 
 export interface FastAPIError {
   detail?: string | Array<{ msg: string; type: string; loc: string[] }>

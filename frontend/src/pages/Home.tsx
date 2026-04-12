@@ -1,21 +1,13 @@
 import { useRef, useState } from "react";
 import { Bot, Copy, Globe, Lightbulb, Mic, Paperclip, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 
-import { APP_CONFIG } from "../config";
-
-type Message = {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: Date;
-}
+import { APP_CONFIG } from "../core/config";
+import useChat from "../features/chat/hooks/useChat";
 
 function Home() {
-  const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState<string>("");
 
-  // AI thinking...
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const { messages, isLoading, sendMessage } = useChat();
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -31,31 +23,10 @@ function Home() {
     const content = (text ?? input).trim();
     if (!content || isLoading) return;
 
-    const userMsg: Message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content,
-      timestamp: new Date()
-    };
+    sendMessage(content);
 
-    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
-    setIsLoading(true);
-
-
-    // Simulate AI response
-    setTimeout(() => {
-      const assistantMsg: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: `Demo reply from ${APP_CONFIG.APP_NAME}. ${content}.`,
-        timestamp: new Date()
-      };
-
-      setMessages((prev) => [...prev, assistantMsg]);
-      setIsLoading(false);
-    }, 1200);
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {

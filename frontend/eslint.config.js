@@ -20,6 +20,8 @@ export default defineConfig([
       globals: globals.browser,
     },
     rules: {
+      "no-trailing-spaces": "warn",
+      "eol-last": ["warn", "always"],
       "semi": ["warn", "always"],
       "indent": ["warn", 2],
       "quotes": ["warn", "double", { "avoidEscape": true }],

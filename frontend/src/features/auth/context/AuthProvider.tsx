@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { getMe } from "./auth.service";
+import { getMe } from "../services/auth.service";
 import { AuthContext, type User } from "./auth.context";
 
 interface AuthProviderProps {

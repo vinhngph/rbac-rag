@@ -1,13 +1,14 @@
 import React, { useRef, useState } from "react";
 
-interface RenameModalProps {
-    readonly initialName: string
-    readonly onConfirm: (n: string) => void
-    readonly onCancel: () => void
+interface PromptModalProps {
+  readonly title: string
+  readonly initialName: string
+  readonly onConfirm: (n: string) => void
+  readonly onCancel: () => void
 }
 
 
-function RenameModal({ initialName, onConfirm, onCancel }: RenameModalProps) {
+function PromptModal({ title, initialName, onConfirm, onCancel }: PromptModalProps) {
   const [name, setName] = useState(initialName);
   const nameRef = useRef<HTMLInputElement>(null);
 
@@ -28,7 +29,7 @@ function RenameModal({ initialName, onConfirm, onCancel }: RenameModalProps) {
 
       {/* Modal card */}
       <div className="relative z-10 w-full max-w-xs mx-4 bg-bg-modal border border-white/10 rounded-2xl shadow-2xl p-5">
-        <h3 className="text-sm font-semibold text-text mb-3">Rename department</h3>
+        <h3 className="text-sm font-semibold text-text mb-3">{title}</h3>
         <input
           ref={nameRef}
           type="text"
@@ -42,14 +43,14 @@ function RenameModal({ initialName, onConfirm, onCancel }: RenameModalProps) {
             onClick={onCancel}
             className="flex-1 py-2 text-sm text-text/60 hover:text-text bg-white/5 hover:bg-white/10 rounded-xl transition-colors cursor-pointer"
           >
-                        Cancel
+            Cancel
           </button>
           <button
             onClick={() => name.trim() && onConfirm(name.trim())}
             disabled={!name.trim()}
             className="flex-1 py-2 text-sm text-text bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed"
           >
-                        Save
+            Save
           </button>
         </div>
       </div>
@@ -57,4 +58,4 @@ function RenameModal({ initialName, onConfirm, onCancel }: RenameModalProps) {
   );
 }
 
-export default RenameModal;
+export default PromptModal;

@@ -1,11 +1,11 @@
 import { AlertCircle, Bot, Eye, EyeOff, Loader2, X } from "lucide-react";
 import React, { useState } from "react";
 import { useNavigate } from "react-router";
-import { APP_CONFIG } from "../config";
+import { APP_CONFIG } from "../../../core/config";
 
-import { getMe, login, register } from "../modules/auth/auth.service";
-import { useAuth } from "../modules/auth/useAuth";
-import { useErrorHandler } from "../hooks/useErrorHandler";
+import { getMe, login, register } from "../services/auth.service";
+import { useAuth } from "../hooks/useAuth";
+import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
 
 type Tab = "login" | "register";
 

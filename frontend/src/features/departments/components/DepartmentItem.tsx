@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { Check, ChevronRight, Ellipsis, Pencil, Trash2 } from "lucide-react";
 
-import { type DepartmentRead } from "../modules/department/department.service";
+import { type DepartmentRead } from "../services/department.service";
 
 interface DepartmentItemProps {
   readonly department: DepartmentRead
