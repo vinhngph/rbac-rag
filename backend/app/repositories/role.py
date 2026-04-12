@@ -147,3 +147,13 @@ class RoleRepository(BaseRepository[Role]):
             for permission_id in permission_ids
         ]
         self.db.add_all(links)
+
+    async def get_trash_role(self) -> Role | None:
+        stm = select(Role).where(Role.name == "Trash")
+        return (await self.db.exec(stm)).one_or_none()
+
+    async def move_role_to_trash(self, role: Role, trash: Role) -> None:
+        role.original_parent_id = role.parent_id
+        role.parent_id = trash.id
+
+        self.db.add(role)

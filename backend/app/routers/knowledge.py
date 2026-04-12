@@ -19,7 +19,6 @@ from app.core.constants import PermissionName, KnowledgeStatus
 from app.services.knowledge import UseKnowledgeService
 from app.services.role import UseRoleService
 from app.services.permission import UsePermissionService
-from app.services.trash import UseTrashService
 
 
 router = APIRouter(prefix="/knowledges", tags=["Knowledge Base"])
@@ -52,10 +51,9 @@ async def delete_knowledge(
     knowledge_service: UseKnowledgeService,
     role_service: UseRoleService,
     permission_service: UsePermissionService,
-    trash_service: UseTrashService,
 ):
     return await knowledge_service.delete_knowledge(
-        user, knowledge_id, role_service, permission_service, trash_service
+        user, knowledge_id, role_service, permission_service
     )
 
 

@@ -6,19 +6,16 @@ from app.models.role import RootRoleRead, RootRoleCreate, RootRoleUpdate, RoleRe
 from app.dependencies import CurrentUser
 from app.services.role import UseRoleService
 from app.services.permission import UsePermissionService
-from app.services.trash import UseTrashService
 
 router = APIRouter(prefix="/departments", tags=["Departments"])
 
 
 @router.get("/", response_model=List[RootRoleRead])
-async def get_departments(
-    user: CurrentUser, role_service: UseRoleService, trash_service: UseTrashService
-):
+async def get_departments(user: CurrentUser, role_service: UseRoleService):
     """
     **List all joined departments of user**
     """
-    return await role_service.get_user_departments(user, trash_service)
+    return await role_service.get_user_departments(user)
 
 
 @router.post("/", response_model=RootRoleRead, status_code=status.HTTP_201_CREATED)
@@ -60,6 +57,5 @@ async def delete_department(
     department_id: UUID,
     user: CurrentUser,
     role_service: UseRoleService,
-    trash_service: UseTrashService,
 ):
-    return await role_service.delete_department(user, department_id, trash_service)
+    return await role_service.delete_department(user, department_id)

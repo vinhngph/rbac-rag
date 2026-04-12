@@ -2,22 +2,27 @@ from fastapi import Depends, UploadFile, HTTPException, status
 from sqlmodel import select
 from typing import Annotated, List
 from uuid import UUID
+from functools import cached_property
 
 from app.dependencies.db_session import DB_Session
-from app.core.messages import ErrorMessages
+from app.core.messages import ErrorMessages, SystemMessages
 from app.core.constants import PermissionName, KnowledgeStatus
 from app.core.exceptions.app_exception import AppException
 from app.models.user import User
 from app.models.knowledge import Knowledge, KnowledgeUpdate
+from app.repositories.role import RoleRepository
 from app.services.role import RoleService
 from app.services.zero_trust import ZeroTrust
 from app.services.permission import PermissionService
-from app.services.trash import TrashService
 
 
 class KnowledgeService:
     def __init__(self, db: DB_Session) -> None:
         self.db = db
+
+    @cached_property
+    def role_repo(self) -> RoleRepository:
+        return RoleRepository(self.db)
 
     async def create_knowledge(
         self,
@@ -161,7 +166,6 @@ class KnowledgeService:
         knowledge_id: UUID,
         role_service: RoleService,
         permission_service: PermissionService,
-        trash_service: TrashService,
     ) -> None:
         knowledge = await self.get_knowledge(knowledge_id)
 
@@ -177,7 +181,9 @@ class KnowledgeService:
         ):
             raise AppException(403, "Knowledge access denied.")
 
-        trash_role = await trash_service.get_trash_role()
+        trash_role = await self.role_repo.get_trash_role()
+        if not trash_role:
+            raise AppException(500, SystemMessages.DATABASE_SEED)
 
         if knowledge.role_id == trash_role.id:
             raise AppException(400, "Knowledge already in trash.")

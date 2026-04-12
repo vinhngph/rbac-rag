@@ -20,6 +20,8 @@ class ErrorMessages:
 
     USER_NOT_FOUND = "User not found."
 
+    DELETE_DENIED = "Delete denied."
+
 
 class SystemMessages:
     DATABASE_SEED = (
