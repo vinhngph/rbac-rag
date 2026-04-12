@@ -1,4 +1,5 @@
 import { api } from "../../../core/api/axios";
+import type { RoleRead } from "../../roles/services/role.service";
 
 export interface DepartmentRead {
   id: string
@@ -16,8 +17,8 @@ export interface DepartmentUpdate {
 export const getDepartments = () =>
   api.get<DepartmentRead[]>("/departments/");
 
-export const getDepartment = (id: string) =>
-  api.get<DepartmentRead>(`/departments/${id}`);
+export const getDepartmentRoles = (id: string) =>
+  api.get<RoleRead[]>(`/departments/${id}`);
 
 export const createDepartment = (data: DepartmentCreate) =>
   api.post<DepartmentRead>("/departments/", data);
