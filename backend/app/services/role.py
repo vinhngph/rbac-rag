@@ -6,14 +6,13 @@ from functools import cached_property
 
 from app.dependencies.db_session import DB_Session
 from app.core.exceptions.app_exception import AppException
-from app.core.messages import ErrorMessages
+from app.core.messages import ErrorMessages, SystemMessages
 from app.models.user import User
 from app.models.permission import Permission
 from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate, RoleUpdate
 from app.models.links import UserRolePermissionLink
 from app.schemas.member import MemberRead, MemberDict, MemberCreate, MemberUpdate
 from app.services.permission import PermissionService
-from app.services.trash import TrashService
 from app.repositories.user import UserRepository
 from app.repositories.role import RoleRepository
 from app.repositories.permission import PermissionRepository
@@ -70,9 +69,7 @@ class RoleService:
         )
         return list((await self.db.exec(stm)).all())
 
-    async def get_user_departments(
-        self, user: User, trash_service: TrashService
-    ) -> List[Role]:
+    async def get_user_departments(self, user: User) -> List[Role]:
         user_role_ids = [role.id for role in (await self.get_user_roles(user))]
 
         if not user_role_ids:
@@ -90,7 +87,9 @@ class RoleService:
             )
         )
 
-        trash = await trash_service.get_trash_role()
+        trash = await self.role_repo.get_trash_role()
+        if not trash:
+            raise AppException(500, SystemMessages.DATABASE_SEED)
 
         stmt = (
             select(Role)
@@ -182,24 +181,27 @@ class RoleService:
 
         return department
 
-    async def delete_department(
-        self, user: User, department_id: UUID, trash_service: TrashService
-    ) -> None:
+    async def delete_department(self, user: User, department_id: UUID) -> None:
         department = await self.role_repo.get_by_id(department_id)
-        if not department:
+        if (not department) or (
+            await self.role_repo.get_root_of_role(department)
+        ).id != department.id:
             raise AppException(404, ErrorMessages.DEPARTMENT_NOT_FOUND)
 
-        user_role = await self.role_repo.get_user_role_of_department(user, department)
-        if not user_role:
+        if not await self.role_repo.can_user_edit_role(
+            user, department, strict_higher=False
+        ):
             raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
 
-        if user_role.id != department_id:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="You do not have permission to delete this department.",
-            )
+        trash = await self.role_repo.get_trash_role()
+        if not trash:
+            raise AppException(500, SystemMessages.DATABASE_SEED)
 
-        await trash_service.move_role_to_trash(department)
+        if (department.id == trash.id) or (department.parent_id == trash.id):
+            raise AppException(400, ErrorMessages.DELETE_DENIED)
+
+        await self.role_repo.move_role_to_trash(department, trash)
+        await self.db.commit()
 
         return None
 
@@ -495,6 +497,26 @@ class RoleService:
             name=member_user.name,
             permissions=member_update.permissions,
         )
+
+    async def delete_role(self, user: User, role_id: UUID) -> None:
+        role = await self.role_repo.get_by_id(role_id)
+        if not role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
+
+        if not await self.role_repo.can_user_edit_role(user, role, strict_higher=True):
+            raise AppException(403, ErrorMessages.ROLE_UPDATE_DENIED)
+
+        trash = await self.role_repo.get_trash_role()
+        if not trash:
+            raise AppException(500, SystemMessages.DATABASE_SEED)
+
+        if (trash.id == role_id) or (role.parent_id == trash.id):
+            raise AppException(403, ErrorMessages.DELETE_DENIED)
+
+        await self.role_repo.move_role_to_trash(role, trash)
+        await self.db.commit()
+
+        return None
 
 
 type UseRoleService = Annotated[RoleService, Depends(RoleService)]

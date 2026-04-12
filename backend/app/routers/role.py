@@ -33,6 +33,11 @@ async def update_role(
     return await role_service.update_role(user, role_id, role_update)
 
 
+@router.delete("/{role_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_role(role_id: UUID, user: CurrentUser, role_service: UseRoleService):
+    return await role_service.delete_role(user, role_id)
+
+
 @router.post(
     "/{role_id}/knowledges",
     response_model=KnowledgeRead,
