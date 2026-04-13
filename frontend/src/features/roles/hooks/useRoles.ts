@@ -1,81 +1,70 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
-import { createRole, deleteRole, updateRole, type RoleRead } from "../services/role.service";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useCallback, useMemo, useState } from "react";
+
 import { getDepartmentRoles } from "../../departments/services/department.service";
 import { buildRoleMap, getRolePath } from "../utils/role.utils";
+import { createRole, deleteRole, updateRole } from "../services/role.service";
 
-function useRoles(departmentId: string | undefined) {
-  const [allRoles, setAllRoles] = useState<RoleRead[]>([]);
+function useRoles(departmentId: string) {
+  const queryClient = useQueryClient();
   const [currentRoleId, setCurrentRoleId] = useState<string | null>(null);
-  const [loadingRoles, setLoadingRoles] = useState(true);
 
-  useEffect(() => {
-    if (!departmentId) return;
-
-    const fetchRoles = async () => {
-      setLoadingRoles(true);
-
-      try {
-        const res = await getDepartmentRoles(departmentId);
-        setAllRoles(res.data);
-        const root = res.data.find((r) => r.parent_id === null);
-        setCurrentRoleId(root?.id ?? null);
-      } catch (e) {
-        console.error(e);
-      } finally {
-        setLoadingRoles(false);
-      }
-    };
-    fetchRoles();
-  }, [departmentId]);
+  const { data: allRoles = [], isLoading: isLoadingRoles } = useQuery({
+    queryKey: ["roles", departmentId],
+    queryFn: ()=> getDepartmentRoles(departmentId).then(res => res.data),
+    enabled: !!departmentId
+  });
 
   const roleMap = useMemo(() => buildRoleMap(allRoles), [allRoles]);
   const rootRole = useMemo(() => allRoles.find((r) => r.parent_id === null) ?? null, [allRoles]);
-
   const currentRole = useMemo(() => currentRoleId ? allRoles.find((r) => r.id === currentRoleId) ?? null : rootRole, [currentRoleId, allRoles, rootRole]);
   const childRoles = useMemo(() => roleMap.get(currentRole?.id ?? null) ?? [], [roleMap, currentRole]);
   const breadcrumb = useMemo(() => currentRole ? getRolePath(allRoles, currentRole.id) : [], [currentRole, allRoles]);
   const isRoot = currentRole?.parent_id === null;
 
-  const handleNavigateRole = useCallback((roleId: string | null) => {
+  const navigateRole = useCallback((roleId: string | null) => {
     setCurrentRoleId(roleId);
   }, []);
 
-  const handleCreateRole = async (name: string) => {
-    if (!name || !currentRole) return;
-
-    try {
-      const res = await createRole({ name: name, parent_id: currentRole.id });
-      setAllRoles((prev) => [...prev, res.data]);
-    } catch (e) {
-      console.error(e);
-      throw e;
+  const createRoleMut = useMutation({
+    mutationFn: (name: string) => createRole({ name, parent_id: currentRole!.id }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles", departmentId] });
     }
+  });
+
+  const renameRoleMut = useMutation({
+    mutationFn: ({ id, name } : {id: string, name: string}) => updateRole(id, { name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["roles", departmentId] });
+    }
+  });
+
+  const deleteRoleMut = useMutation({
+    mutationFn: (id: string) => deleteRole(id),
+    onSuccess: (_, deletedId) => {
+      if (currentRoleId === deletedId && currentRole?.parent_id) {
+        setCurrentRoleId(currentRole.parent_id);
+      }
+      queryClient.invalidateQueries({ queryKey: ["roles", departmentId] });
+    }
+  });
+
+  return {
+    allRoles,
+    rootRole,
+    currentRole,
+    childRoles,
+    breadcrumb,
+    isRoot,
+    isLoadingRoles,
+
+    // Actions
+    navigateRole,
+    handleCreateRole: createRoleMut.mutateAsync,
+    handleRenameRole: (id: string, name: string) => renameRoleMut.mutateAsync({ id, name }),
+    handleDeleteRole: deleteRoleMut.mutateAsync
   };
-
-  const handleRenameRole = async (roleId: string, name: string) => {
-    try {
-      const res = await updateRole(roleId, { name: name });
-      setAllRoles((prev) => prev.map((r) => r.id === roleId ? res.data : r));
-    } catch (e) {
-      console.error(e);
-      throw e;
-    }
-  };
-
-  const handleDeleteRole = async (roleId: string) => {
-    if (currentRoleId === roleId && currentRole?.parent_id) {
-      setCurrentRoleId(currentRole.parent_id);
-    }
-    try {
-      await deleteRole(roleId);
-      setAllRoles((prev) => prev.filter((r) => r.id !== roleId));
-    } catch (e) {
-      console.error(e);
-      throw e;
-    }
-  };
-
-  return { allRoles, currentRole, childRoles, breadcrumb, isRoot, rootRole, loadingRoles, handleNavigateRole, handleCreateRole, handleRenameRole, handleDeleteRole };
 }
 
 export default useRoles;
