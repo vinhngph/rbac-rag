@@ -101,23 +101,10 @@ class RoleService:
         if not user_role:
             raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
 
-        visible_hierarchy = (
-            select(Role.id)
-            .where(col(Role.id) == user_role.id)
-            .cte(name="visible_hierarchy_cte", recursive=True)
-        )
-
-        visible_hierarchy = visible_hierarchy.union_all(
-            select(Role.id).join(
-                visible_hierarchy, col(Role.parent_id) == visible_hierarchy.c.id
-            )
-        )
-
-        stm = select(Role).join(
-            visible_hierarchy, col(Role.id) == visible_hierarchy.c.id
-        )
-
-        return list((await self.db.exec(stm)).all())
+        if department.id == user_role.id:
+            return await self.role_repo.get_roles_chain_top_down(department.id)
+        else:
+            return await self.role_repo.get_roles_chain_bottom_up(user_role.id)
 
     async def update_department(
         self, user: User, department_id: UUID, update_data: RootRoleUpdate

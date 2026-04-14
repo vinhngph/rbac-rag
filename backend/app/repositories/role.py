@@ -1,5 +1,5 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select, col, delete, exists
+from sqlmodel import select, col, delete, exists, literal
 from typing import Optional, List
 from uuid import UUID
 
@@ -189,5 +189,41 @@ class RoleRepository(BaseRepository[Role]):
             .join(UserRolePermissionLink)
             .where(UserRolePermissionLink.user_id == user_id)
             .distinct()
+        )
+        return list((await self.db.exec(stm)).all())
+
+    async def get_roles_chain_bottom_up(self, from_role_id: UUID) -> List[Role]:
+        hierarchy = (
+            select(Role.id, Role.parent_id, literal(0).label("level"))
+            .where(col(Role.id) == from_role_id)
+            .cte(name="get_roles_chain_bottom_up_cte", recursive=True)
+        )
+        hierarchy = hierarchy.union_all(
+            select(
+                Role.id, Role.parent_id, (hierarchy.c.level + 1).label("level")
+            ).join(hierarchy, col(Role.id) == hierarchy.c.parent_id)
+        )
+        stm = (
+            select(Role)
+            .join(hierarchy, col(Role.id) == hierarchy.c.id)
+            .order_by(hierarchy.c.level.desc())
+        )
+        return list((await self.db.exec(stm)).all())
+
+    async def get_roles_chain_top_down(self, root_role_id: UUID) -> List[Role]:
+        hierarchy = (
+            select(Role.id, Role.parent_id, literal(0).label("level"))
+            .where(col(Role.id) == root_role_id)
+            .cte("get_roles_chain_top_down_cte", recursive=True)
+        )
+        hierarchy = hierarchy.union_all(
+            select(
+                Role.id, Role.parent_id, (hierarchy.c.level + 1).label("level")
+            ).join(hierarchy, col(Role.parent_id) == hierarchy.c.id)
+        )
+        stm = (
+            select(Role)
+            .join(hierarchy, col(Role.id) == hierarchy.c.id)
+            .order_by(hierarchy.c.level.asc())
         )
         return list((await self.db.exec(stm)).all())
