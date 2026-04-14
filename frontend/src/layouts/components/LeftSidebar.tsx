@@ -5,6 +5,7 @@ import { APP_CONFIG } from "../../core/config";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { logout } from "../../features/auth/services/auth.service";
 import UserAvatar from "../../shared/components/UserAvatar";
+import { useToast } from "../../shared/toast";
 
 const mockChats = [
   { id: 1, title: "What is RAG?" },
@@ -21,14 +22,15 @@ function LeftSidebar() {
   const [isUserMenu, setIsUserMenu] = useState<boolean>(false);
 
   const { user, setUser } = useAuth();
+  const { error: toastError } = useToast();
 
   const navigate = useNavigate();
 
   const handleLogout = async () => {
     try {
       await logout();
-    } catch (err) {
-      console.error(err);
+    } catch {
+      toastError("Failed to loggout.");
     } finally {
       setUser(null);
       setIsUserMenu(false);

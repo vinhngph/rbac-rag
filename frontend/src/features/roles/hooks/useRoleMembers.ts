@@ -1,10 +1,15 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
 import { addMember, getRoleMembers, removeMember, updateMemberRolePermissions, type MemberCreate, type MemberRead } from "../services/role.service";
+import { useToast } from "../../../shared/toast";
+import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
 
 function useRoleMembers(roleId?: string) {
   const queryClient = useQueryClient();
   const queryKeyStr = "role_members";
+
+  const { error } = useToast();
+  const { handleCatch } = useErrorHandler();
 
   const { data: roleMembers = [], isLoading: isLoadingMembers } = useQuery({
     queryKey: [queryKeyStr, roleId],
@@ -17,6 +22,9 @@ function useRoleMembers(roleId?: string) {
       updateMemberRolePermissions(roleId ?? "", { id, permissions }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeyStr, roleId] });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
   });
 
@@ -24,6 +32,9 @@ function useRoleMembers(roleId?: string) {
     mutationFn: (memberId: string) => removeMember(roleId ?? "", memberId),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeyStr, roleId] });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
   });
 
@@ -32,6 +43,9 @@ function useRoleMembers(roleId?: string) {
       addMember(roleId ?? "", { email, permissions }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: [queryKeyStr, roleId] });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
   });
 

@@ -1,9 +1,12 @@
 import { useEffect, useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
 import { createDepartment, deleteDepartment, getDepartments, updateDepartment, type DepartmentRead } from "../services/department.service";
+import { useToast } from "../../../shared/toast";
 
 function useDepartments() {
   const { user } = useAuth();
+  const { success, error } = useToast();
+
   const [departments, setDepartments] = useState<DepartmentRead[]>([]);
   const [checkedDepartments, setCheckedDepartments] = useState<Set<string>>(new Set());
 
@@ -22,8 +25,9 @@ function useDepartments() {
     try {
       const res = await createDepartment({ name });
       setDepartments((prev) => [...prev, res.data]);
-    } catch (e) {
-      console.error(e);
+      success("Department created successfully.");
+    } catch {
+      error("Failed to create department.");
     }
   };
 
@@ -31,8 +35,8 @@ function useDepartments() {
     try {
       const res = await updateDepartment(id, { name });
       setDepartments((prev) => prev.map((d) => d.id === id ? res.data : d));
-    } catch (e) {
-      console.error(e);
+    } catch {
+      error("Failed to update department");
     }
   };
 
@@ -45,9 +49,8 @@ function useDepartments() {
         n.delete(id);
         return n;
       });
-    } catch (e) {
-      console.error(e);
-      throw e;
+    } catch {
+      error("Failed to delete department.");
     }
   };
 

@@ -4,10 +4,15 @@ import { useCallback, useMemo, useState } from "react";
 import { getDepartmentRoles } from "../../departments/services/department.service";
 import { buildRoleMap, getRolePath } from "../utils/role.utils";
 import { createRole, deleteRole, updateRole } from "../services/role.service";
+import { useToast } from "../../../shared/toast";
+import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
 
 function useRoles(departmentId: string) {
   const queryClient = useQueryClient();
   const [currentRoleId, setCurrentRoleId] = useState<string | null>(null);
+
+  const { error } = useToast();
+  const { handleCatch } = useErrorHandler();
 
   const { data, isLoading: isLoadingRoles } = useQuery({
     queryKey: ["roles", departmentId],
@@ -33,6 +38,9 @@ function useRoles(departmentId: string) {
     mutationFn: (name: string) => createRole({ name, parent_id: currentRole!.id }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles", departmentId] });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
   });
 
@@ -40,6 +48,9 @@ function useRoles(departmentId: string) {
     mutationFn: ({ id, name } : {id: string, name: string}) => updateRole(id, { name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["roles", departmentId] });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
   });
 
@@ -50,6 +61,9 @@ function useRoles(departmentId: string) {
         setCurrentRoleId(currentRole.parent_id);
       }
       queryClient.invalidateQueries({ queryKey: ["roles", departmentId] });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
   });
 
