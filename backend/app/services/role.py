@@ -104,10 +104,7 @@ class RoleService:
         if not user_role:
             raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
 
-        if department.id == user_role.id:
-            roles_chain = await self.role_repo.get_roles_chain_top_down(department.id)
-        else:
-            roles_chain = await self.role_repo.get_roles_chain_bottom_up(user_role.id)
+        roles_chain = await self.role_repo.get_roles_chain_top_down(department.id)
 
         return DepartmentContext(roles_chain=roles_chain, current_user_role=user_role)
 
