@@ -65,17 +65,22 @@ class KnowledgeService:
         user: User,
         role_id: UUID,
     ) -> List[Knowledge]:
-        user_permissions = await self.permission_repo.get_user_role_permissions(
-            user.id, role_id
-        )
+        role = await self.role_repo.get_by_id(role_id)
+        if not role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
 
-        if not user_permissions:
-            raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
+        if not await self.role_repo.can_user_edit_role(user, role, strict_higher=True):
+            user_permissions = await self.permission_repo.get_user_role_permissions(
+                user.id, role_id
+            )
 
-        if not self.permission_repo.has_all_permissions(
-            user_permissions, [PermissionName.VIEW]
-        ):
-            raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
+            if not user_permissions:
+                raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
+
+            if not self.permission_repo.has_all_permissions(
+                user_permissions, [PermissionName.VIEW]
+            ):
+                raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
         return await self.knowledge_repo.get_role_knowledges(role_id)
 
