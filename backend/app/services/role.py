@@ -13,6 +13,7 @@ from app.models.permission import Permission
 from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate, RoleUpdate
 from app.models.links import UserRolePermissionLink
 from app.schemas.member import MemberRead, MemberDict, MemberCreate, MemberUpdate
+from app.schemas.department import DepartmentContext
 from app.repositories.user import UserRepository
 from app.repositories.role import RoleRepository
 from app.repositories.permission import PermissionRepository
@@ -92,7 +93,9 @@ class RoleService:
 
         return department
 
-    async def get_department(self, user: User, department_id: UUID) -> List[Role]:
+    async def get_department(
+        self, user: User, department_id: UUID
+    ) -> DepartmentContext:
         department = await self.role_repo.get_by_id(department_id)
         if not department:
             raise AppException(404, ErrorMessages.DEPARTMENT_NOT_FOUND)
@@ -102,9 +105,11 @@ class RoleService:
             raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
 
         if department.id == user_role.id:
-            return await self.role_repo.get_roles_chain_top_down(department.id)
+            roles_chain = await self.role_repo.get_roles_chain_top_down(department.id)
         else:
-            return await self.role_repo.get_roles_chain_bottom_up(user_role.id)
+            roles_chain = await self.role_repo.get_roles_chain_bottom_up(user_role.id)
+
+        return DepartmentContext(roles_chain=roles_chain, current_user_role=user_role)
 
     async def update_department(
         self, user: User, department_id: UUID, update_data: RootRoleUpdate

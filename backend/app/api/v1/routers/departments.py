@@ -2,7 +2,8 @@ from fastapi import APIRouter, status
 from typing import List
 from uuid import UUID
 
-from app.models.role import RootRoleRead, RootRoleCreate, RootRoleUpdate, RoleRead
+from app.models.role import RootRoleRead, RootRoleCreate, RootRoleUpdate
+from app.schemas.department import DepartmentContextRead
 from app.api.dependencies import CurrentUser, DB_Session
 from app.services.role import RoleService
 
@@ -26,7 +27,7 @@ async def create_new_department(
     return await role_service.create_user_department(user, department_in)
 
 
-@router.get("/{department_id}", response_model=List[RoleRead])
+@router.get("/{department_id}", response_model=DepartmentContextRead)
 async def get_department(department_id: UUID, user: CurrentUser, db: DB_Session):
     """
     **Get tree roles (flat) of department - JSON list format**
