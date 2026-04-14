@@ -40,7 +40,7 @@ function KnowledgeItem({ knowledge, roleId, isRenaming, isContextOpen, onSetRena
   useEffect(() => {
     if (["completed", "failed"].includes(knowledge.status)) return;
 
-    const sse = new EventSource(`${APP_CONFIG.APP_BE_API}/knowledges/${knowledge.id}/status/`, {
+    const sse = new EventSource(`${APP_CONFIG.APP_BE_API}/knowledges/${knowledge.id}/status`, {
       withCredentials: true
     });
 
@@ -72,6 +72,7 @@ function KnowledgeItem({ knowledge, roleId, isRenaming, isContextOpen, onSetRena
     };
 
     return () => sse.close();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [knowledge.id, roleId, queryClient]);
 
   const sc = STATUS_CONFIG[knowledge.status] ?? STATUS_CONFIG.scanning;
