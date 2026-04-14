@@ -27,7 +27,7 @@ export interface MemberRead {
     id: string
     email: string
     name: string
-    avatar_url?: string | null
+    avatar_url?: string
     permissions?: ("view" | "edit")[] | null
 }
 

@@ -1,6 +1,6 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 
-import { getRoleMembers, removeMember, updateMemberRolePermissions, type MemberRead } from "../services/role.service";
+import { addMember, getRoleMembers, removeMember, updateMemberRolePermissions, type MemberCreate, type MemberRead } from "../services/role.service";
 
 function useRoleMembers(roleId?: string) {
   const queryClient = useQueryClient();
@@ -27,6 +27,14 @@ function useRoleMembers(roleId?: string) {
     }
   });
 
+  const addMemberMut = useMutation({
+    mutationFn: ({ email, permissions }:MemberCreate) =>
+      addMember(roleId ?? "", { email, permissions }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: [queryKeyStr, roleId] });
+    }
+  });
+
   const handleTogglePermission = (member: MemberRead, permission: "view" | "edit") => {
     const perms = member.permissions ?? [];
     let next: ("view" | "edit")[];
@@ -43,7 +51,8 @@ function useRoleMembers(roleId?: string) {
     roleMembers,
     isLoadingMembers,
     handleTogglePermission,
-    handleRemoveMember: removeMemberMut.mutateAsync
+    handleRemoveMember: removeMemberMut.mutateAsync,
+    handleAddMember: addMemberMut.mutateAsync
   };
 }
 

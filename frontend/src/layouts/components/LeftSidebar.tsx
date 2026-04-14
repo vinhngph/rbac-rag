@@ -4,6 +4,7 @@ import { useNavigate } from "react-router";
 import { APP_CONFIG } from "../../core/config";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { logout } from "../../features/auth/services/auth.service";
+import UserAvatar from "../../shared/components/UserAvatar";
 
 const mockChats = [
   { id: 1, title: "What is RAG?" },
@@ -113,16 +114,7 @@ function LeftSidebar() {
                   className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-white/10 transition-colors group cursor-pointer"
                 >
                   {/* User avatar */}
-                  {user.avatar_url
-                    ? <img
-                      src={user.avatar_url}
-                      alt={user.name}
-                      className="w-8 h-8 rounded-full object-cover shrink-0"
-                    />
-                    : <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400 to-cyan-5000 flex items-center justify-center text-xs font-bold text-text shrink-0">
-                      {user.name.charAt(0).toUpperCase()}
-                    </div>
-                  }
+                  <UserAvatar avatar_url={user.avatar_url} name={user.name}/>
 
                   {/* User metadata */}
                   <div className="flex-1 text-left min-w-0">

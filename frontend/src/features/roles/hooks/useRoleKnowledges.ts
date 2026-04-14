@@ -30,7 +30,7 @@ function useRoleKnowledges(roleId: string | undefined) {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: [queryKeyStr, roleId] })
   });
 
-  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, ref: React.RefObject<HTMLInputElement>) => {
+  const handleUpload = async (e: React.ChangeEvent<HTMLInputElement>, ref: React.RefObject<HTMLInputElement | null>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     await uploadMut.mutateAsync(file);
