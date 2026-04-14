@@ -13,3 +13,7 @@ class UserRepository(BaseRepository[User]):
     async def get_user_by_email(self, email: str) -> Optional[User]:
         stm = select(User).where(User.email == email)
         return (await self.db.exec(stm)).one_or_none()
+
+    def create(self, user: User) -> User:
+        self.db.add(user)
+        return user

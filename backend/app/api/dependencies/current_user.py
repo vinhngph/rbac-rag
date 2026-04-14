@@ -4,7 +4,7 @@ from typing import Annotated
 from sqlmodel import select
 
 from app.core.config import settings
-from app.dependencies.db_session import DB_Session
+from app.api.dependencies.db_session import DB_Session
 from app.models.user import User
 
 

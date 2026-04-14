@@ -1,6 +1,6 @@
 from sqlmodel import select, col
 
-from app.dependencies import DB_Session
+from app.api.dependencies import DB_Session
 from app.core.constants import PermissionName
 from app.models.permission import Permission
 from app.models.role import Role

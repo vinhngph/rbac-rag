@@ -1,25 +1,25 @@
-from fastapi import Depends, HTTPException, status
+from fastapi import HTTPException, status
 from sqlmodel import select, col
-from typing import List, Annotated
+from sqlmodel.ext.asyncio.session import AsyncSession
+from typing import List
 from uuid import UUID
 from functools import cached_property
 
-from app.dependencies.db_session import DB_Session
 from app.core.exceptions.app_exception import AppException
 from app.core.messages import ErrorMessages, SystemMessages
+from app.core.constants import PermissionName
 from app.models.user import User
 from app.models.permission import Permission
 from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate, RoleUpdate
 from app.models.links import UserRolePermissionLink
 from app.schemas.member import MemberRead, MemberDict, MemberCreate, MemberUpdate
-from app.services.permission import PermissionService
 from app.repositories.user import UserRepository
 from app.repositories.role import RoleRepository
 from app.repositories.permission import PermissionRepository
 
 
 class RoleService:
-    def __init__(self, db: DB_Session):
+    def __init__(self, db: AsyncSession):
         self.db = db
 
     @cached_property
@@ -34,43 +34,10 @@ class RoleService:
     def permission_repo(self) -> PermissionRepository:
         return PermissionRepository(self.db)
 
-    async def get_user_role(self, user: User, role_id: UUID) -> Role:
-        stm = (
-            select(Role)
-            .where(Role.id == role_id)
-            .join(UserRolePermissionLink)
-            .where(UserRolePermissionLink.user_id == user.id)
-            .distinct()
-        )
-
-        role = (await self.db.exec(stm)).one_or_none()
-
-        if not role:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=ErrorMessages.ROLE_ACCESS_BLOCK,
-            )
-
-        root_role = await self.role_repo.get_root_of_role(role)
-        if root_role.name == "Trash":
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail=ErrorMessages.ROLE_ACCESS_BLOCK,
-            )
-
-        return role
-
-    async def get_user_roles(self, user: User) -> List[Role]:
-        stm = (
-            select(Role)
-            .join(UserRolePermissionLink)
-            .where(UserRolePermissionLink.user_id == user.id)
-            .distinct()
-        )
-        return list((await self.db.exec(stm)).all())
-
     async def get_user_departments(self, user: User) -> List[Role]:
-        user_role_ids = [role.id for role in (await self.get_user_roles(user))]
+        user_role_ids = [
+            role.id for role in (await self.role_repo.get_user_roles(user.id))
+        ]
 
         if not user_role_ids:
             return []
@@ -105,22 +72,21 @@ class RoleService:
         self,
         user: User,
         new_department: RootRoleCreate,
-        permission_service: PermissionService,
     ) -> Role:
-        permissions = await permission_service.get_permissions()
-
         department = Role(name=new_department.name, parent_id=None)
 
-        self.db.add(department)
+        self.role_repo.create(department)
+
         await self.db.flush()
 
-        links = [
-            UserRolePermissionLink(
-                user_id=user.id, role_id=department.id, permission_id=permission.id
-            )
-            for permission in permissions
-        ]
-        self.db.add_all(links)
+        permission_ids = await self.permission_repo.get_ids_by_name(
+            [PermissionName.EDIT, PermissionName.VIEW]
+        )
+
+        await self.role_repo.add_user_role_permissions(
+            user.id, department.id, permission_ids
+        )
+
         await self.db.commit()
         await self.db.refresh(department)
 
@@ -215,34 +181,6 @@ class RoleService:
 
         return role
 
-    async def is_children_of_role(self, child_role: Role, parent_role: Role) -> bool:
-        if (
-            (child_role.parent_id is None)
-            or (child_role.parent_id == parent_role.parent_id)
-            or (child_role.id == parent_role.id)
-        ):
-            return False
-        elif child_role.parent_id == parent_role.id:
-            return True
-
-        hierarchy = (
-            select(Role.parent_id)
-            .where(Role.id == child_role.id)
-            .cte(name="check_parents_cte", recursive=True)
-        )
-        hierarchy = hierarchy.union_all(
-            select(Role.parent_id).join(
-                hierarchy, col(Role.id) == hierarchy.c.parent_id
-            )
-        )
-
-        stm = select(hierarchy.c.parent_id).where(
-            hierarchy.c.parent_id == parent_role.id
-        )
-        rs = (await self.db.exec(stm)).first()
-
-        return rs is not None
-
     async def get_members_of_role(self, user: User, role_id: UUID) -> List[MemberRead]:
         current_role = await self.role_repo.get_by_id(role_id)
         if not current_role:
@@ -258,7 +196,7 @@ class RoleService:
 
         members: List[MemberRead] = []
 
-        if await self.is_children_of_role(current_role, user_role):
+        if await self.role_repo.is_children_of_role(current_role.id, user_role.id):
             stm = (
                 select(User, Permission)
                 .select_from(User)
@@ -353,7 +291,7 @@ class RoleService:
                         user, dest_role, strict_higher=False
                     )
                 )
-                or (await self.is_children_of_role(dest_role, role))
+                or (await self.role_repo.is_children_of_role(dest_role.id, role.id))
             ):
                 raise AppException(403, ErrorMessages.ACCESS_DENIED)
 
@@ -517,6 +455,3 @@ class RoleService:
         await self.db.commit()
 
         return None
-
-
-type UseRoleService = Annotated[RoleService, Depends(RoleService)]

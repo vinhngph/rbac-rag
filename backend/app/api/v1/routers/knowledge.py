@@ -11,14 +11,12 @@ from typing import Annotated
 from json import dumps as json_dumps
 from asyncio import sleep as async_sleep
 
-from app.dependencies.current_user import CurrentUser
-from app.dependencies.db_session import DB_Session
+from app.api.dependencies.current_user import CurrentUser
+from app.api.dependencies.db_session import DB_Session
 from app.models.knowledge import KnowledgeRead, KnowledgeUpdate
 from app.core.messages import ErrorMessages
 from app.core.constants import PermissionName, KnowledgeStatus
-from app.services.knowledge import UseKnowledgeService
-from app.services.role import UseRoleService
-from app.services.permission import UsePermissionService
+from app.services.knowledge import KnowledgeService
 
 
 router = APIRouter(prefix="/knowledges", tags=["Knowledge Base"])
@@ -29,9 +27,7 @@ async def update_knowledge(
     knowledge_id: UUID,
     knowledge_update: KnowledgeUpdate,
     user: CurrentUser,
-    knowledge_service: UseKnowledgeService,
-    role_service: UseRoleService,
-    permission_service: UsePermissionService,
+    db: DB_Session,
 ):
     """
     **Update Knowledge**
@@ -39,30 +35,21 @@ async def update_knowledge(
     * **Rename**: Change knowledge's name by "name".
     * **Move**: Move knowledge to another role by "role_id".
     """
+    knowledge_service = KnowledgeService(db)
     return await knowledge_service.update_knowledge(
-        user, knowledge_id, knowledge_update, role_service, permission_service
+        user, knowledge_id, knowledge_update
     )
 
 
 @router.delete("/{knowledge_id}", status_code=status.HTTP_204_NO_CONTENT)
-async def delete_knowledge(
-    knowledge_id: UUID,
-    user: CurrentUser,
-    knowledge_service: UseKnowledgeService,
-    role_service: UseRoleService,
-    permission_service: UsePermissionService,
-):
-    return await knowledge_service.delete_knowledge(
-        user, knowledge_id, role_service, permission_service
-    )
+async def delete_knowledge(knowledge_id: UUID, user: CurrentUser, db: DB_Session):
+    knowledge_service = KnowledgeService(db)
+    return await knowledge_service.delete_knowledge(user, knowledge_id)
 
 
 @router.get("/{knowledge_id}/status", response_class=EventSourceResponse)
 async def stream_knowledge_status(
     knowledge_id: UUID,
-    knowledge_service: UseKnowledgeService,
-    role_service: UseRoleService,
-    permission_service: UsePermissionService,
     user: CurrentUser,
     db: DB_Session,
     last_event_id: Annotated[str | None, Header()] = None,
@@ -70,6 +57,7 @@ async def stream_knowledge_status(
     """
     **Stream Knowledge Status (SSE standard)**
     """
+    knowledge_service = KnowledgeService(db)
     knowledge = await knowledge_service.get_knowledge(knowledge_id)
 
     if not knowledge:
@@ -79,7 +67,7 @@ async def stream_knowledge_status(
         )
 
     if not await knowledge_service.can_user_access(
-        user, knowledge, [PermissionName.VIEW], role_service, permission_service
+        user, knowledge, [PermissionName.VIEW]
     ):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,

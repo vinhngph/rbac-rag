@@ -13,6 +13,10 @@ class RoleRepository(BaseRepository[Role]):
     def __init__(self, db: AsyncSession) -> None:
         super().__init__(Role, db)
 
+    def create(self, role: Role) -> Role:
+        self.db.add(role)
+        return role
+
     async def get_root_of_role(self, role: Role) -> Role:
         if not role.parent_id:
             return role
@@ -157,3 +161,33 @@ class RoleRepository(BaseRepository[Role]):
         role.parent_id = trash.id
 
         self.db.add(role)
+
+    async def is_children_of_role(
+        self, child_role_id: UUID, parent_role_id: UUID
+    ) -> bool:
+        hierarchy = (
+            select(Role.parent_id)
+            .where(Role.id == child_role_id)
+            .cte(name="check_parents_cte", recursive=True)
+        )
+        hierarchy = hierarchy.union_all(
+            select(Role.parent_id).join(
+                hierarchy, col(Role.id) == hierarchy.c.parent_id
+            )
+        )
+
+        stm = select(hierarchy.c.parent_id).where(
+            hierarchy.c.parent_id == parent_role_id
+        )
+        rs = (await self.db.exec(stm)).first()
+
+        return rs is not None
+
+    async def get_user_roles(self, user_id: UUID) -> List[Role]:
+        stm = (
+            select(Role)
+            .join(UserRolePermissionLink)
+            .where(UserRolePermissionLink.user_id == user_id)
+            .distinct()
+        )
+        return list((await self.db.exec(stm)).all())

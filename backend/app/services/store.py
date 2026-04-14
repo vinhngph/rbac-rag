@@ -1,9 +1,8 @@
 from os import makedirs
 from os.path import abspath, join as path_join, commonpath
-from fastapi import UploadFile, Depends
+from fastapi import UploadFile
 from anyio import open_file, Path as AsyncPath
 from uuid import UUID
-from typing import Annotated
 
 from app.core.config import settings
 
@@ -112,6 +111,3 @@ class StoreService:
             raise ValueError("Security Alert: Target is a directory, not a file.")
 
         return s_path
-
-
-type UseStoreService = Annotated[StoreService, Depends(StoreService)]

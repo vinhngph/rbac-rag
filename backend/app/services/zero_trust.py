@@ -1,17 +1,15 @@
 from anyio import open_file, Path as AsyncPath, to_thread
-from fastapi import UploadFile, HTTPException, status, Depends
+from fastapi import UploadFile, HTTPException, status
 from re import sub as re_sub
 from hashlib import sha256
 from PIL import Image
 from pathlib import Path as PathLib
-from typing import Annotated
+from uuid import UUID
 
 from app.core.constants import FileType, MAGIC_BYTES_RULES
 from app.core.logger import logger_info
 from app.services.store import StoreService
 from app.models.knowledge import Knowledge
-from app.models.user import User
-from app.models.role import Role
 
 
 def _clean_image(img_path: str):
@@ -42,7 +40,9 @@ class ZeroTrust:
         )
         await AsyncPath(self.store_service.safe_dir).mkdir(parents=True, exist_ok=True)
 
-    async def _layer1_gatekeeping(self, file: UploadFile, user: User, role: Role):
+    async def _layer1_gatekeeping(
+        self, file: UploadFile, author_id: UUID, role_id: UUID
+    ):
         logger_info("ZeroTrust", "Execute Layer 1: Gatekeeping...")
 
         # 1: Size limit
@@ -81,7 +81,7 @@ class ZeroTrust:
             )
 
         return Knowledge(
-            name=file_name, type=file_type, role_id=role.id, author_id=user.id
+            name=file_name, type=file_type, role_id=role_id, author_id=author_id
         )
 
     async def _layer2_quarantine(self, file: UploadFile, knowledge: Knowledge):
@@ -146,8 +146,10 @@ class ZeroTrust:
 
         await self.store_service.move_to_safe_zone(file_id=knowledge.id)
 
-    async def execute_security_pipeline(self, file: UploadFile, user: User, role: Role):
-        knowledge = await self._layer1_gatekeeping(file, user, role)
+    async def execute_security_pipeline(
+        self, file: UploadFile, user_id: UUID, role_id: UUID
+    ):
+        knowledge = await self._layer1_gatekeeping(file, user_id, role_id)
 
         await self._layer2_quarantine(file, knowledge)
         await self._layer3_deep_scanning(knowledge)
@@ -160,6 +162,3 @@ class ZeroTrust:
         )
 
         return knowledge
-
-
-type UseZeroTrust = Annotated[ZeroTrust, Depends(ZeroTrust)]
