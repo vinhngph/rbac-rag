@@ -9,15 +9,18 @@ function useRoles(departmentId: string) {
   const queryClient = useQueryClient();
   const [currentRoleId, setCurrentRoleId] = useState<string | null>(null);
 
-  const { data: allRoles = [], isLoading: isLoadingRoles } = useQuery({
+  const { data, isLoading: isLoadingRoles } = useQuery({
     queryKey: ["roles", departmentId],
     queryFn: ()=> getDepartmentRoles(departmentId).then(res => res.data),
     enabled: !!departmentId
   });
 
+  const allRoles = useMemo(() => data?.roles_chain ?? [], [data]);
+  const userContextRole = useMemo(() => data?.current_user_role ?? null, [data]);
+
   const roleMap = useMemo(() => buildRoleMap(allRoles), [allRoles]);
   const rootRole = useMemo(() => allRoles.find((r) => r.parent_id === null) ?? null, [allRoles]);
-  const currentRole = useMemo(() => currentRoleId ? allRoles.find((r) => r.id === currentRoleId) ?? null : rootRole, [currentRoleId, allRoles, rootRole]);
+  const currentRole = useMemo(() => currentRoleId ? allRoles.find((r) => r.id === currentRoleId) ?? null : userContextRole, [currentRoleId, allRoles, userContextRole]);
   const childRoles = useMemo(() => roleMap.get(currentRole?.id ?? null) ?? [], [roleMap, currentRole]);
   const breadcrumb = useMemo(() => currentRole ? getRolePath(allRoles, currentRole.id) : [], [currentRole, allRoles]);
   const isRoot = currentRole?.parent_id === null;

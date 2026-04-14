@@ -14,11 +14,16 @@ export interface DepartmentUpdate {
   name: string | null
 }
 
+export interface DepartmentContextRead {
+  roles_chain: RoleRead[]
+  current_user_role: RoleRead
+}
+
 export const getDepartments = () =>
   api.get<DepartmentRead[]>("/departments/");
 
 export const getDepartmentRoles = (id: string) =>
-  api.get<RoleRead[]>(`/departments/${id}`);
+  api.get<DepartmentContextRead>(`/departments/${id}`);
 
 export const createDepartment = (data: DepartmentCreate) =>
   api.post<DepartmentRead>("/departments/", data);
