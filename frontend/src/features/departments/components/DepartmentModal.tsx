@@ -394,11 +394,13 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                             roleId={currentRole!.id}
                             isRenaming={renamingKnowledge === knowledge.id}
                             isContextOpen={contextKnowledge === knowledge.id}
-                            onSetRenaming={() => setRenamingKnowledge(knowledge.id)}
+                            onSetRenaming={() => {
+                              setContextKnowledge(null);
+                              setRenamingKnowledge(knowledge.id);
+                            }}
                             onSetContextOpen={() => setContextKnowledge(contextKnowledge === knowledge.id ? null: knowledge.id)}
                             onCloseContext={() => {
                               setContextKnowledge(null);
-                              setRenamingKnowledge(null);
                             }}
                             onRename={async (id, newName) => {
                               await handleRenameKnowledge(id, newName);
