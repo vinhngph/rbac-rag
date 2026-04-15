@@ -6,3 +6,4 @@ alembic
 asyncpg
 pillow
 qdrant-client
+sentence-transformers
