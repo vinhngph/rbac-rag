@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from sqlmodel.ext.asyncio.session import AsyncSession
+from asyncio import create_task as async_create_task, CancelledError
 
 from app.api.v1.routers import role
 from app.api.v1.routers import auth, departments, knowledge
@@ -12,21 +13,42 @@ from app.core.seed_db import seed_db
 from app.api.v1.routers import user
 from app.db.session import engine
 from app.services.zero_trust import ZeroTrust
-from app.core.logger import logger_info
+from app.core.logger import logger_info, logger_error
+from app.services.worker.knowledge import knowledge_worker_daemon
+from app.db.qdrant import app_qdrant_client
+from app.repositories.vector import VectorRepository
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger_info("System", f"Starting {settings.PROJECT_NAME}...")
+    daemon_task = async_create_task(knowledge_worker_daemon())
 
     async with AsyncSession(engine) as session:
         await seed_db(session)
 
     zero_trust = ZeroTrust()
-
     await zero_trust.initialize()
 
+    try:
+        logger_info("System", f"Connecting {settings.QDRANT_COLLECTION}")
+
+        vector_repo = VectorRepository(app_qdrant_client)
+        await vector_repo.ensure_collection()
+        logger_info("System", f"{settings.QDRANT_COLLECTION} ready.")
+    except Exception as e:
+        logger_error(
+            "System", f"Failed to connect {settings.QDRANT_COLLECTION}: {str(e)}"
+        )
+
     yield
+
+    daemon_task.cancel()
+
+    try:
+        await daemon_task
+    except CancelledError:
+        pass
 
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
