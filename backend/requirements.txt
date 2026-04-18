@@ -9,3 +9,4 @@ qdrant-client
 sentence-transformers
 marker-pdf[full]
 pymupdf
+langchain-text-splitters
