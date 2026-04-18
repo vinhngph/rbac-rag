@@ -7,3 +7,4 @@ asyncpg
 pillow
 qdrant-client
 sentence-transformers
+marker-pdf[full]
