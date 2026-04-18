@@ -2,6 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 from sqlmodel.ext.asyncio.session import AsyncSession
+from asyncio import create_task as async_create_task, CancelledError
 
 from app.api.v1.routers import role
 from app.api.v1.routers import auth, departments, knowledge
@@ -13,11 +14,13 @@ from app.api.v1.routers import user
 from app.db.session import engine
 from app.services.zero_trust import ZeroTrust
 from app.core.logger import logger_info
+from app.services.worker.knowledge import knowledge_worker_daemon
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger_info("System", f"Starting {settings.PROJECT_NAME}...")
+    daemon_task = async_create_task(knowledge_worker_daemon())
 
     async with AsyncSession(engine) as session:
         await seed_db(session)
@@ -27,6 +30,13 @@ async def lifespan(app: FastAPI):
     await zero_trust.initialize()
 
     yield
+
+    daemon_task.cancel()
+
+    try:
+        await daemon_task
+    except CancelledError:
+        pass
 
 
 app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
