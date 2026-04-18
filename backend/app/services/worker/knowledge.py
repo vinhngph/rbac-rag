@@ -6,7 +6,7 @@ from app.db.session import AsyncSessionLocal
 from app.models.knowledge import Knowledge
 from app.core.constants import KnowledgeStatus
 from app.services.store import StoreService
-from app.services.extractor import extract_file_with_marker
+from app.services.extractor import extract_file_pdf
 from app.core.logger import logger_info, logger_error
 
 _knowledge_queue: Queue[UUID] = Queue()
@@ -14,7 +14,7 @@ _knowledge_queue: Queue[UUID] = Queue()
 
 def _marker_worker_process(file_path: str, result_queue):  # type: ignore
     try:
-        text = extract_file_with_marker(file_path)
+        text = extract_file_pdf(file_path)
         result_queue.put({"status": "success", "data": text})  # type: ignore
     except Exception as e:
         result_queue.put({"status": "error", "error": str(e)})  # type: ignore
@@ -77,8 +77,6 @@ async def _run_rag_pipeline(knowledge_id: UUID):
             await db.commit()
 
             extracted_text = await run_marker_in_isolated_process(file_path)
-
-            print(extracted_text)
 
             knowledge.status = KnowledgeStatus.CHUNKING
             await db.commit()
