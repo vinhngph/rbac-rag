@@ -14,6 +14,14 @@ class Settings(BaseSettings):
     POSTGRES_SERVER: NonEmptyString
     POSTGRES_DB: NonEmptyString
 
+    # Qdrant
+    QDRANT_SERVER: NonEmptyString
+    QDRANT_COLLECTION: NonEmptyString
+
+    # Embed
+    EMBEDDING_MODEL: NonEmptyString
+    VECTOR_SIZE: int = 1024
+
     # System
     DEBUG: NonEmptyString
     JWT_AT_KEY: NonEmptyString

@@ -13,8 +13,10 @@ from app.core.seed_db import seed_db
 from app.api.v1.routers import user
 from app.db.session import engine
 from app.services.zero_trust import ZeroTrust
-from app.core.logger import logger_info
+from app.core.logger import logger_info, logger_error
 from app.services.worker.knowledge import knowledge_worker_daemon
+from app.db.qdrant import app_qdrant_client
+from app.repositories.vector import VectorRepository
 
 
 @asynccontextmanager
@@ -26,8 +28,18 @@ async def lifespan(app: FastAPI):
         await seed_db(session)
 
     zero_trust = ZeroTrust()
-
     await zero_trust.initialize()
+
+    try:
+        logger_info("System", f"Connecting {settings.QDRANT_COLLECTION}")
+
+        vector_repo = VectorRepository(app_qdrant_client)
+        await vector_repo.ensure_collection()
+        logger_info("System", f"{settings.QDRANT_COLLECTION} ready.")
+    except Exception as e:
+        logger_error(
+            "System", f"Failed to connect {settings.QDRANT_COLLECTION}: {str(e)}"
+        )
 
     yield
 
