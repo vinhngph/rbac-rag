@@ -43,6 +43,7 @@ class ChatSessionCreate(ChatSessionBase):
 
 
 class ChatSessionRead(ChatSessionBase):
+    id: UUID
     user_id: UUID
     updated_at: datetime
 
