@@ -1,5 +1,13 @@
 from qdrant_client import AsyncQdrantClient
-from qdrant_client.models import VectorParams, Distance
+from qdrant_client.models import (
+    VectorParams,
+    Distance,
+    Filter,
+    FieldCondition,
+    MatchAny,
+)
+
+from typing import List
 
 from app.core.config import settings
 
@@ -18,3 +26,24 @@ class VectorRepository:
                     size=settings.VECTOR_SIZE, distance=Distance.COSINE
                 ),
             )
+
+    async def search_context(
+        self, query_vector: List[float], knowledge_ids: List[str], limit: int = 5
+    ) -> str:
+        result = (
+            await self.client.query_points(
+                collection_name=self.collection_name,
+                query=query_vector,
+                query_filter=Filter(
+                    must=[
+                        FieldCondition(
+                            key="knowledge_id", match=MatchAny(any=knowledge_ids)
+                        )
+                    ]
+                ),
+                limit=limit,
+            )
+        ).points
+
+        contexts = [hit.payload.get("text", "") for hit in result if hit.payload]
+        return "\n\n---\n\n".join(contexts)

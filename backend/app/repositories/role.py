@@ -227,3 +227,50 @@ class RoleRepository(BaseRepository[Role]):
             .order_by(hierarchy.c.level.asc())
         )
         return list((await self.db.exec(stm)).all())
+
+    async def get_user_departments(self, user_id: UUID) -> List[Role]:
+        user_role_ids = [role.id for role in (await self.get_user_roles(user_id))]
+
+        if not user_role_ids:
+            return []
+
+        hierarchy = (
+            select(Role.id, Role.parent_id)
+            .where(col(Role.id).in_(user_role_ids))
+            .cte(name="user_departments_cte", recursive=True)
+        )
+
+        hierarchy = hierarchy.union_all(
+            select(Role.id, Role.parent_id).join(
+                hierarchy, col(Role.id) == hierarchy.c.parent_id
+            )
+        )
+
+        trash = await self.get_trash_role()
+        if not trash:
+            return []
+
+        stmt = (
+            select(Role)
+            .join(hierarchy, col(Role.id) == hierarchy.c.id)
+            .where(col(Role.parent_id).is_(None))
+            .where(col(Role.id) != trash.id)
+            .distinct()
+        )
+
+        return list((await self.db.exec(stmt)).all())
+
+    async def get_child_roles_of_role(self, role_id: UUID) -> List[Role]:
+        hierarchy = (
+            select(Role.id)
+            .where(col(Role.id) == role_id)
+            .cte(name="get_child_roles_of_role_cte", recursive=True)
+        )
+
+        hierarchy = hierarchy.union_all(
+            select(Role.id).join(hierarchy, col(Role.parent_id) == hierarchy.c.id)
+        )
+
+        stm = select(Role).join(hierarchy, col(Role.id) == hierarchy.c.id).distinct()
+
+        return list((await self.db.exec(stm)).all())

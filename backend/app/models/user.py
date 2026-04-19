@@ -10,6 +10,7 @@ if TYPE_CHECKING:
     from app.models.role import Role
     from app.models.knowledge import Knowledge
     from app.models.links import UserRolePermissionLink
+    from app.models.chat_session import ChatSession
 
 
 class UserBase(SQLModel):
@@ -30,6 +31,8 @@ class User(UserBase, table=True):
     role_links: List["UserRolePermissionLink"] = Relationship(back_populates="user")
 
     knowledges: List["Knowledge"] = Relationship(back_populates="author")
+
+    chats: List["ChatSession"] = Relationship(back_populates="user")
 
     @property
     def roles(self) -> List["Role"]:

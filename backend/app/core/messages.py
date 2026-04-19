@@ -22,6 +22,10 @@ class ErrorMessages:
 
     DELETE_DENIED = "Delete denied."
 
+    CHAT_SESSIONS_NOT_FOUND = "Chat sessions not found."
+
+    CHAT_ERROR = "Chat error."
+
 
 class SystemMessages:
     DATABASE_SEED = (
