@@ -259,3 +259,18 @@ class RoleRepository(BaseRepository[Role]):
         )
 
         return list((await self.db.exec(stmt)).all())
+
+    async def get_child_roles_of_role(self, role_id: UUID) -> List[Role]:
+        hierarchy = (
+            select(Role.id)
+            .where(col(Role.id) == role_id)
+            .cte(name="get_child_roles_of_role_cte", recursive=True)
+        )
+
+        hierarchy = hierarchy.union_all(
+            select(Role.id).join(hierarchy, col(Role.parent_id) == hierarchy.c.id)
+        )
+
+        stm = select(Role).join(hierarchy, col(Role.id) == hierarchy.c.id).distinct()
+
+        return list((await self.db.exec(stm)).all())

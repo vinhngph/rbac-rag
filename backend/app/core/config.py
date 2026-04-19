@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     EMBEDDING_MODEL: NonEmptyString
     VECTOR_SIZE: int = 1024
 
+    # OLLAMA
+    OLLAMA_HOST: NonEmptyString
+
     # System
     DEBUG: NonEmptyString
     JWT_AT_KEY: NonEmptyString

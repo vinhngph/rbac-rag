@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+from fastapi.sse import EventSourceResponse
 from typing import List
 from uuid import UUID
 
@@ -27,17 +28,23 @@ async def read_chat_sessions(current_user: CurrentUser, db: DB_Session):
     return await chat_service.read_chat_sessions(current_user)
 
 
-@router.post("/sessions/{session_id}/messages", response_model=ChatMessageRead)
-async def create_chat_message(
+@router.post(
+    "/sessions/{session_id}/messages",
+    response_class=EventSourceResponse,
+    response_model=ChatMessageRead,
+)
+async def create_chat_message_and_stream(
     session_id: UUID,
     chat_message_create: ChatMessageCreate,
     current_user: CurrentUser,
     db: DB_Session,
 ):
     chat_service = ChatService(db)
-    return await chat_service.create_chat_message(
+
+    async for chunk in chat_service.stream_chat_response(
         session_id, chat_message_create, current_user
-    )
+    ):
+        yield chunk
 
 
 @router.get("/sessions/{session_id}/messages", response_model=List[ChatMessageRead])
