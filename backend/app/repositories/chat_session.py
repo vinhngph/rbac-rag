@@ -1,10 +1,12 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select
+from sqlmodel import select, col, update
 from typing import List
 from uuid import UUID
+from datetime import datetime, timezone
 
 from app.repositories.base import BaseRepository
 from app.models.chat_session import ChatSession, ChatSessionCreate
+from app.models.chat_message import ChatMessage
 
 
 class ChatSessionRepository(BaseRepository[ChatSession]):
@@ -26,7 +28,27 @@ class ChatSessionRepository(BaseRepository[ChatSession]):
 
         return chat_session
 
-    async def get_chat_sessions(self, user_id: UUID) -> List[ChatSession]:
-        stm = select(ChatSession).where(ChatSession.user_id == user_id)
+    async def touch_chat_session_timestamp(self, session_id: UUID):
+        stm = (
+            update(ChatSession)
+            .where(col(ChatSession.id) == session_id)
+            .values({ChatSession.updated_at: datetime.now(timezone.utc)})
+        )
+        await self.db.exec(stm)
 
+    async def get_chat_sessions(self, user_id: UUID) -> List[ChatSession]:
+        stm = (
+            select(ChatSession)
+            .where(ChatSession.user_id == user_id)
+            .order_by(col(ChatSession.updated_at).desc())
+        )
+
+        return list((await self.db.exec(stm)).all())
+
+    async def get_chat_session_messages(self, session_id: UUID) -> List[ChatMessage]:
+        stm = (
+            select(ChatMessage)
+            .where(ChatMessage.session_id == session_id)
+            .order_by(col(ChatMessage.updated_at).asc())
+        )
         return list((await self.db.exec(stm)).all())
