@@ -10,3 +10,4 @@ sentence-transformers
 marker-pdf[full]
 pymupdf
 langchain-text-splitters
+ollama
