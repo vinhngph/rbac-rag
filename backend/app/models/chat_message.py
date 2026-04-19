@@ -1,7 +1,8 @@
-from sqlmodel import SQLModel, Field, Text, Relationship, Column
+from sqlmodel import SQLModel, Field, Text, Relationship, Column, DateTime
 from uuid import uuid4, UUID
 from typing import TYPE_CHECKING, Any
 from enum import Enum
+from datetime import datetime, timezone
 
 if TYPE_CHECKING:
     from app.models.chat_session import ChatSession
@@ -22,6 +23,11 @@ class ChatMessage(ChatMessageBase, table=True):
     __tablename__: Any = "chat_messages"
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
+
+    updated_at: datetime = Field(
+        default_factory=lambda: datetime.now(timezone.utc),
+        sa_column=Column(DateTime(timezone=True)),
+    )
 
     session_id: UUID = Field(foreign_key="chat_sessions.id")
 

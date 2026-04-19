@@ -1,5 +1,6 @@
 from sqlmodel.ext.asyncio.session import AsyncSession
 from functools import cached_property
+from typing import List
 
 from app.models.chat_session import ChatSessionCreate, ChatSession
 from app.models.user import User
@@ -41,3 +42,6 @@ class ChatService:
 
         await self.db.commit()
         return chat_session
+
+    async def read_chat_sessions(self, current_user: User) -> List[ChatSession]:
+        return await self.chat_session_repo.get_chat_sessions(current_user.id)

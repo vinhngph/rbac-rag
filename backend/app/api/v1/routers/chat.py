@@ -22,8 +22,9 @@ async def create_chat_session(
 
 
 @router.get("/sessions", response_model=List[ChatSessionRead])
-async def read_chat_sessions(current_user: CurrentUser):
-    pass
+async def read_chat_sessions(current_user: CurrentUser, db: DB_Session):
+    chat_service = ChatService(db)
+    return await chat_service.read_chat_sessions(current_user)
 
 
 @router.post("/sessions/{session_id}/messages", response_model=ChatMessageRead)
