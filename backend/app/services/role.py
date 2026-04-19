@@ -1,5 +1,5 @@
 from fastapi import HTTPException, status
-from sqlmodel import select, col
+from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 from typing import List
 from uuid import UUID
@@ -36,38 +36,7 @@ class RoleService:
         return PermissionRepository(self.db)
 
     async def get_user_departments(self, user: User) -> List[Role]:
-        user_role_ids = [
-            role.id for role in (await self.role_repo.get_user_roles(user.id))
-        ]
-
-        if not user_role_ids:
-            return []
-
-        hierarchy = (
-            select(Role.id, Role.parent_id)
-            .where(col(Role.id).in_(user_role_ids))
-            .cte(name="user_departments_cte", recursive=True)
-        )
-
-        hierarchy = hierarchy.union_all(
-            select(Role.id, Role.parent_id).join(
-                hierarchy, col(Role.id) == hierarchy.c.parent_id
-            )
-        )
-
-        trash = await self.role_repo.get_trash_role()
-        if not trash:
-            raise AppException(500, SystemMessages.DATABASE_SEED)
-
-        stmt = (
-            select(Role)
-            .join(hierarchy, col(Role.id) == hierarchy.c.id)
-            .where(col(Role.parent_id).is_(None))
-            .where(col(Role.id) != trash.id)
-            .distinct()
-        )
-
-        return list((await self.db.exec(stmt)).all())
+        return await self.role_repo.get_user_departments(user.id)
 
     async def create_user_department(
         self,

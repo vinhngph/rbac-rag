@@ -5,7 +5,7 @@ from sqlmodel.ext.asyncio.session import AsyncSession
 from asyncio import create_task as async_create_task, CancelledError
 
 from app.api.v1.routers import role
-from app.api.v1.routers import auth, departments, knowledge
+from app.api.v1.routers import auth, departments, knowledge, chat
 from app.core.exceptions.http_handler import http_exception_handler
 from app.core.exceptions.app_exception import AppException
 from app.core.config import settings
@@ -70,6 +70,7 @@ app.include_router(user.router)
 app.include_router(departments.router)
 app.include_router(role.router)
 app.include_router(knowledge.router)
+app.include_router(chat.router)
 
 
 @app.get("/health", tags=["System"])
