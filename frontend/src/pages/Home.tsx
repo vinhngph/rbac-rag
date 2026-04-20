@@ -1,16 +1,36 @@
-import { useRef, useState } from "react";
-import { Bot, Copy, Globe, Lightbulb, Mic, Paperclip, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Bot, Copy, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { APP_CONFIG } from "../core/config";
 import useChat from "../features/chat/hooks/useChat";
+import { useLocation, useNavigate } from "react-router";
+import useChatSessions from "../features/chat/hooks/useChatSessions";
+import { useDepartmentStore } from "../features/departments/store/department.store";
+import UserAvatar from "../shared/components/UserAvatar";
+import { useAuth } from "../features/auth/hooks/useAuth";
+import MarkdownRenderer from "../shared/components/MarkdownRenderer";
 
 function Home() {
   const [input, setInput] = useState<string>("");
+  const navigate = useNavigate();
 
-  const { messages, isLoading, sendMessage } = useChat();
+  const location = useLocation();
+  const activeChatId = location.pathname.startsWith("/chat/") ? location.pathname.split("/")[2] : null;
+  const { messages, isLoading, sendMessage } = useChat(activeChatId);
+  const { user } = useAuth();
+
+  const { checkedDepartments } = useDepartmentStore();
+
+  const { handleCreateSession } = useChatSessions();
 
   const bottomRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (bottomRef.current) {
+      bottomRef.current.scrollIntoView({ behavior:"smooth" });
+    }
+  }, [messages, isLoading]);
 
   const autoResize = () => {
     const el = textareaRef.current;
@@ -19,14 +39,36 @@ function Home() {
     el.style.height = Math.min(el.scrollHeight, 200) + "px";
   };
 
-  const handleSend = (text?: string) => {
+  const handleSend =  async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || isLoading) return;
 
-    sendMessage(content);
+    const targetSessionId = activeChatId;
 
     setInput("");
     if (textareaRef.current) textareaRef.current.style.height = "auto";
+
+    try {
+      if (!targetSessionId) {
+        const deptIds = Array.from(checkedDepartments);
+        const chatTitle = content.length > 40 ? content.slice(0, 40) + "...": content;
+
+        const newSession = await handleCreateSession({
+          department_ids: deptIds,
+          title: chatTitle
+        });
+
+        navigate(`/chat/${newSession.id}`);
+
+        await sendMessage(content, newSession.id);
+
+        return;
+      }
+
+      await sendMessage(content, targetSessionId);
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -39,7 +81,7 @@ function Home() {
   return (
     <div className="flex flex-col h-full bg-bg">
       {/* MESSAGES AREA */}
-      <div className="flex-1 overflow-y-auto">
+      <div className="flex-1 overflow-y-auto custom-scrollbar">
         {messages.length === 0
           // Empty state
           ?
@@ -77,9 +119,9 @@ function Home() {
                       {msg.content}
                     </div>
                     : <div>
-                      <p className="text-sm text-text/90 leading-relaxed whitespace-pre-wrap">
-                        {msg.content}
-                      </p>
+                      <div className="prose prose-invert max-w-none">
+                        <MarkdownRenderer content={msg.content}/>
+                      </div>
                       {/* Action buttons */}
                       <div className="flex items-center gap-1 mt-2">
                         <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
@@ -100,9 +142,7 @@ function Home() {
                 </div>
 
                 {msg.role === "user" && (
-                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-violet-500 to-purple-600 flex items-center justify-center shrink-0 mt-0.5 text-xs font-bold text-text">
-                    V
-                  </div>
+                  <UserAvatar avatar_url={user?.avatar_url} name={user?.name ?? ""}/>
                 )}
               </div>
             ))}
@@ -147,7 +187,7 @@ function Home() {
             {/* Bottom toolbar */}
             <div className="flex items-center justify-between px-3 pb-2.5">
               <div className="flex items-center gap-1">
-                <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Add files">
+                {/* <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Add files">
                   <Paperclip className="w-4 h-4" />
                 </button>
                 <button className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors text-xs" title="Web search">
@@ -157,13 +197,13 @@ function Home() {
                 <button className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors text-xs" title="Web search">
                   <Lightbulb className="w-3.5 h-3.5" />
                   <span>Thinking</span>
-                </button>
+                </button> */}
               </div>
 
               <div className="flex items-center gap-1">
-                <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Voice">
+                {/* <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Voice">
                   <Mic className="w-4 h-4" />
-                </button>
+                </button> */}
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim() || isLoading}

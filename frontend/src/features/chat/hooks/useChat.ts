@@ -1,47 +1,113 @@
-import { useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { APP_CONFIG } from "../../../core/config";
+import { fetchEventSource } from "@microsoft/fetch-event-source";
+import { chatService } from "../services/chat.service";
+import { useLocation } from "react-router";
 
-type Message = {
-  id: string;
-  role: "user" | "assistant" | "system";
-  content: string;
-  timestamp: Date;
+export interface ChatMessage {
+  id: string,
+  role: "user" | "assistant",
+  content: string,
+  session_id: string
 }
 
-function useChat() {
-  const [messages, setMessages] = useState<Message[]>([]);
-  // AI thinking...
+function useChat(sessionId: string | null) {
+  const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const location = useLocation();
 
-  const sendMessage = (text: string) => {
-    const content = text.trim();
-    if (!content || isLoading) return;
+  const [prevSessionId, setPrevSessionId] = useState<string | null>(sessionId);
 
-    const userMsg: Message = {
-      id: crypto.randomUUID(),
-      role: "user",
-      content,
-      timestamp: new Date()
+  if (sessionId !== prevSessionId) {
+    setPrevSessionId(sessionId);
+    setMessages([]);
+  }
+
+  useEffect(() => {
+    if (!sessionId) return;
+
+    const fetchHistory = async () => {
+      try {
+        const res = await chatService.getMessages(sessionId);
+        setMessages(res.data);
+      } catch (err) {
+        console.error(err);
+      }
     };
+    fetchHistory();
+  }, [sessionId, location.state]);
 
-    setMessages((prev) => [...prev, userMsg]);
+  const sendMessage = useCallback(async (content: string, overrideSessionId: string | null) => {
+    const targetSessionId = overrideSessionId || sessionId;
+
+    if (!content.trim() || isLoading || !targetSessionId) return;
+
     setIsLoading(true);
 
-    // Simulate AI response
-    setTimeout(() => {
-      const assistantMsg: Message = {
-        id: crypto.randomUUID(),
-        role: "assistant",
-        content: `Demo reply from ${APP_CONFIG.APP_NAME}. ${content}.`,
-        timestamp: new Date()
-      };
+    try {
+      await fetchEventSource(`${APP_CONFIG.APP_BE_API}/chat/sessions/${targetSessionId}/messages`, {
+        method: "POST",
+        credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+          "Accept": "text/event-stream"
+        },
+        body: JSON.stringify({
+          role: "user",
+          content: content
+        }),
+        async onopen(response) {
+          if (response.ok) return;
+          throw new Error("Failed to connect stream");
+        },
+        onmessage(event) {
+          if (!event.data) return;
 
-      setMessages((prev) => [...prev, assistantMsg]);
+          const chunkData = JSON.parse(event.data);
+
+          const msgId = chunkData.id;
+          const msgContent = chunkData.content || "";
+          const msgRole = chunkData.role;
+          const msgSessionId = chunkData.session_id;
+
+          const newMsg: ChatMessage = {
+            id: msgId,
+            role: msgRole,
+            content: msgContent,
+            session_id: msgSessionId
+          };
+
+          setMessages((prev) => {
+            const msgIndex = prev.findIndex((m) => m.id === msgId);
+
+            if (msgIndex === -1) {
+              // New message
+              return [...prev, newMsg];
+            } else {
+              const updated  = [...prev];
+              updated[msgIndex] = {
+                ...updated[msgIndex],
+                content: updated[msgIndex].content + msgContent
+              };
+              return updated;
+            }
+          });
+        },
+        onclose() {
+          setIsLoading(false);
+        },
+        onerror(err) {
+          setIsLoading(false);
+          throw err;
+        }
+      });
+    } catch (error) {
       setIsLoading(false);
-    }, 1200);
-  };
+      console.error(error);
+    }
+  }, [sessionId, isLoading]);
 
-  return { messages, isLoading, sendMessage };
+  return { messages, setMessages, isLoading, sendMessage };
 }
 
 export default useChat;
