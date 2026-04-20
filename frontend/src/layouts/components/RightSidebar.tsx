@@ -4,6 +4,7 @@ import { useLocation, useNavigate } from "react-router";
 import { Building2, PanelRightClose, PanelRightOpen, Plus } from "lucide-react";
 import DepartmentItem from "../../features/departments/components/DepartmentItem";
 import PromptModal from "../../shared/components/PromptModal";
+import { useDepartmentStore } from "../../features/departments/store/department.store";
 
 function RightSidebar() {
   const [rightCollapsed, setRightCollapsed] = useState<boolean>(false);
@@ -14,7 +15,8 @@ function RightSidebar() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { departments, checkedDepartments, handleAddDepartment, handleUpdateDepartment, handleDeleteDepartment, handleToggleCheck } = useDepartments();
+  const { departments, handleAddDepartment, handleUpdateDepartment, handleDeleteDepartment } = useDepartments();
+  const { checkedDepartments, toggleDepartment } = useDepartmentStore();
 
   const handleAdd = async ()  =>{
     const name = newDepartmentName.trim();
@@ -134,12 +136,12 @@ function RightSidebar() {
             )}
 
             {/* Knowledge context badge */}
-            {(checkedDepartments.size > 0) && (
+            {(checkedDepartments.length > 0) && (
               <div className="mx-3 mt-2.5 px-2.5 py-1.5 bg-emerald-500/8 border border-emerald-500/15 rounded-xl">
                 <p className="text-[11px] text-emerald-400/80 leading-snug">
                   Chat uses{" "}
                   <span className="font-semibold text-emerald-400">
-                    {`${checkedDepartments.size} department${checkedDepartments.size > 1 ? "s" : ""}`}
+                    {`${checkedDepartments.length} department${checkedDepartments.length > 1 ? "s" : ""}`}
                   </span>
                   {" "}
                   as context
@@ -165,8 +167,8 @@ function RightSidebar() {
                       key={department.id}
                       department={department}
                       isActive={location.pathname === `/department/${department.id}`}
-                      isChecked={checkedDepartments.has(department.id)}
-                      onToggleCheck={handleToggleCheck}
+                      isChecked={checkedDepartments.includes(department.id)}
+                      onToggleCheck={() => toggleDepartment(department.id)}
                       onNavigate={handleDepartmentNavigate}
                       onRename={(id, name) => setRenameTarget({ id, name })}
                       onDelete={handleDelete}

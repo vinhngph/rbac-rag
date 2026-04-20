@@ -11,7 +11,8 @@ export const router = createBrowserRouter([
     children: [
       { index: true, element: <SuspenseWrapper><HomePage /></SuspenseWrapper> },
       { path: "auth", element: <SuspenseWrapper><HomePage /></SuspenseWrapper> },
-      { path: "department/:id", element: <SuspenseWrapper><HomePage /></SuspenseWrapper> }
+      { path: "department/:id", element: <SuspenseWrapper><HomePage /></SuspenseWrapper> },
+      { path: "chat/:id", element: <SuspenseWrapper><HomePage /></SuspenseWrapper> }
     ]
   },
   {

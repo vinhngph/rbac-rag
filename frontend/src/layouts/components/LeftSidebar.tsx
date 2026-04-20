@@ -1,30 +1,54 @@
-import { Bot, ChevronDown, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Search, SquarePen, User } from "lucide-react";
+import { Bot, ChevronDown, Loader2, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Search, SquarePen, User } from "lucide-react";
 import { useState } from "react";
-import { useNavigate } from "react-router";
+import { useLocation, useNavigate } from "react-router";
 import { APP_CONFIG } from "../../core/config";
 import { useAuth } from "../../features/auth/hooks/useAuth";
 import { logout } from "../../features/auth/services/auth.service";
 import UserAvatar from "../../shared/components/UserAvatar";
 import { useToast } from "../../shared/toast";
+import useChatSessions from "../../features/chat/hooks/useChatSessions";
+import type { ChatSessionRead } from "../../features/chat/services/chat.service";
 
-const mockChats = [
-  { id: 1, title: "What is RAG?" },
-  { id: 2, title: "What is RAG?" },
-  { id: 3, title: "What is RAG?" },
-  { id: 4, title: "What is RAG?" },
-  { id: 5, title: "What is RAG?" },
-  { id: 6, title: "What is RAG?" },
-];
+function ChatSessionItems({ sessions, activeChatId }: {sessions:ChatSessionRead[], activeChatId: string | null}) {
+  const navigate = useNavigate();
+
+  return (
+    sessions.length === 0
+      ? (
+        <p className="text-center text-xs text-text/40 mt-4">No chats yet</p>
+      )
+      : (
+        sessions.map((chat) => (
+          <button
+            onClick={() => navigate(`/chat/${chat.id}`)}
+            key={chat.id}
+            className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors truncate cursor-pointer ${activeChatId === chat.id
+              ? "bg-white/12 text-text"
+              : "text-text/70 hover:bg-white/8 "}`}
+          >
+            <div className="flex items-center gap-2">
+              <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-50" />
+              <span className="truncate">{chat.title}</span>
+            </div>
+          </button>
+        ))
+      )
+  );
+}
 
 function LeftSidebar() {
   const [leftCollapsed, setLeftCollapsed] = useState<boolean>(false);
-  const [activeChat, setActiveChat] = useState<number | null>(null);
   const [isUserMenu, setIsUserMenu] = useState<boolean>(false);
 
   const { user, setUser } = useAuth();
   const { error: toastError } = useToast();
 
   const navigate = useNavigate();
+  const location = useLocation();
+
+  const { sessions, isLoadingSessions } = useChatSessions();
+
+  const activeChatId = location.pathname.startsWith("/chat/") ? location.pathname.split("/")[2] : null;
 
   const handleLogout = async () => {
     try {
@@ -90,20 +114,13 @@ function LeftSidebar() {
 
           {/* Chat history */}
           <div className="flex-1 overflow-y-auto px-2">
-            {mockChats.map((chat) => (
-              <button
-                onClick={() => setActiveChat(chat.id)}
-                key={chat.id}
-                className={`w-full text-left px-3 py-2 rounded-xl text-sm transition-colors truncate cursor-pointer ${activeChat === chat.id
-                  ? "bg-white/12 text-text"
-                  : "text-text/70 hover:bg-white/8 "}`}
-              >
-                <div className="flex items-center gap-2">
-                  <MessageSquare className="w-3.5 h-3.5 shrink-0 opacity-50" />
-                  <span className="truncate">{chat.title}</span>
+            {isLoadingSessions
+              ? (
+                <div className="flex justify-center p-4">
+                  <Loader2 className="w-4 h-4 text-text/40 animate-spin" />
                 </div>
-              </button>
-            ))}
+              )
+              : <ChatSessionItems sessions={sessions} activeChatId={activeChatId}/>}
           </div>
 
           {/* User profile | Login */}
