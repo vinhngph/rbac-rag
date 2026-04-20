@@ -181,11 +181,17 @@ class ChatService:
                 user_message_vector, knowledge_ids
             )
 
-        system_prompt = f"""You are the system's intelligent Artificial Intelligence assistant.
-        Please answer the user's question accurately based on the CONTEXT DOCUMENT below.
-        If the document does not contain the information to answer, honestly say: "I could not find the information in the system."
-        CONTEXTUAL DOCUMENTS:
+        system_prompt = f"""You are a strict data extraction assistant.
+        Your ONLY job is to answer the user's question by extracting the exact information from the CONTEXT DOCUMENT below.
+
+        RULES:
+        1. ONLY use the information provided in the CONTEXT DOCUMENT. Do NOT use outside knowledge or personal knowledge.
+        2. If the user asks for questions from the text, extract them EXACTLY word-for-word as they appear in the document. Do not rewrite or rephrase them.
+        3. If the document does not contain the information to answer, you must output exactly: "I could not find the information in the system."
+
+        <CONTEXT_DOCUMENT>
         {context_text if context_text else "No documents match the current access rights."}
+        </CONTEXT_DOCUMENT>
         """
 
         full_assistant_reply = ""
@@ -199,7 +205,10 @@ class ChatService:
         ollama_client = AsyncClient(host=settings.OLLAMA_HOST)
         try:
             response_stream = await ollama_client.chat(  # type: ignore
-                model="gemma2:2b", messages=messages, stream=True
+                model="gemma2:2b",
+                messages=messages,
+                stream=True,
+                options={"temperature": 0.0},
             )
 
             async for chunk in response_stream:
@@ -214,11 +223,10 @@ class ChatService:
                         session_id=session_id,
                     )
         except Exception as e:
-            print(e)
             yield ChatMessage(
                 id=ai_message_id,
                 role=ChatMessageRole.ASSISTANT,
-                content=ErrorMessages.CHAT_ERROR,
+                content=ErrorMessages.CHAT_ERROR + str(e),
                 session_id=session_id,
             )
 

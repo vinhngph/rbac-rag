@@ -17,7 +17,7 @@ if TYPE_CHECKING:
 
 
 class ChatSessionBase(SQLModel):
-    department_ids: List[UUID] = Field(sa_column=Column(ARRAY(sa_UUID(as_uuid=True))))
+    department_ids: List[UUID] = Field(sa_column=Column(ARRAY(sa_UUID(as_uuid=True))), min_length=1)
 
     title: str = Field(default="Untitled chat")
 
