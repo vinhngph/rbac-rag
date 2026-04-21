@@ -1,14 +1,59 @@
-import { useEffect, useRef, useState } from "react";
-import { Bot, Copy, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
+import { memo, useEffect, useRef, useState } from "react";
+import { Bot, Copy, Paperclip, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
 
 import { APP_CONFIG } from "../core/config";
-import useChat from "../features/chat/hooks/useChat";
+import useChat, { type ChatMessage } from "../features/chat/hooks/useChat";
 import { useLocation, useNavigate } from "react-router";
 import useChatSessions from "../features/chat/hooks/useChatSessions";
 import { useDepartmentStore } from "../features/departments/store/department.store";
 import UserAvatar from "../shared/components/UserAvatar";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import MarkdownRenderer from "../shared/components/MarkdownRenderer";
+import type { User } from "../features/auth/context/auth.context";
+
+const MessageItem = memo(({ msg, user } : {msg:ChatMessage, user: User}) => {
+  return (
+    <div className={`flex gap-3 ${msg.role === "user" ? "justify-end": ""}`}>
+      {msg.role === "assistant" && (
+        <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400/20 to-cyan-500/20 border border-emerald-400/20 flex items-center justify-center shrink-0 mt-0.5">
+          <Bot className="w-4 h-4 text-emerald-400" />
+        </div>
+      )}
+
+      <div className={`${msg.role === "user" ? "max-w-[75%]" : "flex-1 min-w-0"}`}>
+        {msg.role === "user"
+          ? <div className="bg-bg-prompt rounded-[20px] rounded-br-md px-4 py-2.5 text-sm text-text leading-relaxed">
+            {msg.content}
+          </div>
+          : <div>
+            <div className="prose prose-invert max-w-none">
+              <MarkdownRenderer content={msg.content}/>
+            </div>
+            {/* Action buttons */}
+            <div className="flex items-center gap-1 mt-2">
+              <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
+                <Copy className="w-3.5 h-3.5" />
+              </button>
+              <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
+                <ThumbsUp className="w-3.5 h-3.5" />
+              </button>
+              <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
+                <ThumbsDown className="w-3.5 h-3.5" />
+              </button>
+              <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
+                <RotateCcw className="w-3.5 h-3.5" />
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      {msg.role === "user" && (
+        <UserAvatar avatar_url={user?.avatar_url} name={user?.name ?? ""}/>
+      )}
+    </div>
+  );
+});
 
 function Home() {
   const [input, setInput] = useState<string>("");
@@ -28,7 +73,7 @@ function Home() {
 
   useEffect(() => {
     if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior:"smooth" });
+      bottomRef.current.scrollIntoView({ behavior:"auto" });
     }
   }, [messages, isLoading]);
 
@@ -102,53 +147,12 @@ function Home() {
           :
           // CHAT MESSAGES
           <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
-            {messages.map(msg => (
-              <div
-                key={msg.id}
-                className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}
-              >
-                {msg.role === "assistant" && (
-                  <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400/20 to-cyan-500/20 border border-emerald-400/20 flex items-center justify-center shrink-0 mt-0.5">
-                    <Bot className="w-4 h-4 text-emerald-400" />
-                  </div>
-                )}
-
-                <div className={`${msg.role === "user" ? "max-w-[75%]" : "flex-1 min-w-0"}`}>
-                  {msg.role === "user"
-                    ? <div className="bg-bg-prompt rounded-[20px] rounded-br-md px-4 py-2.5 text-sm text-text leading-relaxed">
-                      {msg.content}
-                    </div>
-                    : <div>
-                      <div className="prose prose-invert max-w-none">
-                        <MarkdownRenderer content={msg.content}/>
-                      </div>
-                      {/* Action buttons */}
-                      <div className="flex items-center gap-1 mt-2">
-                        <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
-                          <Copy className="w-3.5 h-3.5" />
-                        </button>
-                        <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
-                          <ThumbsUp className="w-3.5 h-3.5" />
-                        </button>
-                        <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
-                          <ThumbsDown className="w-3.5 h-3.5" />
-                        </button>
-                        <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
-                          <RotateCcw className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  }
-                </div>
-
-                {msg.role === "user" && (
-                  <UserAvatar avatar_url={user?.avatar_url} name={user?.name ?? ""}/>
-                )}
-              </div>
+            {user && messages.map((msg) => (
+              <MessageItem key={msg.id} msg={msg} user={user} />
             ))}
 
             {/* Loading indicator */}
-            {isLoading && (
+            {isLoading && messages.at(-1)?.role !== "assistant" && (
               <div className="flex gap-3">
                 <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400/20 to-cyan-500/20 border border-emerald-400/20 flex items-center justify-center shrink-0">
                   <Bot className="w-4 h-4 text-emerald-400" />
@@ -187,10 +191,10 @@ function Home() {
             {/* Bottom toolbar */}
             <div className="flex items-center justify-between px-3 pb-2.5">
               <div className="flex items-center gap-1">
-                {/* <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Add files">
+                <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Add files">
                   <Paperclip className="w-4 h-4" />
                 </button>
-                <button className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors text-xs" title="Web search">
+                {/* <button className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors text-xs" title="Web search">
                   <Globe className="w-3.5 h-3.5" />
                   <span>Web search</span>
                 </button>
