@@ -42,6 +42,7 @@ class VectorRepository:
                     ]
                 ),
                 limit=limit,
+                score_threshold=0.55
             )
         ).points
 

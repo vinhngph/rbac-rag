@@ -197,6 +197,28 @@ class ChatService:
         full_assistant_reply = ""
         ai_message_id = uuid4()
 
+        if not context_text.strip():
+            full_assistant_reply = "I could not find the information in the system."
+            yield ChatMessage(
+                id=ai_message_id,
+                role=ChatMessageRole.ASSISTANT,
+                content=full_assistant_reply,
+                session_id=session_id,
+            )
+
+            assistant_msg_create = ChatMessage(
+                role=ChatMessageRole.ASSISTANT,
+                content=full_assistant_reply,
+                session_id=session_id,
+            )
+
+            self.db.add(assistant_msg_create)
+            await self.db.flush()
+            await self.chat_session_repo.touch_chat_session_timestamp(session_id)
+            await self.db.commit()
+
+            return
+
         messages = [
             {"role": "system", "content": system_prompt},
             {"role": "user", "content": user_chat_message.content},
