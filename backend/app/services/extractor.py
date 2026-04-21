@@ -16,16 +16,44 @@ MAX_PAGES_PER_CHUNK = 1
 
 
 def is_scanned_pdf(file_path: str) -> bool:
-    doc = fitz_open(file_path)
-    text_length = 0
+    try:
+        doc = fitz_open(file_path)
+        pages_to_check = min(3, len(doc))
 
-    for page_num in range(min(3, len(doc))):
-        page = doc[page_num]  # type: ignore
-        text_length += len(page.get_text())  # type: ignore
+        if pages_to_check == 0:
+            return False
 
-    doc.close()
+        scan_score = 0
 
-    return text_length < 50
+        for page_num in range(pages_to_check):
+            page = doc[page_num]  # type: ignore
+
+            page_area = abs(page.rect.width * page.rect.height)
+            if page_area == 0:
+                continue
+
+            images = page.get_image_info()  # type: ignore
+
+            if not images:
+                continue
+
+            total_image_area = 0
+            for img in images:  # type: ignore
+                bbox = img.get("bbox")  # type: ignore
+                if bbox:
+                    width = bbox[2] - bbox[0]  # type: ignore
+                    height = bbox[3] - bbox[1]  # type: ignore
+                    total_image_area += abs(width * height)  # type: ignore
+
+            if ((total_image_area / page_area) > 0.8) or (len(page.get_text().strip()) < 50 and len(images) > 0):  # type: ignore
+                scan_score += 1
+
+        doc.close()
+
+        return scan_score >= (pages_to_check / 2.0)
+
+    except Exception:
+        return False
 
 
 def extract_file_pdf(file_path: str) -> str:

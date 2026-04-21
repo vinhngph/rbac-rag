@@ -120,12 +120,8 @@ class ChatService:
         if session_id not in user_session_ids:
             raise AppException(403, ErrorMessages.ACCESS_DENIED)
 
-        user_message = await self.chat_message_repo.create(
-            session_id, user_chat_message
-        )
+        await self.chat_message_repo.create(session_id, user_chat_message)
         await self.chat_session_repo.touch_chat_session_timestamp(session_id)
-
-        yield user_message
 
         # Role based
         chat_session = await self.chat_session_repo.get_by_id(session_id)
