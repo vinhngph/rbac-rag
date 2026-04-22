@@ -3,23 +3,24 @@ import { useToast } from "../../../shared/toast";
 import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
 import { chatService } from "../services/chat.service";
 
+export const CHAT_SESSIONS_QUERY_KEY = ["chat_sessions"];
+
 function useChatSessions() {
   const queryClient = useQueryClient();
-  const queryKeyStr = "chat_sessions";
 
   const { error } = useToast();
   const { handleCatch } = useErrorHandler();
 
   const { data: sessions = [], isLoading: isLoadingSessions } = useQuery({
-    queryKey: [queryKeyStr],
+    queryKey: CHAT_SESSIONS_QUERY_KEY,
     queryFn: () => chatService.getSessions().then((res) => res.data)
   });
 
   const createSessionMut = useMutation({
-    mutationFn: ({ department_ids, title }: {department_ids: string[], title?: string}) =>
+    mutationFn: ({ department_ids, title }: { department_ids: string[], title?: string }) =>
       chatService.createSessions(department_ids, title).then((res) => res.data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: [queryKeyStr] });
+      queryClient.invalidateQueries({ queryKey: CHAT_SESSIONS_QUERY_KEY });
     },
     onError: (err: unknown) => {
       error(handleCatch(err));
