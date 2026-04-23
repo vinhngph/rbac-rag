@@ -1,6 +1,15 @@
-from sqlmodel import SQLModel, Field, Text, Relationship, Column, DateTime
+from sqlmodel import (
+    SQLModel,
+    Field,
+    Text,
+    Relationship,
+    Column,
+    DateTime,
+    ARRAY,
+    UUID as sa_UUID,
+)
 from uuid import uuid4, UUID
-from typing import TYPE_CHECKING, Any
+from typing import TYPE_CHECKING, Any, List
 from enum import Enum
 from datetime import datetime, timezone
 
@@ -17,6 +26,10 @@ class ChatMessageBase(SQLModel):
     role: ChatMessageRole = Field(nullable=False)
 
     content: str = Field(sa_column=Column(Text, nullable=False))
+
+    knowledge_ids: List[UUID] = Field(
+        default=[], sa_column=Column(ARRAY(sa_UUID(as_uuid=True)))
+    )
 
 
 class ChatMessage(ChatMessageBase, table=True):

@@ -16,6 +16,7 @@ from asyncio import to_thread as async_to_thread
 from app.models.chat_session import ChatSessionCreate, ChatSession
 from app.models.chat_message import ChatMessageCreate, ChatMessage, ChatMessageRole
 from app.models.user import User
+from app.models.knowledge import Knowledge
 
 from app.repositories.chat_session import ChatSessionRepository
 from app.repositories.chat_message import ChatMessageRepository
@@ -120,8 +121,12 @@ class ChatService:
         if session_id not in user_session_ids:
             raise AppException(403, ErrorMessages.ACCESS_DENIED)
 
-        await self.chat_message_repo.create(session_id, user_chat_message)
+        user_message = await self.chat_message_repo.create(
+            session_id, user_chat_message
+        )
         await self.chat_session_repo.touch_chat_session_timestamp(session_id)
+
+        yield user_message
 
         # Role based
         chat_session = await self.chat_session_repo.get_by_id(session_id)
@@ -171,9 +176,10 @@ class ChatService:
         )
 
         context_text = ""
+        rs_knowledge_ids: List[str] = []
 
         if knowledge_ids:
-            context_text = await self.vector_repo.search_context(
+            context_text, rs_knowledge_ids = await self.vector_repo.search_context(
                 user_message_vector, knowledge_ids
             )
 
@@ -195,18 +201,16 @@ class ChatService:
 
         if not context_text.strip():
             full_assistant_reply = "I could not find the information in the system."
-            yield ChatMessage(
+
+            assistant_msg_create = ChatMessage(
                 id=ai_message_id,
                 role=ChatMessageRole.ASSISTANT,
                 content=full_assistant_reply,
                 session_id=session_id,
+                knowledge_ids=[],
             )
 
-            assistant_msg_create = ChatMessage(
-                role=ChatMessageRole.ASSISTANT,
-                content=full_assistant_reply,
-                session_id=session_id,
-            )
+            yield assistant_msg_create
 
             self.db.add(assistant_msg_create)
             await self.db.flush()
@@ -223,7 +227,7 @@ class ChatService:
         ollama_client = AsyncClient(host=settings.OLLAMA_HOST)
         try:
             response_stream = await ollama_client.chat(  # type: ignore
-                model="gemma2:2b",
+                model="gemma4:e2b-it-q4_K_M",
                 messages=messages,
                 stream=True,
                 options={"temperature": 0.0},
@@ -239,6 +243,7 @@ class ChatService:
                         role=ChatMessageRole.ASSISTANT,
                         content=content_chunk,
                         session_id=session_id,
+                        knowledge_ids=[UUID(rs_id) for rs_id in rs_knowledge_ids],
                     )
         except Exception as e:
             yield ChatMessage(
@@ -246,15 +251,40 @@ class ChatService:
                 role=ChatMessageRole.ASSISTANT,
                 content=ErrorMessages.CHAT_ERROR + str(e),
                 session_id=session_id,
+                knowledge_ids=[UUID(rs_id) for rs_id in rs_knowledge_ids],
             )
 
         assistant_msg_create = ChatMessage(
             role=ChatMessageRole.ASSISTANT,
             content=full_assistant_reply,
             session_id=session_id,
+            knowledge_ids=[UUID(rs_id) for rs_id in rs_knowledge_ids],
         )
 
         self.db.add(assistant_msg_create)
         await self.db.flush()
         await self.chat_session_repo.touch_chat_session_timestamp(session_id)
         await self.db.commit()
+
+    async def get_message_sources(
+        self, session_id: UUID, message_id: UUID, current_user: User
+    ) -> List[Knowledge]:
+        user_sessions = await self.chat_session_repo.get_chat_sessions(current_user.id)
+        if not user_sessions:
+            raise AppException(404, ErrorMessages.CHAT_SESSIONS_NOT_FOUND)
+
+        user_session_ids = [session.id for session in user_sessions]
+        if session_id not in user_session_ids:
+            raise AppException(403, ErrorMessages.ACCESS_DENIED)
+
+        message = await self.chat_message_repo.get_by_id(message_id)
+        if not message:
+            raise AppException(404, ErrorMessages.CHAT_MESSAGE_NOT_FOUND)
+
+        knowledges: List[Knowledge] = []
+        for k_id in message.knowledge_ids:
+            k = await self.knowledge_repo.get_by_id(k_id)
+            if k:
+                knowledges.append(k)
+
+        return knowledges

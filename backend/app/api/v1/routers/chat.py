@@ -5,6 +5,7 @@ from uuid import UUID
 
 from app.models.chat_session import ChatSessionCreate, ChatSessionRead
 from app.models.chat_message import ChatMessageCreate, ChatMessageRead
+from app.models.knowledge import KnowledgeRead
 
 from app.api.dependencies.current_user import CurrentUser
 from app.api.dependencies.db_session import DB_Session
@@ -53,3 +54,13 @@ async def read_chat_messages(
 ):
     chat_service = ChatService(db)
     return await chat_service.read_chat_messages(session_id, current_user)
+
+
+@router.get(
+    "/sessions/{session_id}/messages/{message_id}", response_model=List[KnowledgeRead]
+)
+async def get_message_sources(
+    session_id: UUID, message_id: UUID, current_user: CurrentUser, db: DB_Session
+):
+    chat_service = ChatService(db)
+    return await chat_service.get_message_sources(session_id, message_id, current_user)

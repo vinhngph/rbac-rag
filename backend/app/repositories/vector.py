@@ -7,7 +7,7 @@ from qdrant_client.models import (
     MatchAny,
 )
 
-from typing import List
+from typing import List, Tuple
 
 from app.core.config import settings
 
@@ -29,7 +29,7 @@ class VectorRepository:
 
     async def search_context(
         self, query_vector: List[float], knowledge_ids: List[str], limit: int = 5
-    ) -> str:
+    ) -> Tuple[str, List[str]]:
         result = (
             await self.client.query_points(
                 collection_name=self.collection_name,
@@ -42,9 +42,12 @@ class VectorRepository:
                     ]
                 ),
                 limit=limit,
-                score_threshold=0.55
+                score_threshold=0.55,
             )
         ).points
 
         contexts = [hit.payload.get("text", "") for hit in result if hit.payload]
-        return "\n\n---\n\n".join(contexts)
+        res_knowledge_ids = {
+            hit.payload.get("knowledge_id", "") for hit in result if hit.payload
+        }
+        return "\n\n---\n\n".join(contexts), list(res_knowledge_ids)
