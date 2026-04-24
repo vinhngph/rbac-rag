@@ -1,7 +1,27 @@
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
 
+@layer base {
+    @font-face {
+        font-family: "Merriweather";
+        src: url("../assets/fonts/Merriweather-Variable.ttf") format("truetype");
+        font-weight: 300 900;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: "Merriweather";
+        src: url("../assets/fonts/Merriweather-Italic.ttf") format("truetype");
+        font-weight: 300 900;
+        font-style: italic;
+        font-display: swap;
+    }
+}
+
 @theme {
+    --font-sans: "Merriweather", sans-serif;
+
     --color-bg: var(--bg-base);
     --color-text: var(--text-base);
     --color-text-muted: var(--text-muted);
@@ -25,7 +45,7 @@
 
     --bg-sidebar: #f3f1ed;
     --bg-prompt: #ffffff;
-    --bg-modal: #ffffff;
+    --bg-modal: #f6f4f1;
     --bg-menu: #ffffff;
 
     --surface: rgba(60, 50, 40, 0.04);

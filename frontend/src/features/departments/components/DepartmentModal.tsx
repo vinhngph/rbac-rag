@@ -79,12 +79,12 @@ function DepartmentModal({ id }: DepartmentModalProps) {
       <div className="relative z-10 w-full max-w-6xl h-[88vh] bg-bg-modal border border-border-subtle rounded-2xl shadow-2xl shadow-black/70 flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-3.5 border-b border-border-subtle/6 shrink-0 bg-bg-menu">
+        <div className="flex items-center gap-3 px-5 py-3.5 border-b border-border-subtle shrink-0">
           {/* Breadcrumb */}
           <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
             <button
               onClick={() => navigateRole(rootRole?.id?? null) }
-              className="text-sm font-semibold text-emerald-400/90 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
+              className="font-semibold text-emerald-400/90 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
             >
               {rootRole?.name}
             </button>
@@ -93,7 +93,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                 <ChevronRight className="w-3.5 h-3.5 text-text/20" />
                 <button
                   onClick={() => navigateRole(role.id)}
-                  className={`text-sm transition-colors cursor-pointer ${role.id === currentRole?.id ? "text-text font-medium": "text-text-muted hover:text-text/80"}`}
+                  className={`transition-colors cursor-pointer ${role.id === currentRole?.id ? "text-text font-medium": "text-text-muted hover:text-text/80"}`}
                 >
                   {role.name}
                 </button>
@@ -122,7 +122,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
         {/* Body */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left: Roles Tree */}
-          <div className="w-64 shrink-0 border-r border-border-subtle/6 flex flex-col bg-bg-sidebar">
+          <div className="w-64 shrink-0 border-r border-border-subtle flex flex-col bg-bg-sidebar">
             <div className="px-3 py-2.5 border-b border-border-subtle">
               <p className="text-[10px] font-semibold text-text/30 uppercase tracking-widest">Roles</p>
             </div>
@@ -136,7 +136,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
               {childRoles.map((role) => (
                 <div
                   key={role.id}
-                  className="group relative flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-surface transition-colors"
+                  className="group relative flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-surface-hover transition-colors"
                 >
                   <button
                     type="button"
@@ -249,7 +249,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-0 divide-x divide-white/5 flex-1">
+                  <div className="grid grid-cols-2 gap-0 divide-x divide-border-subtle flex-1">
                     {/* Member section */}
                     <div className="px-5 py-4 space-y-3">
                       <div className="flex items-center gap-2">
@@ -274,7 +274,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                         {roleMembers.map((member) => (
                           <div
                             key={member.id}
-                            className="group flex items-center gap-2.5 px-2.5 py-2 rounded-xl hover:bg-white/4 transition-colors cursor-pointer"
+                            className="group flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-surface/50 hover:bg-surface transition-colors cursor-pointer border border-transparent hover:border-border-subtle/50"
                           >
                             <UserAvatar avatar_url={member.avatar_url} name={member.name} />
                             {/* Info */}
@@ -375,7 +375,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                       <div className="space-y-1">
                         {roleKnowledges.length === 0 && (
                           <div className="flex flex-col items-center justify-center py-8 gap-2">
-                            <div className="w-10 h-10 rounded-xl bg-white/4 flex items-center justify-center">
+                            <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center">
                               <Upload className="w-5 h-5 text-text/15" />
                             </div>
                             <p className="text-xs text-text/20">No files uploaded</p>

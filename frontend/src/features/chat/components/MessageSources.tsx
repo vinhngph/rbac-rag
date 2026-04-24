@@ -96,7 +96,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
             </div>
           )}
 
-          <div className="flex-1 w-full overflow-y-auto custom-scrollbar flex justify-center">
+          <div className="flex-1 w-full overflow-y-auto custom-scrollbar flex justify-center items-center">
             <Document
               file={fileBlob}
               onLoadSuccess={onDocumentLoadSuccess}
@@ -153,7 +153,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
 
     return (
       <>
-        <div className="w-1/4 border-r border-border-subtle bg-white/1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+        <div className="w-1/4 border-r border-border-subtle bg-bg-sidebar overflow-y-auto custom-scrollbar p-3 space-y-2">
           {sourcesData?.map((source) => (
             <button
               key={source.id}
@@ -186,7 +186,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-active backdrop-blur-sm p-4">
       <div className="w-full max-w-7xl h-[95vh] bg-bg rounded-2xl border border-border-subtle flex flex-col overflow-hidden shadow-2xl duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-white/2">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-bg-modal">
           <h2 className="text-lg font-semibold text-text/80 flex items-center gap-2">
             <SquareLibrary className="w-5 h-5 text-emerald-400" />
             Response sources
