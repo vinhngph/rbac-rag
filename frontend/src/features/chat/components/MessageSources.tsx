@@ -75,10 +75,10 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
       return (
         <div className="flex flex-col items-center h-full w-full relative">
           {numPages && (
-            <div className="absolute top-2 z-10 flex items-center gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full shadow-xl border border-white/10 transition-opacity hover:bg-black/80">
+            <div className="absolute bottom-2 z-10 flex items-center gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full shadow-xl border border-white/10 transition-opacity hover:bg-black/80">
               <button
                 onClick={() => changePage(-1)}
-                disabled={pageNumber<= 1}
+                disabled={pageNumber <= 1}
                 className="p-1.5 hover:bg-white/20 rounded-full disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer text-white"
               >
                 <ChevronLeft className="w-5 h-5" />

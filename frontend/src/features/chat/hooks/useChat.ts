@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from "react";
 import { APP_CONFIG } from "../../../core/config";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { chatService } from "../services/chat.service";
-import { useLocation } from "react-router";
 
 export interface ChatMessage {
   id: string,
@@ -15,7 +14,6 @@ export interface ChatMessage {
 function useChat(sessionId: string | null) {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const location = useLocation();
 
   const [prevSessionId, setPrevSessionId] = useState<string | null>(sessionId);
 
@@ -30,13 +28,16 @@ function useChat(sessionId: string | null) {
     const fetchHistory = async () => {
       try {
         const res = await chatService.getMessages(sessionId);
-        setMessages(res.data);
+        setMessages((prev) => {
+          if (prev.length > 0) return prev;
+          return res.data;
+        });
       } catch (err) {
         console.error(err);
       }
     };
     fetchHistory();
-  }, [sessionId, location.state]);
+  }, [sessionId]);
 
   const sendMessage = useCallback(async (content: string, overrideSessionId: string | null) => {
     const targetSessionId = overrideSessionId || sessionId;
@@ -87,7 +88,7 @@ function useChat(sessionId: string | null) {
               // New message
               return [...prev, newMsg];
             } else {
-              const updated  = [...prev];
+              const updated = [...prev];
               updated[msgIndex] = {
                 ...updated[msgIndex],
                 content: updated[msgIndex].content + msgContent

@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
-import { Bot, Paperclip, Send, SquareLibrary } from "lucide-react";
+import { Bot, Check, Copy, Paperclip, Send, SquareLibrary } from "lucide-react";
 
 import { APP_CONFIG } from "../core/config";
 import useChat, { type ChatMessage } from "../features/chat/hooks/useChat";
@@ -11,10 +11,31 @@ import { useAuth } from "../features/auth/hooks/useAuth";
 import MarkdownRenderer from "../shared/components/MarkdownRenderer";
 import type { User } from "../features/auth/context/auth.context";
 import MessageSources from "../features/chat/components/MessageSources";
+import { useToast } from "../shared/toast";
 
-const MessageItem = memo(({ msg, user, onOpenSources } : {msg:ChatMessage, user: User, onOpenSources: (msgId: string) => void}) => {
+const MessageItem = memo(({ msg, user, onOpenSources }: { msg: ChatMessage, user: User, onOpenSources: (msgId: string) => void }) => {
+  const [isCopied, setIsCopied] = useState(false);
+  const { success, error } = useToast();
+
+  const handleCopy = async (textToCopy: string) => {
+    if (!textToCopy) return;
+
+    try {
+      await navigator.clipboard.writeText(textToCopy);
+
+      setIsCopied(true);
+      success("Copied the answer.");
+
+      setTimeout(() => {
+        setIsCopied(false);
+      }, 2000);
+    } catch {
+      error("Failed to copy.");
+    }
+  };
+
   return (
-    <div className={`flex gap-3 ${msg.role === "user" ? "justify-end": ""}`}>
+    <div className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}>
       {msg.role === "assistant" && (
         <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400/20 to-cyan-500/20 border border-emerald-400/20 flex items-center justify-center shrink-0 mt-0.5">
           <Bot className="w-4 h-4 text-emerald-400" />
@@ -28,16 +49,32 @@ const MessageItem = memo(({ msg, user, onOpenSources } : {msg:ChatMessage, user:
           </div>
           : <div>
             <div className="prose prose-invert max-w-none">
-              <MarkdownRenderer content={msg.content}/>
+              <MarkdownRenderer content={msg.content} />
             </div>
             {/* Action buttons */}
             <div className="flex items-center gap-1 mt-2">
               <button
+                onClick={() => handleCopy(msg.content)}
+                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors cursor-pointer"
+                title={isCopied ? "Copied" : "Copy"}
+              >
+                {isCopied ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
+              </button>
+              <button
                 onClick={() => onOpenSources(msg.id)}
                 className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors cursor-pointer"
+                title="Sources"
               >
-                <SquareLibrary className="w-3.5 h-3.5" />
-                <span className="text-xs font-medium">Sources {"(" + msg.knowledge_ids?.length + ")"}</span>
+                {msg.knowledge_ids && msg.knowledge_ids.length >= 1 && (
+                  <>
+                    <SquareLibrary className="w-3.5 h-3.5" />
+                    <span className="text-xs font-medium">Sources {"(" + msg.knowledge_ids?.length + ")"}</span>
+                  </>
+                )}
               </button>
             </div>
           </div>
@@ -45,7 +82,7 @@ const MessageItem = memo(({ msg, user, onOpenSources } : {msg:ChatMessage, user:
       </div>
 
       {msg.role === "user" && (
-        <UserAvatar avatar_url={user?.avatar_url} name={user?.name ?? ""}/>
+        <UserAvatar avatar_url={user?.avatar_url} name={user?.name ?? ""} />
       )}
     </div>
   );
@@ -53,7 +90,7 @@ const MessageItem = memo(({ msg, user, onOpenSources } : {msg:ChatMessage, user:
 
 function Home() {
   const [input, setInput] = useState<string>("");
-  const [sourceModalData, setSourceModalData] = useState<{sessionId: string, messageId: string} | null>(null);
+  const [sourceModalData, setSourceModalData] = useState<{ sessionId: string, messageId: string } | null>(null);
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -70,9 +107,18 @@ function Home() {
 
   useEffect(() => {
     if (bottomRef.current) {
-      bottomRef.current.scrollIntoView({ behavior:"auto" });
+      bottomRef.current.scrollIntoView({ behavior: "auto" });
     }
   }, [messages, isLoading]);
+
+  useEffect(() => {
+    if (activeChatId && location.state?.pendingPrompt) {
+      const prompt = location.state.pendingPrompt;
+      navigate(location.pathname, { replace: true, state: {} });
+
+      sendMessage(prompt, activeChatId);
+    }
+  }, [activeChatId, location.pathname, location.state, navigate, sendMessage]);
 
   const autoResize = () => {
     const el = textareaRef.current;
@@ -81,7 +127,7 @@ function Home() {
     el.style.height = Math.min(el.scrollHeight, 200) + "px";
   };
 
-  const handleSend =  async (text?: string) => {
+  const handleSend = async (text?: string) => {
     const content = (text ?? input).trim();
     if (!content || isLoading) return;
 
@@ -93,16 +139,14 @@ function Home() {
     try {
       if (!targetSessionId) {
         const deptIds = Array.from(checkedDepartments);
-        const chatTitle = content.length > 40 ? content.slice(0, 40) + "...": content;
+        const chatTitle = content.length > 40 ? content.slice(0, 40) + "..." : content;
 
         const newSession = await handleCreateSession({
           department_ids: deptIds,
           title: chatTitle
         });
 
-        navigate(`/chat/${newSession.id}`);
-
-        await sendMessage(content, newSession.id);
+        navigate(`/chat/${newSession.id}`, { state: { pendingPrompt: content } });
 
         return;
       }
@@ -123,7 +167,7 @@ function Home() {
   return (
     <div className="flex flex-col h-full bg-bg">
       {sourceModalData && (
-        <MessageSources isOpen={true} sessionId={sourceModalData.sessionId} messageId={sourceModalData.messageId} onClose={() => setSourceModalData(null)}/>
+        <MessageSources isOpen={true} sessionId={sourceModalData.sessionId} messageId={sourceModalData.messageId} onClose={() => setSourceModalData(null)} />
       )}
 
       {/* MESSAGES AREA */}
@@ -153,7 +197,7 @@ function Home() {
                 if (activeChatId) {
                   setSourceModalData({ sessionId: activeChatId, messageId: msgId });
                 }
-              }}/>
+              }} />
             ))}
 
             {/* Loading indicator */}
