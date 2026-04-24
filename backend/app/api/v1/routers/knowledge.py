@@ -4,6 +4,7 @@ from fastapi import (
     Header,
     HTTPException,
 )
+from fastapi.responses import FileResponse
 from fastapi.sse import EventSourceResponse, ServerSentEvent
 from collections.abc import AsyncIterable
 from uuid import UUID
@@ -20,6 +21,24 @@ from app.services.knowledge import KnowledgeService
 
 
 router = APIRouter(prefix="/knowledges", tags=["Knowledge Base"])
+
+
+@router.get("/{knowledge_id}", response_class=FileResponse)
+async def get_knowledge_file(
+    knowledge_id: UUID, current_user: CurrentUser, db: DB_Session
+):
+    knowledge_service = KnowledgeService(db)
+
+    file_path, knowledge = await knowledge_service.get_knowledge_file(
+        knowledge_id, current_user
+    )
+
+    return FileResponse(
+        path=file_path,
+        media_type=f"application/{knowledge.type.value}",
+        filename=f"{knowledge.name}.{knowledge.type.value}",
+        content_disposition_type="inline",
+    )
 
 
 @router.patch("/{knowledge_id}", response_model=KnowledgeRead)

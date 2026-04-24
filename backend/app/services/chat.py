@@ -255,6 +255,7 @@ class ChatService:
             )
 
         assistant_msg_create = ChatMessage(
+            id=ai_message_id,
             role=ChatMessageRole.ASSISTANT,
             content=full_assistant_reply,
             session_id=session_id,

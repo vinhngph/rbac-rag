@@ -1,7 +1,7 @@
 from fastapi import UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import List
+from typing import List, Tuple
 from uuid import UUID
 from functools import cached_property
 
@@ -14,6 +14,7 @@ from app.repositories.role import RoleRepository
 from app.repositories.permission import PermissionRepository
 from app.repositories.knowledge import KnowledgeRepository
 from app.services.zero_trust import ZeroTrust
+from app.services.store import StoreService
 
 
 class KnowledgeService:
@@ -188,3 +189,23 @@ class KnowledgeService:
 
         self.db.add(knowledge)
         await self.db.commit()
+
+    async def get_knowledge_file(
+        self, knowledge_id: UUID, current_user: User
+    ) -> Tuple[str, Knowledge]:
+        knowledge = await self.knowledge_repo.get_by_id(knowledge_id)
+        if not knowledge:
+            raise AppException(404, ErrorMessages.KNOWLEDGE_NOT_FOUND)
+
+        user_permissions = await self.permission_repo.get_user_role_permissions(
+            current_user.id, knowledge.role_id
+        )
+
+        if not self.permission_repo.has_all_permissions(
+            user_permissions, [PermissionName.VIEW]
+        ):
+            raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
+
+        store_service = StoreService()
+
+        return (store_service.get_safe_path(knowledge.id), knowledge)
