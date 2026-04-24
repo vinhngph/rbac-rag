@@ -47,13 +47,13 @@ function ToastProvider({ children }: {readonly children: ReactNode}) {
         {toasts.map((t) => (
           <div
             key={t.id}
-            className="pointer-events-auto flex items-center gap-3 min-w-62.5 max-w-sm px-4 py-3 bg-bg-modal border border-white/10 rounded-xl shadow-2xl shadow-black/50 animate-in slide-in-from-right-8 fade-in duration-300"
+            className="pointer-events-auto flex items-center gap-3 min-w-62.5 max-w-sm px-4 py-3 bg-bg-modal border border-border-subtle rounded-xl shadow-2xl shadow-black/50 animate-in slide-in-from-right-8 fade-in duration-300"
           >
             <div className="shrink-0">{getIcon(t.type)}</div>
             <p className="flex-1 text-sm text-text/90 leading-snug">{t.message}</p>
             <button
               onClick={() => removeToast(t.id)}
-              className="shrink-0 p-1 rounded-md text-text/40 hover:text-text/80 hover:bg-white/10 transition-colors cursor-pointer"
+              className="shrink-0 p-1 rounded-md text-text-muted hover:text-text/80 hover:bg-surface-hover transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>

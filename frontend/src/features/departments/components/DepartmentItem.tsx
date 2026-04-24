@@ -24,12 +24,12 @@ function DepartmentItem({ department, isActive, isChecked, onToggleCheck, onNavi
       {/* Checkbox */}
       <button
         onClick={() => onToggleCheck(department.id)}
-        className="shrink-0 cursor-pointer"
+        className="shrink-0 cursor-pointer group"
         title="Use this department's knowledge in chat"
       >
         <div className={`w-4 h-4 rounded flex items-center justify-center border transition-all ${isChecked
-          ? "bg-emerald-500 border-emerald-500"
-          : "border-white/20 hover:border-white/40"
+          ? "bg-emerald-500 border-emerald-500 text-white"
+          : "bg-surface border-border-strong group-hover:border-text-muted"
         }`}>
           {isChecked && (
             <Check className="w-2.5 h-2.5 text-text" strokeWidth={1.8} />
@@ -49,7 +49,7 @@ function DepartmentItem({ department, isActive, isChecked, onToggleCheck, onNavi
         >
           {department.name}
         </span>
-        {isActive && <ChevronRight className="w-3 h-3 text-text/40 shrink-0" />}
+        {isActive && <ChevronRight className="w-3 h-3 text-text-muted shrink-0" />}
       </button>
 
       {/* Menu */}
@@ -58,25 +58,25 @@ function DepartmentItem({ department, isActive, isChecked, onToggleCheck, onNavi
           onClick={() => setMenuOpen(!menuOpen)}
           className={`p-1 rounded-lg transition-colors cursor-pointer ${menuOpen
             ? "bg-white/10 text-text/80"
-            : "text-transparent group-hover:text-text/40 hover:text-text/70! hover:bg-white/10"
+            : "text-transparent group-hover:text-text-muted hover:text-text/70! hover:bg-surface-hover"
           }`}
         >
           <Ellipsis className="w-3.5 h-3.5" />
         </button>
 
         {menuOpen && (
-          <div className="absolute right-0 top-full mt-1 z-50 min-w-35 bg-bg-menu border border-white/10 rounded-xl shadow-xl overflow-hidden">
+          <div className="absolute right-0 top-full mt-1 z-50 min-w-35 bg-bg-menu border border-border-subtle rounded-xl shadow-xl overflow-hidden">
             <button
               onClick={() => {
                 setMenuOpen(false);
                 onRename(department.id, department.name);
               }}
-              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text/80 hover:bg-white/8 hover:text-text transition-colors cursor-pointer"
+              className="w-full flex items-center gap-2.5 px-3 py-2.5 text-sm text-text/80 hover:bg-surface-hover hover:text-text transition-colors cursor-pointer"
             >
-              <Pencil className="w-3.5 h-3.5 text-text/50" />
+              <Pencil className="w-3.5 h-3.5 text-text-muted" />
               Edit name
             </button>
-            <div className="h-px bg-white/5 mx-2" />
+            <div className="h-px bg-surface mx-2" />
             <button
               onClick={() => {
                 setMenuOpen(false);

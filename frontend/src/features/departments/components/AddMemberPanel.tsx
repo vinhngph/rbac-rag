@@ -32,8 +32,8 @@ function AddMemberPanel({ roleId, onClose }: AddMemberPanelProps) {
   };
 
   return (
-    <div className="border-t border-white/5 bg-white/2 px-4 py-3 space-y-2">
-      <p className="text-[11px] font-semibold text-text/40 uppercase tracking-wider">Add member</p>
+    <div className="border-t border-border-subtle bg-white/2 px-4 py-3 space-y-2">
+      <p className="text-[11px] font-semibold text-text-muted uppercase tracking-wider">Add member</p>
       <input
         type="email"
         autoFocus
@@ -41,10 +41,10 @@ function AddMemberPanel({ roleId, onClose }: AddMemberPanelProps) {
         onChange={(e) => setEmail(e.target.value)}
         onKeyDown={(e) => e.key === "Enter" && handleAdd()}
         placeholder="user@example.com"
-        className="w-full bg-white/5 border border-white/10 focus:border-emerald-400/40 rounded-xl px-3 py-2 text-sm text-white placeholder-text/25 outline-none transition-colors"
+        className="w-full bg-surface border border-border-subtle focus:border-emerald-400/40 rounded-xl px-3 py-2 text-sm text-text placeholder-text/25 outline-none transition-colors"
       />
       <div className="flex items-center gap-2">
-        <span className="text-[11px] text-text/40">Permissions:</span>
+        <span className="text-[11px] text-text-muted">Permissions:</span>
         {(["view", "edit"] as const).map((p) => (
           <PermissionBadge
             key={p}
@@ -58,12 +58,12 @@ function AddMemberPanel({ roleId, onClose }: AddMemberPanelProps) {
       <div className="flex gap-1.5">
         <button
           onClick={onClose}
-          className="flex-1 py-1.5 text-xs text-text/50 bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+          className="flex-1 py-1.5 text-xs text-text-muted bg-surface hover:bg-surface-hover rounded-lg transition-colors cursor-pointer"
         >Cancel
         </button>
         <RequestButton
           onClick={handleAdd}
-          className="flex-1 py-1.5 text-xs text-white bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
+          className="flex-1 py-1.5 text-xs text-text bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 rounded-lg transition-colors cursor-pointer flex items-center justify-center gap-1"
           disabled={!email.trim() || isLoadingMembers}
         >
             Add

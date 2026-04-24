@@ -59,12 +59,12 @@ function RightSidebar() {
   };
   return (
     <>
-      <aside className={`flex flex-col transition-all duration-300 ease-in-out bg-bg-sidebar border-l border-white/5 ${rightCollapsed ? "w-15" : "w-72"}`}>
+      <aside className={`flex flex-col transition-all duration-300 ease-in-out bg-bg-sidebar border-l border-border-subtle ${rightCollapsed ? "w-15" : "w-72"}`}>
         {/* Header */}
-        <div className="flex items-center h-13 px-3 border-b border-white/5 gap-2">
+        <div className="flex items-center h-13 px-3 border-b border-border-subtle gap-2">
           <button
             onClick={() => setRightCollapsed(!rightCollapsed)}
-            className="p-1.5 rounded-lg hover:bg-white/10 transition-colors cursor-pointer shrink-0"
+            className="p-1.5 rounded-lg hover:bg-surface-hover transition-colors cursor-pointer shrink-0"
             title={rightCollapsed ? "Open departments" : "Close departments"}
           >
             {rightCollapsed
@@ -74,11 +74,11 @@ function RightSidebar() {
 
           {!rightCollapsed && (
             <>
-              <Building2 className="w-4 h-4 text-text/40 shrink-0" />
-              <span className="text-[12px] font-semibold text-text/50 tracking-widest uppercase flex-1">Departments</span>
+              <Building2 className="w-4 h-4 text-text-muted shrink-0" />
+              <span className="text-[12px] font-semibold text-text-muted tracking-widest uppercase flex-1">Departments</span>
               <button
                 onClick={() => setIsAddingDepartment(true)}
-                className="p-1.5 rounded-lg hover:bg-white/10 text-text/35 hover:text-text/75 transition-colors cursor-pointer"
+                className="p-1.5 rounded-lg hover:bg-surface-hover text-text/35 hover:text-text/75 transition-colors cursor-pointer"
                 title="New department"
               >
                 <Plus className="w-4 h-4" />
@@ -92,10 +92,10 @@ function RightSidebar() {
           <div className="flex flex-col items-center gap-1 px-2 pt-2">
             <button
               onClick={() => setRightCollapsed(false)}
-              className="p-2 rounded-xl hover:bg-white/10 transition-colors cursor-pointer"
+              className="p-2 rounded-xl hover:bg-surface-hover transition-colors cursor-pointer"
               title="Departments"
             >
-              <Building2 className="w-4 h-4 text-text/40" />
+              <Building2 className="w-4 h-4 text-text-muted" />
             </button>
           </div>
         )}
@@ -104,7 +104,7 @@ function RightSidebar() {
           <>
             {/* Add new department */}
             {isAddingDepartment && (
-              <div className="px-3 py-2.5 border-b border-white/5">
+              <div className="px-3 py-2.5 border-b border-border-subtle">
                 <input
                   autoFocus
                   type="text"
@@ -112,7 +112,7 @@ function RightSidebar() {
                   onChange={(e) => setNewDepartmentName(e.target.value)}
                   onKeyDown={handleNewDepartmentNameKeyDown}
                   placeholder="Department name..."
-                  className="w-full bg-white/5 border border-white/10 focus:border-emerald-400/40 rounded-xl px-3 py-2 text-sm text-text placeholder-text/25 outline-none transition-colors"
+                  className="w-full bg-surface border border-border-subtle focus:border-emerald-400/40 rounded-xl px-3 py-2 text-sm text-text placeholder-text/25 outline-none transition-colors"
                 />
                 <div className="flex gap-1.5 mt-2">
                   <button
@@ -120,7 +120,7 @@ function RightSidebar() {
                       setIsAddingDepartment(false);
                       setNewDepartmentName("");
                     }}
-                    className="flex-1 py-1.5 text-xs text-text/50 hover:text-text bg-white/5 hover:bg-white/10 rounded-lg transition-colors cursor-pointer"
+                    className="flex-1 py-1.5 text-xs text-text-muted hover:text-text bg-surface hover:bg-surface-hover rounded-lg transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>
@@ -178,7 +178,7 @@ function RightSidebar() {
             </div>
 
             {/* Footer */}
-            <div className="border-t border-white/5 px-4 py-2.5">
+            <div className="border-t border-border-subtle px-4 py-2.5">
               <p className="text-[10px] text-text/20 leading-relaxed">
                 ✓ Check department{"(s)"} to include in chat context
               </p>

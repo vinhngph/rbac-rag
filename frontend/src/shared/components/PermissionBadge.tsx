@@ -14,7 +14,7 @@ function PermissionBadge({ label, active, disabled, onClick }: PermissionBadgePr
         return "bg-emerald-500/20 border-emerald-500/40 text-emerald-300";
       }
     } else {
-      return "bg-transparent border-white/10 text-text/25 hover:border-white/25 hover:text-text/50";
+      return "bg-transparent border-border-subtle text-text/25 hover:border-border-subtle/25 hover:text-text-muted";
     }
   };
 

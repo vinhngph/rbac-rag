@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
-import { Bot, Check, Copy, Paperclip, Send, SquareLibrary } from "lucide-react";
+import { Bot, Check, Copy, Send, SquareLibrary } from "lucide-react";
 
 import { APP_CONFIG } from "../core/config";
 import useChat, { type ChatMessage } from "../features/chat/hooks/useChat";
@@ -44,18 +44,18 @@ const MessageItem = memo(({ msg, user, onOpenSources }: { msg: ChatMessage, user
 
       <div className={`${msg.role === "user" ? "max-w-[75%]" : "flex-1 min-w-0"}`}>
         {msg.role === "user"
-          ? <div className="bg-bg-prompt rounded-[20px] rounded-br-md px-4 py-2.5 text-sm text-text leading-relaxed">
+          ? <div className="bg-surface-active rounded-[20px] rounded-br-md px-4 py-2.5 text-text leading-relaxed">
             {msg.content}
           </div>
           : <div>
-            <div className="prose prose-invert max-w-none">
+            <div className="prose dark:prose-invert max-w-none text-text prose-strong:text-text">
               <MarkdownRenderer content={msg.content} />
             </div>
             {/* Action buttons */}
             <div className="flex items-center gap-1 mt-2">
               <button
                 onClick={() => handleCopy(msg.content)}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text/70 transition-colors cursor-pointer"
                 title={isCopied ? "Copied" : "Copy"}
               >
                 {isCopied ? (
@@ -66,7 +66,7 @@ const MessageItem = memo(({ msg, user, onOpenSources }: { msg: ChatMessage, user
               </button>
               <button
                 onClick={() => onOpenSources(msg.id)}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-surface-hoverhover text-text-muted hover:text-text/70 transition-colors cursor-pointer"
                 title="Sources"
               >
                 {msg.knowledge_ids && msg.knowledge_ids.length >= 1 && (
@@ -184,7 +184,7 @@ function Home() {
               <h1 className="text-2xl font-semibold text-text tracking-tight">
                 How may I help you?
               </h1>
-              <p className="text-sm text-text/40 text-center max-w-md">
+              <p className="text-sm text-text-muted text-center max-w-md">
                 An AI assistant with role-based document search capabilities.
               </p>
             </div>
@@ -222,7 +222,7 @@ function Home() {
       {/* INPUT AREA */}
       <div className="px-4 pb-2 pt-2">
         <div className="max-w-3xl mx-auto">
-          <div className="relative bg-bg-prompt rounded-3xl border border-white/8 hover:border-white/15 focus-within:border-white/20 transition-colors shadow-lg">
+          <div className="relative bg-bg-prompt rounded-3xl border border-border-subtle hover:border-border-subtle/15 focus-within:border-border-subtle/20 transition-colors shadow-lg">
             {/* Textarea */}
             <textarea
               ref={textareaRef}
@@ -234,29 +234,21 @@ function Home() {
               onKeyDown={handleKeyDown}
               placeholder="Ask anything"
               rows={1}
-              className="w-full bg-transparent text-sm text-text placeholder:text-text/30 resize-none outline-none px-4 pt-3.5 pb-2 max-h-50 leading-relaxed"
+              className="w-full bg-transparent text-sm text-text placeholder:text-text/30 resize-none outline-none pl-5 pr-12 py-3.5 max-h-50 leading-relaxed"
             />
 
             {/* Bottom toolbar */}
-            <div className="flex items-center justify-between px-3 pb-2.5">
-              <div className="flex items-center gap-1">
-                <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Add files">
-                  <Paperclip className="w-4 h-4" />
-                </button>
-              </div>
-
-              <div className="flex items-center gap-1">
-                <button
-                  onClick={() => handleSend()}
-                  disabled={!input.trim() || isLoading}
-                  className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${input.trim() && !isLoading
-                    ? "bg-white text-bg hover:bg-white/90 cursor-pointer"
-                    : "bg-white/10 text-text/20 cursor-not-allowed"
-                  }`}
-                >
-                  <Send className="w-3.5 h-3.5" />
-                </button>
-              </div>
+            <div className="absolute right-2.5 bottom-2.5">
+              <button
+                onClick={() => handleSend()}
+                disabled={!input.trim() || isLoading}
+                className={`w-8 h-8 rounded-full flex items-center justify-center transition-all ${input.trim() && !isLoading
+                  ? "bg-text text-bg hover:opacity-80 cursor-pointer"
+                  : "bg-surface-active text-text-muted opacity-50 cursor-not-allowed"
+                }`}
+              >
+                <Send className="w-3.5 h-3.5" />
+              </button>
             </div>
           </div>
 

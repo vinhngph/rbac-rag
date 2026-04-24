@@ -23,7 +23,7 @@ function InlineRename({ value, onConfirm, onCancel }: InlineRenameProps) {
       }}
       onBlur={() => v.trim() ? onConfirm(v.trim()) : onCancel()}
       onClick={(e) => e.stopPropagation()}
-      className="w-full bg-white/8 border border-emerald-400/40 rounded-lg px-2 py-0.5 text-sm text-white outline-none"
+      className="w-full bg-surface border border-emerald-400/40 rounded-lg px-2 py-0.5 text-sm text-text outline-none"
     />
   );
 }

@@ -57,7 +57,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
 
   if (isLoadingRoles) {
     return (
-      <div className="fixed inset-0 z-40 flex items-center justify-center bg-black/50 backdrop-blur-sm">
+      <div className="fixed inset-0 z-40 flex items-center justify-center bg-bg-modal/50 backdrop-blur-sm">
         <Loader2 className="w-8 h-8 text-emerald-400 animate-spin" />
       </div>
     );
@@ -70,16 +70,16 @@ function DepartmentModal({ id }: DepartmentModalProps) {
       {/* Backdrop */}
       <button
         type="button"
-        className="absolute inset-0 bg-black/55 backdrop-blur-md"
+        className="absolute inset-0 bg-bg-modal/55 backdrop-blur-md"
         onClick={handleClose}
         aria-label="Close"
       />
 
       {/* Modal box */}
-      <div className="relative z-10 w-full max-w-6xl h-[88vh] bg-[#161616] border border-white/10 rounded-2xl shadow-2xl shadow-black/70 flex flex-col overflow-hidden"
+      <div className="relative z-10 w-full max-w-6xl h-[88vh] bg-bg-modal border border-border-subtle rounded-2xl shadow-2xl shadow-black/70 flex flex-col overflow-hidden"
       >
         {/* Header */}
-        <div className="flex items-center gap-3 px-5 py-3.5 border-b border-white/6 shrink-0 bg-[#111]/60">
+        <div className="flex items-center gap-3 px-5 py-3.5 border-b border-border-subtle/6 shrink-0 bg-bg-menu">
           {/* Breadcrumb */}
           <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
             <button
@@ -93,7 +93,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                 <ChevronRight className="w-3.5 h-3.5 text-text/20" />
                 <button
                   onClick={() => navigateRole(role.id)}
-                  className={`text-sm transition-colors cursor-pointer ${role.id === currentRole?.id ? "text-white font-medium": "text-text/50 hover:text-text/80"}`}
+                  className={`text-sm transition-colors cursor-pointer ${role.id === currentRole?.id ? "text-text font-medium": "text-text-muted hover:text-text/80"}`}
                 >
                   {role.name}
                 </button>
@@ -105,14 +105,14 @@ function DepartmentModal({ id }: DepartmentModalProps) {
             {!isLoadingRoles && (
               <button
                 onClick={() => setShowNewRole(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/6 hover:bg-white/10 text-text/60 hover:text-text text-xs transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-surface hover:bg-surface-hover text-text/60 hover:text-text text-xs transition-colors cursor-pointer"
               >
                 <Plus className="w-3.5 h-3.5" /> New role
               </button>
             )}
             <button
               onClick={handleClose}
-              className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/80 transition-colors cursor-pointer"
+              className="p-1.5 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text/80 transition-colors cursor-pointer"
             >
               <X className="w-4 h-4" />
             </button>
@@ -122,8 +122,8 @@ function DepartmentModal({ id }: DepartmentModalProps) {
         {/* Body */}
         <div className="flex flex-1 overflow-hidden">
           {/* Left: Roles Tree */}
-          <div className="w-64 shrink-0 border-r border-white/6 flex flex-col bg-[#0f0f0f]/40">
-            <div className="px-3 py-2.5 border-b border-white/5">
+          <div className="w-64 shrink-0 border-r border-border-subtle/6 flex flex-col bg-bg-sidebar">
+            <div className="px-3 py-2.5 border-b border-border-subtle">
               <p className="text-[10px] font-semibold text-text/30 uppercase tracking-widest">Roles</p>
             </div>
             <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
@@ -136,7 +136,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
               {childRoles.map((role) => (
                 <div
                   key={role.id}
-                  className="group relative flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-white/6 transition-colors"
+                  className="group relative flex items-center gap-2 px-2.5 py-2 rounded-xl hover:bg-surface transition-colors"
                 >
                   <button
                     type="button"
@@ -163,7 +163,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                         e.stopPropagation();
                         setContextRole(contextRole === role.id? null: role.id);
                       }}
-                      className={`p-0.5 rounded-md transition-colors cursor-pointer ${contextRole == role.id ? "text-text/70 bg-white/8": "text-transparent group-hover:text-text/35 hover:text-text/60!"}`}
+                      className={`p-0.5 rounded-md transition-colors cursor-pointer ${contextRole == role.id ? "text-text/70 bg-surface": "text-transparent group-hover:text-text/35 hover:text-text/60!"}`}
                     >
                       <MoreHorizontal className="w-3.5 h-3.5" />
                     </button>
@@ -195,12 +195,12 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                       }
                     }}
                     placeholder="Role name..."
-                    className="w-full bg-white/5 border border-white/10 focus:border-emerald-400/40 rounded-lg px-2.5 py-1.5 text-sm text-white placeholder-text/25 outline-none transition-colors"
+                    className="w-full bg-surface border border-border-subtle focus:border-emerald-400/40 rounded-lg px-2.5 py-1.5 text-sm text-text placeholder:text-text-muted outline-none transition-colors"
                   />
                   <div className="flex gap-1">
                     <button
                       onClick={() => {setShowNewRole(false); setNewRoleName("");}}
-                      className="flex-1 text-xs text-text/40 hover:text-text/70 bg-white/4 hover:bg-white/8 rounded-lg cursor-pointer transition-colors"
+                      className="flex-1 text-xs text-text-muted hover:text-text/70 bg-white/4 hover:bg-surface-hover rounded-lg cursor-pointer transition-colors"
                     >
                       Cancel
                     </button>
@@ -209,7 +209,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                       onClick={handleNewRoleCreate}
                       isLoading={isLoadingRoles}
                       disabled={!newRoleName.trim()}
-                      className="flex-1 py-1 text-xs text-white bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 rounded-lg cursor-pointer transition-colors"
+                      className="flex-1 py-1 text-xs text-text bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 rounded-lg cursor-pointer transition-colors"
                     >
                       Create
                     </RequestButton>
@@ -228,12 +228,12 @@ function DepartmentModal({ id }: DepartmentModalProps) {
               :(
                 <div className="flex-1 overflow-y-auto">
                   {/* Current role banner */}
-                  <div className="px-6 py-4 border-b border-white/5 flex items-center gap-3">
+                  <div className="px-6 py-4 border-b border-border-subtle flex items-center gap-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
                       <House className="w-4.5 h-4.5 text-amber-400" />
                     </div>
                     <div>
-                      <h2 className="text-base font-semibold text-white leading-tight">{currentRole?.name}</h2>
+                      <h2 className="text-base font-semibold text-text leading-tight">{currentRole?.name}</h2>
                       <p className="text-[11px] text-text/35 mt-0.5">{`${roleMembers.length} member${isMany(roleMembers.length)} • ${roleKnowledges.length} file${isMany(roleKnowledges.length)}`}</p>
                     </div>
                     <div className="ml-auto flex items-center gap-1.5">
@@ -242,7 +242,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                           queryClient.invalidateQueries({ queryKey: ["role_members", currentRole?.id] });
                           queryClient.invalidateQueries({ queryKey: ["role_knowledges", currentRole?.id] });
                         }}
-                        className="p-1.5 rounded-lg hover:bg-white/10 text-text/30 hover:text-text/70 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer"
                       >
                         <RefreshCcw className="w-3.5 h-3.5" />
                       </button>
@@ -253,13 +253,13 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                     {/* Member section */}
                     <div className="px-5 py-4 space-y-3">
                       <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-text/40" />
-                        <span className="text-[11px] font-semibold text-text/40 uppercase tracking-widest">Members</span>
+                        <Users className="w-3.5 h-3.5 text-text-muted" />
+                        <span className="text-[11px] font-semibold text-text-muted uppercase tracking-widest">Members</span>
                         <span className="ml-auto text-[11px] text-text/25 bg-white/4 px-2 py-0.5 rounded-full">{roleMembers.length}</span>
                         {!isRoot && (
                           <button
                             onClick={() => setShowAddMember(!showAddMember)}
-                            className="p-1 rounded-lg hover:bg-white/10 text-text/30 hover:text-text/70 transition-colors cursor-pointer"
+                            className="p-1 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer"
                           >
                             <UserPlus className="w-3.5 h-3.5" />
                           </button>
@@ -310,7 +310,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                                     setContextMember(contextMember === member.id ? null : member.id);
                                   }}
                                   className={`p-1 rounded-md transition-colors cursor-pointer ${
-                                    contextMember === member.id ? "text-text/70 bg-white/8" : "text-transparent group-hover:text-text/30 hover:text-text/60!"
+                                    contextMember === member.id ? "text-text/70 bg-surface" : "text-transparent group-hover:text-text/30 hover:text-text/60!"
                                   }`}
                                 >
                                   <MoreHorizontal className="w-3.5 h-3.5" />
@@ -347,8 +347,8 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                     {/* Knowledge section */}
                     <div className="px-5 py-4 space-y-3">
                       <div className="flex items-center gap-2">
-                        <FileText className="w-3.5 h-3.5 text-text/40" />
-                        <span className="text-[11px] font-semibold text-text/40 uppercase tracking-widest">
+                        <FileText className="w-3.5 h-3.5 text-text-muted" />
+                        <span className="text-[11px] font-semibold text-text-muted uppercase tracking-widest">
                       Knowledges
                         </span>
                         <span className="ml-auto text-[11px] text-text/25 bg-white/4 px-2 py-0.5 rounded-full">
@@ -358,7 +358,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                         <button
                           onClick={() => fileInputRef.current?.click()}
                           disabled={isUploading}
-                          className="p-1 rounded-lg hover:bg-white/10 text-text/30 hover:text-text/70 transition-colors cursor-pointer disabled:opacity-40"
+                          className="p-1 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer disabled:opacity-40"
                           title="Upload file"
                         >
                           {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}

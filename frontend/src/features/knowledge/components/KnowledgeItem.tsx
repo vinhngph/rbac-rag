@@ -114,7 +114,7 @@ function KnowledgeItem({ knowledge, roleId, isRenaming, isContextOpen, onSetRena
             onSetContextOpen();
           }}
           className={`p-1 rounded-md transition-colors cursor-pointer ${
-            isContextOpen ? "text-text/70 bg-white/8" : "text-transparent group-hover:text-text/30 hover:text-text/60!"
+            isContextOpen ? "text-text/70 bg-surface" : "text-transparent group-hover:text-text/30 hover:text-text/60!"
           }`}
         >
           <MoreHorizontal className="w-3.5 h-3.5" />

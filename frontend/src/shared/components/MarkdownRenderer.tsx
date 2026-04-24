@@ -9,7 +9,7 @@ import "highlight.js/styles/github-dark.css";
 function CodeBlock({ inline, className, children, ...props }: Readonly<{inline?:boolean, className?:string, children?: React.ReactNode}>) {
   if (inline) {
     return (
-      <code className="bg-white/10 px-1.5 py-0.5 rounded text-xs" {...props}>
+      <code className="bg-surface-active text-text px-1.5 py-0.5 rounded text-xs" {...props}>
         {children}
       </code>
     );
@@ -25,7 +25,7 @@ function CodeBlock({ inline, className, children, ...props }: Readonly<{inline?:
 function Pre(props: Readonly<HTMLAttributes<HTMLPreElement>>) {
   const { children, ...rest } = props;
   return (
-    <pre className="custom-scrollbar rounded-xl p-0 overflow-x-auto bg-black/40 text-sm pb-1" {...rest}>
+    <pre className="custom-scrollbar bg-[#0d1117] text-gray-300 rounded-xl p-0 overflow-x-auto text-sm pb-1" {...rest}>
       {children}
     </pre>
   );
@@ -50,7 +50,7 @@ function BlockQuote(props: Readonly<HTMLAttributes<HTMLQuoteElement>>) {
   const { children, ...rest } = props;
 
   return (
-    <blockquote className="border-l-4 border-white/20 pl-3 italic text-text/70" {...rest}>
+    <blockquote className="border-l-4 border-border-strong pl-3 italic text-text-muted" {...rest}>
       {children}
     </blockquote>
   );

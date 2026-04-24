@@ -57,7 +57,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
   const renderPreview = () => {
     if (!selectedSource) {
       return (
-        <div className="h-full flex items-center justify-center text-text/40">
+        <div className="h-full flex items-center justify-center text-text-muted">
           Select a source from the left panel to preview its content.
         </div>
       );
@@ -75,21 +75,21 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
       return (
         <div className="flex flex-col items-center h-full w-full relative">
           {numPages && (
-            <div className="absolute bottom-2 z-10 flex items-center gap-4 bg-black/60 backdrop-blur-md px-4 py-2 rounded-full shadow-xl border border-white/10 transition-opacity hover:bg-black/80">
+            <div className="absolute bottom-2 z-10 flex items-center gap-4 bg-surface-active backdrop-blur-md px-4 py-2 rounded-full shadow-xl border border-border-subtle transition-opacit hover:bg-surface-hover">
               <button
                 onClick={() => changePage(-1)}
                 disabled={pageNumber <= 1}
-                className="p-1.5 hover:bg-white/20 rounded-full disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer text-white"
+                className="p-1.5 hover:bg-surface-hover rounded-full disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer text-text"
               >
                 <ChevronLeft className="w-5 h-5" />
               </button>
 
-              <span className="text-sm font-medium text-white/90 min-w-22.5 text-center">Page {pageNumber} of {numPages}</span>
+              <span className="text-sm font-medium text-text/90 min-w-22.5 text-center">Page {pageNumber} of {numPages}</span>
 
               <button
                 onClick={() => changePage(1)}
                 disabled={pageNumber >= numPages}
-                className="p-1.5 hover:bg-white/20 rounded-full disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer text-white"
+                className="p-1.5 hover:bg-surface-hover rounded-full disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer text-text"
               >
                 <ChevronRight className="w-5 h-5" />
               </button>
@@ -106,7 +106,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
                 </div>
               }
               error={
-                <div className="p-10 text-text/40 text-center mt-10">
+                <div className="p-10 text-text-muted text-center mt-10">
                   Failed to load the PDF document.
                 </div>
               }
@@ -127,7 +127,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
     }
 
     return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-text/40">
+      <div className="w-full h-full flex flex-col items-center justify-center text-text-muted">
         Failed to fetch the docuemnt.
       </div>
     );
@@ -136,7 +136,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
   const renderContent = () => {
     if (isLoadingSources) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text/50">
+        <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text-muted">
           <Loader2 className="w-8 h-8 animate-spin text-emerald-400" />
         </div>
       );
@@ -144,7 +144,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
 
     if (sourcesData?.length === 0) {
       return (
-        <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text/50">
+        <div className="w-full h-full flex flex-col items-center justify-center gap-3 text-text-muted">
           <Info className="w-8 h-8" />
           <p>No sources available for this response.</p>
         </div>
@@ -153,7 +153,7 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
 
     return (
       <>
-        <div className="w-1/4 border-r border-white/10 bg-white/1 overflow-y-auto custom-scrollbar p-3 space-y-2">
+        <div className="w-1/4 border-r border-border-subtle bg-white/1 overflow-y-auto custom-scrollbar p-3 space-y-2">
           {sourcesData?.map((source) => (
             <button
               key={source.id}
@@ -183,17 +183,17 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
 
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-      <div className="w-full max-w-7xl h-[95vh] bg-bg rounded-2xl border border-white/10 flex flex-col overflow-hidden shadow-2xl duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-surface-active backdrop-blur-sm p-4">
+      <div className="w-full max-w-7xl h-[95vh] bg-bg rounded-2xl border border-border-subtle flex flex-col overflow-hidden shadow-2xl duration-200">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-white/10 bg-white/2">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-border-subtle bg-white/2">
           <h2 className="text-lg font-semibold text-text/80 flex items-center gap-2">
             <SquareLibrary className="w-5 h-5 text-emerald-400" />
             Response sources
           </h2>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-white/10 text-text/60 hover:text-text transition-colors cursor-pointer"
+            className="p-2 rounded-lg hover:bg-surface-hover text-text/60 hover:text-text transition-colors cursor-pointer"
           >
             <X className="w-5 h-5" />
           </button>

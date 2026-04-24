@@ -28,7 +28,7 @@ function ContextMenu({ items, onClose }: ContextMenuProps) {
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-1 z-50 bg-[#1a1a1a] border border-white/10 rounded-xl shadow-2xl overflow-hidden"
+      className="absolute right-0 top-full mt-1 z-50 bg-[#1a1a1a] border border-border-subtle rounded-xl shadow-2xl overflow-hidden"
     >
       {items.map((item) => (
         <button

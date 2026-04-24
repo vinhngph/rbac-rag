@@ -2,12 +2,54 @@
 @plugin "@tailwindcss/typography";
 
 @theme {
-    --color-bg: #212121;
-    --color-text: #ececec;
-    --color-bg-sidebar: #171717;
-    --color-bg-prompt: #2f2f2f;
-    --color-bg-modal: #1e1e1e;
-    --color-bg-menu: #2a2a2a;
+    --color-bg: var(--bg-base);
+    --color-text: var(--text-base);
+    --color-text-muted: var(--text-muted);
+
+    --color-bg-sidebar: var(--bg-sidebar);
+    --color-bg-prompt: var(--bg-prompt);
+    --color-bg-modal: var(--bg-modal);
+    --color-bg-menu: var(--bg-menu);
+
+    --color-surface: var(--surface);
+    --color-surface-hover: var(--surface-hover);
+    --color-surface-active: var(--surface-active);
+    --color-border-subtle: var(--border-subtle);
+    --color-border-strong: var(--border-strong);
+}
+
+:root {
+    --bg-base: #f9fafb;
+    --text-base: #2d2d2d;
+    --text-muted: #737373;
+
+    --bg-sidebar: #f3f1ed;
+    --bg-prompt: #ffffff;
+    --bg-modal: #ffffff;
+    --bg-menu: #ffffff;
+
+    --surface: rgba(60, 50, 40, 0.04);
+    --surface-hover: rgba(60, 50, 40, 0.07);
+    --surface-active: rgba(60, 50, 40, 0.12);
+    --border-subtle: rgba(60, 50, 40, 0.08);
+    --border-strong: rgba(60, 50, 40, 0.15);
+}
+
+.dark {
+    --bg-base: #212121;
+    --text-base: #ececec;
+    --text-muted: rgba(255, 255, 255, 0.5);
+
+    --bg-sidebar: #171717;
+    --bg-prompt: #2f2f2f;
+    --bg-modal: #1e1e1e;
+    --bg-menu: #2a2a2a;
+
+    --surface: rgba(255, 255, 255, 0.05);
+    --surface-hover: rgba(255, 255, 255, 0.08);
+    --surface-active: rgba(255, 255, 255, 0.12);
+    --border-subtle: rgba(255, 255, 255, 0.08);
+    --border-strong: rgba(255, 255, 255, 0.15);
 }
 
 .custom-scrollbar::-webkit-scrollbar {

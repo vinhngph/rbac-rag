@@ -66,17 +66,17 @@ function AuthModal() {
     >
       {/* Button - Blur overlay */}
       <button
-        className="absolute inset-0 bg-black/60 backdrop-blur-sm w-full h-full border-none"
+        className="absolute inset-0 bg-surface-active backdrop-blur-sm w-full h-full border-none"
         onClick={handleClose}
       />
 
       {/* Modal card */}
-      <div className="relative z-10 w-full max-w-sm mx-4 bg-bg-modal border border-white/10 rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
+      <div className="relative z-10 w-full max-w-sm mx-4 bg-bg-modal border border-border-subtle rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
       >
         {/* Close button */}
         <button
           onClick={handleClose}
-          className="absolute top-3.5 right-3.5 p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors cursor-pointer"
+          className="absolute top-3.5 right-3.5 p-1.5 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text/70 transition-colors cursor-pointer"
         >
           <X className="w-4 h-4" />
         </button>
@@ -89,13 +89,13 @@ function AuthModal() {
           <h2 className="text-lg font-semibold text-text tracking-tight">
             {APP_CONFIG.APP_NAME}
           </h2>
-          <p className="text-xs text-text/40 mt-1">
+          <p className="text-xs text-text-muted mt-1">
             {tab === "login" ? "Welcome back" : `Start using ${APP_CONFIG.APP_NAME}`}
           </p>
         </div>
 
         {/* Tabs */}
-        <div className="flex mx-6 mb-5 bg-white/5 rounded-xl p-1 gap-1">
+        <div className="flex mx-6 mb-5 bg-surface rounded-xl p-1 gap-1">
           {(["login", "register"] as Tab[]).map((t) => (
             <button
               key={t}
@@ -103,8 +103,8 @@ function AuthModal() {
                 setTab(t);
               }}
               className={`flex-1 py-1.5 text-sm rounded-lg transition-all font-medium cursor-pointer ${tab === t
-                ? "bg-white/12 text-text shadow-sm"
-                : "text-text/40 hover:text-text/60"
+                ? "bg-surface-active text-text shadow-sm"
+                : "text-text-muted hover:text-text/60"
               }`}
             >
               {t === "login" ? "Login" : "Register"}
@@ -120,7 +120,7 @@ function AuthModal() {
           {/* Name */}
           {tab === "register" && (
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-text/50 uppercase tracking-wide">
+              <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
                 Full name
                 {/*  */}
                 <input
@@ -128,7 +128,7 @@ function AuthModal() {
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                   placeholder="Your name"
-                  className="w-full bg-white/5 border border-white/8 hover:border-white/15 focus:border-emerald-400/40 rounded-xl px-3.5 py-2.5 text-sm text-text placeholder-white/25 outline-none transition-colors"
+                  className="w-full bg-surface border border-border-subtle hover:border-border-subtle/15 focus:border-emerald-400/40 rounded-xl px-3.5 py-2.5 text-sm text-text placeholder-white/25 outline-none transition-colors"
                 />
               </label>
             </div>
@@ -136,7 +136,7 @@ function AuthModal() {
 
           {/* Email */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-text/50 uppercase tracking-wide">
+            <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
               Email
               {/*  */}
               <input
@@ -144,7 +144,7 @@ function AuthModal() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="you@example.com"
-                className="w-full bg-white/5 border border-white/8 hover:border-white/15 focus:border-emerald-400/40 rounded-xl px-3.5 py-2.5 text-sm text-text placeholder-white/25 outline-none transition-colors"
+                className="w-full bg-surface border border-border-subtle hover:border-border-subtle/15 focus:border-emerald-400/40 rounded-xl px-3.5 py-2.5 text-sm text-text placeholder-white/25 outline-none transition-colors"
                 autoFocus
               />
             </label>
@@ -152,7 +152,7 @@ function AuthModal() {
 
           {/* Password */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-text/50 uppercase tracking-wide">
+            <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
               Password
               {/*  */}
               <div className="relative">
@@ -161,7 +161,7 @@ function AuthModal() {
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   placeholder="••••••"
-                  className="w-full bg-white/5 border border-white/8 hover:border-white/15 focus:border-emerald-400/40 rounded-xl px-3.5 py-2.5 text-sm text-text placeholder-white/25 outline-none transition-colors"
+                  className="w-full bg-surface border border-border-subtle hover:border-border-subtle/15 focus:border-emerald-400/40 rounded-xl px-3.5 py-2.5 text-sm text-text placeholder-white/25 outline-none transition-colors"
                 />
                 <button
                   type="button"
@@ -187,7 +187,7 @@ function AuthModal() {
             type="submit"
             isLoading={loading}
             disabled={handleDisable()}
-            className="w-full mt-1 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-500/40 text-text disabled:text-text/50 text-sm py-2.5 rounded-xl"
+            className="w-full mt-1 bg-emerald-500 hover:bg-emerald-400 disabled:bg-emerald-500/40 text-text disabled:text-text-muted text-sm py-2.5 rounded-xl"
           >
             {tab === "login" ? "Login" : "Register"}
           </RequestButton>
