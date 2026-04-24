@@ -200,7 +200,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                   <div className="flex gap-1">
                     <button
                       onClick={() => {setShowNewRole(false); setNewRoleName("");}}
-                      className="flex-1 text-xs text-text-muted hover:text-text/70 bg-white/4 hover:bg-surface-hover rounded-lg cursor-pointer transition-colors"
+                      className="flex-1 text-xs text-text-muted hover:text-text/70 bg-surface hover:bg-surface-hover rounded-lg cursor-pointer transition-colors"
                     >
                       Cancel
                     </button>
