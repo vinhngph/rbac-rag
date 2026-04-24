@@ -2,38 +2,38 @@ import { api } from "../../../core/api/axios";
 import type { KnowledgeRead } from "../../knowledge/services/knowledge.service";
 
 export interface RoleRead {
-    id: string
-    name: string
-    parent_id: string | null
-    original_parent_id: string | null
+  id: string
+  name: string
+  parent_id: string | null
+  original_parent_id: string | null
 }
 
 export interface RoleCreate {
-    name: string
-    parent_id: string
+  name: string
+  parent_id: string
 }
 
 export interface RoleUpdate {
-    name?: string | null
-    parent_id?: string | null
+  name?: string | null
+  parent_id?: string | null
 }
 
 export interface MemberCreate {
-    email: string,
-    permissions: ("view" | "edit")[]
+  email: string,
+  permissions: ("view" | "edit")[]
 }
 
 export interface MemberRead {
-    id: string
-    email: string
-    name: string
-    avatar_url?: string
-    permissions?: ("view" | "edit")[] | null
+  id: string
+  email: string
+  name: string
+  avatar_url?: string
+  permissions?: ("view" | "edit")[] | null
 }
 
 export interface MemberUpdate {
-    id: string
-    permissions: ("view" | "edit")[]
+  id: string
+  permissions: ("view" | "edit")[]
 }
 
 export const createRole = (data: RoleCreate) =>
@@ -67,3 +67,8 @@ export const removeMember = (roleId: string, memberId: string) =>
 
 export const updateMemberRolePermissions = (roleId: string, data: MemberUpdate) =>
   api.patch<MemberRead>(`/roles/${roleId}/members`, data);
+
+export const getKnowledgeFile = (knowledge_id: string) =>
+  api.get(`/knowledges/${knowledge_id}`, {
+    responseType: "blob"
+  });

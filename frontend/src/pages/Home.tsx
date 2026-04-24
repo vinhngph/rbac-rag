@@ -1,5 +1,5 @@
 import { memo, useEffect, useRef, useState } from "react";
-import { Bot, Copy, Paperclip, RotateCcw, Send, ThumbsDown, ThumbsUp } from "lucide-react";
+import { Bot, Paperclip, Send, SquareLibrary } from "lucide-react";
 
 import { APP_CONFIG } from "../core/config";
 import useChat, { type ChatMessage } from "../features/chat/hooks/useChat";
@@ -10,8 +10,9 @@ import UserAvatar from "../shared/components/UserAvatar";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import MarkdownRenderer from "../shared/components/MarkdownRenderer";
 import type { User } from "../features/auth/context/auth.context";
+import MessageSources from "../features/chat/components/MessageSources";
 
-const MessageItem = memo(({ msg, user } : {msg:ChatMessage, user: User}) => {
+const MessageItem = memo(({ msg, user, onOpenSources } : {msg:ChatMessage, user: User, onOpenSources: (msgId: string) => void}) => {
   return (
     <div className={`flex gap-3 ${msg.role === "user" ? "justify-end": ""}`}>
       {msg.role === "assistant" && (
@@ -31,17 +32,12 @@ const MessageItem = memo(({ msg, user } : {msg:ChatMessage, user: User}) => {
             </div>
             {/* Action buttons */}
             <div className="flex items-center gap-1 mt-2">
-              <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
-                <Copy className="w-3.5 h-3.5" />
-              </button>
-              <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
-                <ThumbsUp className="w-3.5 h-3.5" />
-              </button>
-              <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
-                <ThumbsDown className="w-3.5 h-3.5" />
-              </button>
-              <button className="p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors">
-                <RotateCcw className="w-3.5 h-3.5" />
+              <button
+                onClick={() => onOpenSources(msg.id)}
+                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors cursor-pointer"
+              >
+                <SquareLibrary className="w-3.5 h-3.5" />
+                <span className="text-xs font-medium">Sources {"(" + msg.knowledge_ids?.length + ")"}</span>
               </button>
             </div>
           </div>
@@ -57,6 +53,7 @@ const MessageItem = memo(({ msg, user } : {msg:ChatMessage, user: User}) => {
 
 function Home() {
   const [input, setInput] = useState<string>("");
+  const [sourceModalData, setSourceModalData] = useState<{sessionId: string, messageId: string} | null>(null);
   const navigate = useNavigate();
 
   const location = useLocation();
@@ -125,6 +122,10 @@ function Home() {
 
   return (
     <div className="flex flex-col h-full bg-bg">
+      {sourceModalData && (
+        <MessageSources isOpen={true} sessionId={sourceModalData.sessionId} messageId={sourceModalData.messageId} onClose={() => setSourceModalData(null)}/>
+      )}
+
       {/* MESSAGES AREA */}
       <div className="flex-1 overflow-y-auto custom-scrollbar">
         {messages.length === 0
@@ -148,7 +149,11 @@ function Home() {
           // CHAT MESSAGES
           <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
             {user && messages.map((msg) => (
-              <MessageItem key={msg.id} msg={msg} user={user} />
+              <MessageItem key={msg.id} msg={msg} user={user} onOpenSources={(msgId) => {
+                if (activeChatId) {
+                  setSourceModalData({ sessionId: activeChatId, messageId: msgId });
+                }
+              }}/>
             ))}
 
             {/* Loading indicator */}
@@ -194,20 +199,9 @@ function Home() {
                 <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Add files">
                   <Paperclip className="w-4 h-4" />
                 </button>
-                {/* <button className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors text-xs" title="Web search">
-                  <Globe className="w-3.5 h-3.5" />
-                  <span>Web search</span>
-                </button>
-                <button className="cursor-pointer flex items-center gap-1.5 px-2.5 py-1.5 rounded-full hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors text-xs" title="Web search">
-                  <Lightbulb className="w-3.5 h-3.5" />
-                  <span>Thinking</span>
-                </button> */}
               </div>
 
               <div className="flex items-center gap-1">
-                {/* <button className="cursor-pointer p-1.5 rounded-lg hover:bg-white/10 text-text/40 hover:text-text/70 transition-colors" title="Voice">
-                  <Mic className="w-4 h-4" />
-                </button> */}
                 <button
                   onClick={() => handleSend()}
                   disabled={!input.trim() || isLoading}

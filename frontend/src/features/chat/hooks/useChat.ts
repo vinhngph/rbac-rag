@@ -8,7 +8,8 @@ export interface ChatMessage {
   id: string,
   role: "user" | "assistant",
   content: string,
-  session_id: string
+  session_id: string,
+  knowledge_ids?: string[]
 }
 
 function useChat(sessionId: string | null) {
@@ -69,12 +70,14 @@ function useChat(sessionId: string | null) {
           const msgContent = chunkData.content || "";
           const msgRole = chunkData.role;
           const msgSessionId = chunkData.session_id;
+          const msgKnowledgeids = chunkData.knowledge_ids;
 
           const newMsg: ChatMessage = {
             id: msgId,
             role: msgRole,
             content: msgContent,
-            session_id: msgSessionId
+            session_id: msgSessionId,
+            knowledge_ids: msgKnowledgeids
           };
 
           setMessages((prev) => {

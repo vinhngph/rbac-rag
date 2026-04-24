@@ -8,10 +8,7 @@ export interface FastAPIError {
 
 export const api = axios.create({
   baseURL: APP_CONFIG.APP_BE_API,
-  withCredentials: true,
-  headers: {
-    "Content-Type": "application/json"
-  }
+  withCredentials: true
 });
 
 api.interceptors.response.use(
