@@ -1,7 +1,7 @@
 import { useRef, useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router";
-import { AlertCircle, ChevronRight, FileText, FolderOpen, House, Loader2, MoreHorizontal, Pencil, Plus, RefreshCcw, Trash2, Upload, UserPlus, Users, X } from "lucide-react";
+import { AlertCircle, ArrowLeft, ChevronRight, FileText, FolderOpen, House, Loader2, MoreHorizontal, Pencil, Plus, RefreshCcw, Trash2, Upload, UserPlus, Users, X } from "lucide-react";
 
 import { useAuth } from "../../auth/hooks/useAuth";
 import useRoles from "../../roles/hooks/useRoles";
@@ -14,6 +14,8 @@ import UserAvatar from "../../../shared/components/UserAvatar";
 import PermissionBadge from "../../../shared/components/PermissionBadge";
 import AddMemberPanel from "./AddMemberPanel";
 import KnowledgeItem from "../../knowledge/components/KnowledgeItem";
+import type { KnowledgeRead } from "../../knowledge/services/knowledge.service";
+import PdfPreview from "../../../shared/components/PdfPreview";
 
 interface DepartmentModalProps {
   readonly id: string
@@ -39,12 +41,13 @@ function DepartmentModal({ id }: DepartmentModalProps) {
   const [newRoleName, setNewRoleName] = useState("");
   const [showNewRole, setShowNewRole] = useState(false);
   const [showAddMember, setShowAddMember] = useState(false);
+  const [previewKnowledge, setPreviewKnowledge] = useState<KnowledgeRead | null>(null);
 
   const isMany = (n: number) => {
     return n > 1 ? "s" : "";
   };
 
-  const handleClose = () => { navigate("/"); };
+  const handleClose = () => { navigate("/"); setPreviewKnowledge(null);};
 
   const handleNewRoleCreate = async () => {
     const name = newRoleName.trim();
@@ -225,200 +228,221 @@ function DepartmentModal({ id }: DepartmentModalProps) {
               ? <div className="flex-1 flex items-center justify-center">
                 <Loader2 className="w-6 h-6 text-emerald-400/50 animate-spin" />
               </div>
-              : (
-                <div className="flex-1 overflow-y-auto">
-                  {/* Current role banner */}
-                  <div className="px-6 py-4 border-b border-border-subtle flex items-center gap-3">
-                    <div className="w-9 h-9 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
-                      <House className="w-4.5 h-4.5 text-amber-400" />
-                    </div>
-                    <div>
-                      <h2 className="text-base font-semibold text-text leading-tight">{currentRole?.name}</h2>
-                      <p className="text-[11px] text-text/35 mt-0.5">{`${roleMembers.length} member${isMany(roleMembers.length)} • ${roleKnowledges.length} file${isMany(roleKnowledges.length)}`}</p>
-                    </div>
-                    <div className="ml-auto flex items-center gap-1.5">
+              : previewKnowledge
+                ? (
+                  <div className="flex-1 flex flex-col overflow-hidden">
+                    <div className="px-5 py-3.5 border-b border-border-subtle flex items-center gap-3 bg-bg-modal shrink-0">
                       <button
-                        onClick={() => {
-                          queryClient.invalidateQueries({ queryKey: ["role_members", currentRole?.id] });
-                          queryClient.invalidateQueries({ queryKey: ["role_knowledges", currentRole?.id] });
-                        }}
-                        className="p-1.5 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer"
+                        className="p-1.5 rounded-lg hover:bg-surface-hover text-text/60 transition-colors cursor-pointer flex items-center justify-center"
+                        title="Back to department"
+                        onClick={() => setPreviewKnowledge(null)}
                       >
-                        {isLoadingKnowledges
-                          ? (
-                            <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
-                          )
-                          : (
-                            <RefreshCcw className="w-3.5 h-3.5" />
-                          )}
+                        <ArrowLeft className="w-4.5 h-4.5" />
                       </button>
+                      <div className="w-px h-5 bg-border-subtle mx-1" />
+                      <FileText className="w-4.5 h-4.5 text-emerald-400" />
+                      <h2 className="text-sm font-medium text-text truncate">{previewKnowledge.name}.{previewKnowledge.type}</h2>
+                    </div>
+                    <div className="flex-1 overflow-hidden">
+                      <PdfPreview knowledgeId={previewKnowledge.id} />
                     </div>
                   </div>
-
-                  <div className="grid grid-cols-2 gap-0 divide-x divide-border-subtle flex-1">
-                    {/* Member section */}
-                    <div className="px-5 py-4 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <Users className="w-3.5 h-3.5 text-text-muted" />
-                        <span className="text-[11px] font-semibold text-text-muted uppercase tracking-widest">Members</span>
-                        <span className="ml-auto text-[11px] text-text/25 bg-white/4 px-2 py-0.5 rounded-full">{roleMembers.length}</span>
-                        {!isRoot && (
-                          <button
-                            onClick={() => setShowAddMember(!showAddMember)}
-                            className="p-1 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer"
-                          >
-                            <UserPlus className="w-3.5 h-3.5" />
-                          </button>
-                        )}
+                )
+                : (
+                  <div className="flex-1 overflow-y-auto">
+                    {/* Current role banner */}
+                    <div className="px-6 py-4 border-b border-border-subtle flex items-center gap-3">
+                      <div className="w-9 h-9 rounded-xl bg-amber-400/10 border border-amber-400/20 flex items-center justify-center">
+                        <House className="w-4.5 h-4.5 text-amber-400" />
                       </div>
-
-                      <div className="space-y-1">
-                        {/* Member list */}
-                        {roleMembers.length === 0 && (
-                          <p className="text-xs text-text/20 py-4 text-center">No members</p>
-                        )}
-                        {roleMembers.map((member) => (
-                          <div
-                            key={member.id}
-                            className="group flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-surface/50 hover:bg-surface transition-colors cursor-pointer border border-transparent hover:border-border-subtle/50"
-                          >
-                            <UserAvatar avatar_url={member.avatar_url} name={member.name} />
-                            {/* Info */}
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm text-text/85 truncate leading-tight">
-                                {member.name}
-                                {(member.id === user?.id) && (
-                                  <span className="ml-1.5 text-[10px] text-emerald-400/60">(you)</span>
-                                )}
-                              </p>
-                              <p className="text-[11px] text-text/35 truncate">{member.email}</p>
-                            </div>
-                            {/* Permissions */}
-                            <div className="flex items-center gap-1 shrink-0">
-                              {(["view", "edit"] as const).map((p) => (
-                                <PermissionBadge
-                                  key={p}
-                                  label={p}
-                                  active={member.permissions?.includes(p) ?? false}
-                                  disabled={
-                                    (member.permissions?.includes(p) && (member.permissions.length ?? 0) === 1) ?? true
-                                  }
-                                  onClick={() => handleTogglePermission(member, p)}
-                                />
-                              ))}
-                            </div>
-                            {/* Remove */}
-                            {member.permissions && (
-                              <div className="relative">
-                                <button
-                                  onClick={(e) => {
-                                    e.stopPropagation();
-                                    setContextMember(contextMember === member.id ? null : member.id);
-                                  }}
-                                  className={`p-1 rounded-md transition-colors cursor-pointer ${contextMember === member.id ? "text-text/70 bg-surface" : "text-transparent group-hover:text-text/30 hover:text-text/60!"
-                                  }`}
-                                >
-                                  <MoreHorizontal className="w-3.5 h-3.5" />
-                                </button>
-                                {contextMember === member.id && (
-                                  <ContextMenu
-                                    onClose={() => setContextMember(null)}
-                                    items={[
-                                      { label: "Remove", icon: <Trash2 className="w-3.5 h-3.5" />, danger: true, onClick: () => handleRemoveMember(member.id) }
-                                    ]}
-                                  />
-                                )}
-                              </div>
+                      <div>
+                        <h2 className="text-base font-semibold text-text leading-tight">{currentRole?.name}</h2>
+                        <p className="text-[11px] text-text/35 mt-0.5">{`${roleMembers.length} member${isMany(roleMembers.length)} • ${roleKnowledges.length} file${isMany(roleKnowledges.length)}`}</p>
+                      </div>
+                      <div className="ml-auto flex items-center gap-1.5">
+                        <button
+                          onClick={() => {
+                            queryClient.invalidateQueries({ queryKey: ["role_members", currentRole?.id] });
+                            queryClient.invalidateQueries({ queryKey: ["role_knowledges", currentRole?.id] });
+                          }}
+                          className="p-1.5 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer"
+                        >
+                          {isLoadingKnowledges
+                            ? (
+                              <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
+                            )
+                            : (
+                              <RefreshCcw className="w-3.5 h-3.5" />
                             )}
-                          </div>
-                        ))}
+                        </button>
                       </div>
-                      {/* Add member panel */}
-                      {showAddMember && currentRole && (
-                        <AddMemberPanel
-                          roleId={currentRole.id}
-                          onClose={() => setShowAddMember(false)}
-                        />
-                      )}
-
-                      {isRoot && (
-                        <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-amber-500/6 border border-amber-500/15">
-                          <AlertCircle className="w-3 h-3 text-amber-400/70 shrink-0" />
-                          <p className="text-[11px] text-amber-400/60">Root role members cannot be edited.</p>
-                        </div>
-                      )}
                     </div>
 
-                    {/* Knowledge section */}
-                    <div className="px-5 py-4 space-y-3">
-                      <div className="flex items-center gap-2">
-                        <FileText className="w-3.5 h-3.5 text-text-muted" />
-                        <span className="text-[11px] font-semibold text-text-muted uppercase tracking-widest">
-                          Knowledges
-                        </span>
-                        <span className="ml-auto text-[11px] text-text/25 bg-white/4 px-2 py-0.5 rounded-full">
-                          {roleKnowledges.length}
-                        </span>
-                        {/* Upload */}
-                        <button
-                          onClick={() => fileInputRef.current?.click()}
-                          disabled={isUploading}
-                          className="p-1 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer disabled:opacity-40"
-                          title="Upload file"
-                        >
-                          {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
-                        </button>
-                        <input
-                          type="file"
-                          ref={fileInputRef}
-                          accept=".pdf,.png,.jpg,.jpeg"
-                          className="hidden"
-                          onChange={(e) => handleUpload(e, fileInputRef)}
-                        />
-                      </div>
-
-                      <div className="space-y-1">
-                        {roleKnowledges.length === 0 && (
-                          <div className="flex flex-col items-center justify-center py-8 gap-2">
-                            <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center">
-                              <Upload className="w-5 h-5 text-text/15" />
-                            </div>
-                            <p className="text-xs text-text/20">No files uploaded</p>
+                    <div className="grid grid-cols-2 gap-0 divide-x divide-border-subtle flex-1">
+                      {/* Member section */}
+                      <div className="px-5 py-4 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <Users className="w-3.5 h-3.5 text-text-muted" />
+                          <span className="text-[11px] font-semibold text-text-muted uppercase tracking-widest">Members</span>
+                          <span className="ml-auto text-[11px] text-text/25 bg-white/4 px-2 py-0.5 rounded-full">{roleMembers.length}</span>
+                          {!isRoot && (
                             <button
-                              onClick={() => fileInputRef.current?.click()}
-                              className="text-xs text-emerald-400/60 hover:text-emerald-400 transition-colors cursor-pointer"
+                              onClick={() => setShowAddMember(!showAddMember)}
+                              className="p-1 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer"
                             >
-                              Upload PDF or image
+                              <UserPlus className="w-3.5 h-3.5" />
                             </button>
-                          </div>
-                        )}
-                        {roleKnowledges.map((knowledge) =>
-                          <KnowledgeItem
-                            key={knowledge.id}
-                            knowledge={knowledge}
-                            roleId={currentRole!.id}
-                            isRenaming={renamingKnowledge === knowledge.id}
-                            isContextOpen={contextKnowledge === knowledge.id}
-                            onSetRenaming={() => {
-                              setContextKnowledge(null);
-                              setRenamingKnowledge(knowledge.id);
-                            }}
-                            onSetContextOpen={() => setContextKnowledge(contextKnowledge === knowledge.id ? null : knowledge.id)}
-                            onCloseContext={() => {
-                              setContextKnowledge(null);
-                            }}
-                            onRename={async (id, newName) => {
-                              await handleRenameKnowledge(id, newName);
-                              setRenamingKnowledge(null);
-                            }}
-                            onDelete={handleDeleteKnowledge}
+                          )}
+                        </div>
+
+                        <div className="space-y-1">
+                          {/* Member list */}
+                          {roleMembers.length === 0 && (
+                            <p className="text-xs text-text/20 py-4 text-center">No members</p>
+                          )}
+                          {roleMembers.map((member) => (
+                            <div
+                              key={member.id}
+                              className="group flex items-center gap-2.5 px-2.5 py-2 rounded-xl bg-surface/50 hover:bg-surface transition-colors cursor-pointer border border-transparent hover:border-border-subtle/50"
+                            >
+                              <UserAvatar avatar_url={member.avatar_url} name={member.name} />
+                              {/* Info */}
+                              <div className="flex-1 min-w-0">
+                                <p className="text-sm text-text/85 truncate leading-tight">
+                                  {member.name}
+                                  {(member.id === user?.id) && (
+                                    <span className="ml-1.5 text-[10px] text-emerald-400/60">(you)</span>
+                                  )}
+                                </p>
+                                <p className="text-[11px] text-text/35 truncate">{member.email}</p>
+                              </div>
+                              {/* Permissions */}
+                              <div className="flex items-center gap-1 shrink-0">
+                                {(["view", "edit"] as const).map((p) => (
+                                  <PermissionBadge
+                                    key={p}
+                                    label={p}
+                                    active={member.permissions?.includes(p) ?? false}
+                                    disabled={
+                                      (member.permissions?.includes(p) && (member.permissions.length ?? 0) === 1) ?? true
+                                    }
+                                    onClick={() => handleTogglePermission(member, p)}
+                                  />
+                                ))}
+                              </div>
+                              {/* Remove */}
+                              {member.permissions && (
+                                <div className="relative">
+                                  <button
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      setContextMember(contextMember === member.id ? null : member.id);
+                                    }}
+                                    className={`p-1 rounded-md transition-colors cursor-pointer ${contextMember === member.id ? "text-text/70 bg-surface" : "text-transparent group-hover:text-text/30 hover:text-text/60!"
+                                    }`}
+                                  >
+                                    <MoreHorizontal className="w-3.5 h-3.5" />
+                                  </button>
+                                  {contextMember === member.id && (
+                                    <ContextMenu
+                                      onClose={() => setContextMember(null)}
+                                      items={[
+                                        { label: "Remove", icon: <Trash2 className="w-3.5 h-3.5" />, danger: true, onClick: () => handleRemoveMember(member.id) }
+                                      ]}
+                                    />
+                                  )}
+                                </div>
+                              )}
+                            </div>
+                          ))}
+                        </div>
+                        {/* Add member panel */}
+                        {showAddMember && currentRole && (
+                          <AddMemberPanel
+                            roleId={currentRole.id}
+                            onClose={() => setShowAddMember(false)}
                           />
                         )}
+
+                        {isRoot && (
+                          <div className="flex items-center gap-1.5 px-2.5 py-2 rounded-xl bg-amber-500/6 border border-amber-500/15">
+                            <AlertCircle className="w-3 h-3 text-amber-400/70 shrink-0" />
+                            <p className="text-[11px] text-amber-400/60">Root role members cannot be edited.</p>
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Knowledge section */}
+                      <div className="px-5 py-4 space-y-3">
+                        <div className="flex items-center gap-2">
+                          <FileText className="w-3.5 h-3.5 text-text-muted" />
+                          <span className="text-[11px] font-semibold text-text-muted uppercase tracking-widest">
+                          Knowledges
+                          </span>
+                          <span className="ml-auto text-[11px] text-text/25 bg-white/4 px-2 py-0.5 rounded-full">
+                            {roleKnowledges.length}
+                          </span>
+                          {/* Upload */}
+                          <button
+                            onClick={() => fileInputRef.current?.click()}
+                            disabled={isUploading}
+                            className="p-1 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer disabled:opacity-40"
+                            title="Upload file"
+                          >
+                            {isUploading ? <Loader2 className="w-3.5 h-3.5 animate-spin" /> : <Upload className="w-3.5 h-3.5" />}
+                          </button>
+                          <input
+                            type="file"
+                            ref={fileInputRef}
+                            accept=".pdf,.png,.jpg,.jpeg"
+                            className="hidden"
+                            onChange={(e) => handleUpload(e, fileInputRef)}
+                          />
+                        </div>
+
+                        <div className="space-y-1">
+                          {roleKnowledges.length === 0 && (
+                            <div className="flex flex-col items-center justify-center py-8 gap-2">
+                              <div className="w-10 h-10 rounded-xl bg-surface flex items-center justify-center">
+                                <Upload className="w-5 h-5 text-text/15" />
+                              </div>
+                              <p className="text-xs text-text/20">No files uploaded</p>
+                              <button
+                                onClick={() => fileInputRef.current?.click()}
+                                className="text-xs text-emerald-400/60 hover:text-emerald-400 transition-colors cursor-pointer"
+                              >
+                              Upload PDF or image
+                              </button>
+                            </div>
+                          )}
+                          {roleKnowledges.map((knowledge) =>
+                            <KnowledgeItem
+                              key={knowledge.id}
+                              knowledge={knowledge}
+                              roleId={currentRole!.id}
+                              isRenaming={renamingKnowledge === knowledge.id}
+                              isContextOpen={contextKnowledge === knowledge.id}
+                              onSetPreview={() => { setPreviewKnowledge(knowledge);}}
+                              onSetRenaming={() => {
+                                setContextKnowledge(null);
+                                setRenamingKnowledge(knowledge.id);
+                              }}
+                              onSetContextOpen={() => setContextKnowledge(contextKnowledge === knowledge.id ? null : knowledge.id)}
+                              onCloseContext={() => {
+                                setContextKnowledge(null);
+                              }}
+                              onRename={async (id, newName) => {
+                                await handleRenameKnowledge(id, newName);
+                                setRenamingKnowledge(null);
+                              }}
+                              onDelete={handleDeleteKnowledge}
+                            />
+                          )}
+                        </div>
                       </div>
                     </div>
                   </div>
-                </div>
-              )
+                )
             }
           </div>
         </div>

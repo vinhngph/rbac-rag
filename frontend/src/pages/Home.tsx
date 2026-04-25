@@ -66,7 +66,7 @@ const MessageItem = memo(({ msg, user, onOpenSources }: { msg: ChatMessage, user
               </button>
               <button
                 onClick={() => onOpenSources(msg.id)}
-                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-surface-hoverhover text-text-muted hover:text-text/70 transition-colors cursor-pointer"
+                className="flex items-center justify-center gap-1.5 px-2.5 py-1.5 rounded-lg hover:bg-surface-hover text-text-muted hover:text-text/70 transition-colors cursor-pointer"
                 title="Sources"
               >
                 {msg.knowledge_ids && msg.knowledge_ids.length >= 1 && (

@@ -1,23 +1,8 @@
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { chatService } from "../services/chat.service";
-import { ChevronLeft, ChevronRight, FileText, Info, Loader2, SquareLibrary, X } from "lucide-react";
-import { getKnowledgeFile } from "../../roles/services/role.service";
-
-import { Document, Page, pdfjs } from "react-pdf";
-import "react-pdf/dist/Page/AnnotationLayer.css";
-import "react-pdf/dist/Page/TextLayer.css";
-
-pdfjs.GlobalWorkerOptions.workerSrc = new URL(
-  "pdfjs-dist/build/pdf.worker.min.mjs",
-  import.meta.url
-).toString();
-
-const options = {
-  cMapUrl: "/cmaps/",
-  standardFontDataUrl: "/standard_fonts/",
-  wasmUrl: "/wasm/"
-};
+import { FileText, Info, Loader2, SquareLibrary, X } from "lucide-react";
+import PdfPreview from "../../../shared/components/PdfPreview";
 
 interface MessageSourcesProps {
   isOpen: boolean
@@ -35,103 +20,6 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
 
   const [manualSelectedSource, setManualSelectedSource] = useState<string | null>(null);
   const selectedSource = manualSelectedSource ?? sourcesData?.[0].id ?? null;
-
-  const { data: fileBlob, isLoading: isLoadingFile } = useQuery({
-    queryKey: ["knowledge_file", selectedSource],
-    queryFn: () => getKnowledgeFile(selectedSource ?? "").then((res) => res.data),
-    enabled: !!selectedSource
-  });
-
-  const [numPages, setNumPages] = useState<number>();
-  const [pageNumber, setPageNumber] = useState<number>(1);
-
-  function onDocumentLoadSuccess({ numPages }: { numPages: number }) {
-    setNumPages(numPages);
-    setPageNumber(1);
-  }
-
-  const changePage = (offset: number) => {
-    setPageNumber((prev) => Math.min(Math.max(1, prev + offset), numPages || 1));
-  };
-
-  const renderPreview = () => {
-    if (!selectedSource) {
-      return (
-        <div className="h-full flex items-center justify-center text-text-muted">
-          Select a source from the left panel to preview its content.
-        </div>
-      );
-    }
-
-    if (isLoadingFile) {
-      return (
-        <div className="w-full h-full flex flex-col items-center justify-center text-emerald-400">
-          <Loader2 className="w-8 h-8 animate-spin" />
-        </div>
-      );
-    }
-
-    if (fileBlob) {
-      return (
-        <div className="flex flex-col items-center h-full w-full relative">
-          {numPages && (
-            <div className="absolute bottom-2 z-10 flex items-center gap-4 bg-surface-active backdrop-blur-md px-4 py-2 rounded-full shadow-xl border border-border-subtle transition-opacit hover:bg-surface-hover">
-              <button
-                onClick={() => changePage(-1)}
-                disabled={pageNumber <= 1}
-                className="p-1.5 hover:bg-surface-hover rounded-full disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer text-text"
-              >
-                <ChevronLeft className="w-5 h-5" />
-              </button>
-
-              <span className="text-sm font-medium text-text/90 min-w-22.5 text-center">Page {pageNumber} of {numPages}</span>
-
-              <button
-                onClick={() => changePage(1)}
-                disabled={pageNumber >= numPages}
-                className="p-1.5 hover:bg-surface-hover rounded-full disabled:opacity-30 disabled:hover:bg-transparent transition-all cursor-pointer text-text"
-              >
-                <ChevronRight className="w-5 h-5" />
-              </button>
-            </div>
-          )}
-
-          <div className="flex-1 w-full overflow-y-auto custom-scrollbar flex justify-center items-center">
-            <Document
-              file={fileBlob}
-              onLoadSuccess={onDocumentLoadSuccess}
-              loading={
-                <div className="flex items-center justify-center p-10 text-emerald-400 mt-10">
-                  <Loader2 className="w-8 h-8 animate-spin" />
-                </div>
-              }
-              error={
-                <div className="p-10 text-text-muted text-center mt-10">
-                  Failed to load the PDF document.
-                </div>
-              }
-              options={options}
-            >
-              <Page
-                key={`page_${pageNumber}`}
-                pageNumber={pageNumber}
-                className="shadow-2xl overflow-hidden"
-                renderTextLayer={true}
-                renderAnnotationLayer={true}
-                width={800}
-              />
-            </Document>
-          </div>
-        </div>
-      );
-    }
-
-    return (
-      <div className="w-full h-full flex flex-col items-center justify-center text-text-muted">
-        Failed to fetch the docuemnt.
-      </div>
-    );
-  };
 
   const renderContent = () => {
     if (isLoadingSources) {
@@ -173,8 +61,16 @@ function MessageSources({ isOpen, onClose, sessionId, messageId }: Readonly<Mess
           ))}
         </div>
 
-        <div className="w-3/4 overflow-y-auto custom-scrollbar bg-bg-prompt">
-          {renderPreview()}
+        <div className="w-3/4 overflow-y-auto custom-scrollbar bg-bg-prompt relative flex flex-col">
+          {selectedSource
+            ? (
+              <PdfPreview knowledgeId={selectedSource} />
+            )
+            : (
+              <div className="flex-1 flex items-center justify-center text-text-muted">
+                Select a source from the left panel to preview its content.
+              </div>
+            )}
         </div>
       </>
     );

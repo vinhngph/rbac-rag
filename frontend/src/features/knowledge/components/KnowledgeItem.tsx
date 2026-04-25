@@ -1,4 +1,4 @@
-import { AlertCircle, CheckCircle2, FileImage, FileScan, FileText, Loader2, MoreHorizontal, Pencil, Trash2, Zap } from "lucide-react";
+import { AlertCircle, BookOpenText, CheckCircle2, FileImage, FileScan, FileText, Loader2, MoreHorizontal, Pencil, Trash2, Zap } from "lucide-react";
 import type { KnowledgeRead } from "../services/knowledge.service";
 import { useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
@@ -27,6 +27,7 @@ interface KnowledgeItemProps{
     readonly roleId: string
     readonly isRenaming: boolean
     readonly isContextOpen: boolean
+    readonly onSetPreview: () => void
     readonly onSetRenaming: () => void
     readonly onSetContextOpen: () => void
     readonly onCloseContext: () => void
@@ -34,7 +35,7 @@ interface KnowledgeItemProps{
     readonly onDelete: (id: string) => void
 }
 
-function KnowledgeItem({ knowledge, roleId, isRenaming, isContextOpen, onSetRenaming, onSetContextOpen, onCloseContext, onRename, onDelete }: KnowledgeItemProps) {
+function KnowledgeItem({ knowledge, roleId, isRenaming, isContextOpen, onSetPreview, onSetRenaming, onSetContextOpen, onCloseContext, onRename, onDelete }: KnowledgeItemProps) {
   const queryClient = useQueryClient();
 
   useEffect(() => {
@@ -80,7 +81,7 @@ function KnowledgeItem({ knowledge, roleId, isRenaming, isContextOpen, onSetRena
   return (
     <div
       key={knowledge.id}
-      className="group flex items-center gap-2.5 py-2 px-2.5 rounded-xl hover:bg-white/4 transition-colors cursor-pointer"
+      className="group flex items-center gap-2.5 py-2 px-2.5 rounded-xl hover:bg-surface-hover transition-colors cursor-pointer"
     >
       {fileIcon(knowledge.type)}
       <div className="flex-1 min-w-0">
@@ -123,6 +124,7 @@ function KnowledgeItem({ knowledge, roleId, isRenaming, isContextOpen, onSetRena
           <ContextMenu
             onClose={onCloseContext}
             items={[
+              { label: "Open", icon: <BookOpenText className="w-3.5 h-3.5" />, onClick: onSetPreview },
               { label: "Rename", icon: <Pencil className="w-3.5 h-3.5" />, onClick: onSetRenaming },
               { label: "Delete", icon: <Trash2 className="w-3.5 h-3.5" />, danger: true, onClick: () => onDelete(knowledge.id) }
             ]}

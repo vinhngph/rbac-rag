@@ -28,7 +28,7 @@ function ContextMenu({ items, onClose }: ContextMenuProps) {
   return (
     <div
       ref={ref}
-      className="absolute right-0 top-full mt-1 z-50 bg-[#1a1a1a] border border-border-subtle rounded-xl shadow-2xl overflow-hidden"
+      className="absolute right-0 top-full mt-1 z-50 bg-bg-menu border border-border-subtle rounded-xl shadow-2xl overflow-hidden"
     >
       {items.map((item) => (
         <button
@@ -37,10 +37,10 @@ function ContextMenu({ items, onClose }: ContextMenuProps) {
             item.onClick();
             onClose();
           }}
-          className={`w-full flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors cursor-pointer ${
+          className={`w-full bg-surface flex items-center gap-2.5 px-3.5 py-2.5 text-sm transition-colors cursor-pointer ${
             item.danger
               ? "text-red-400 hover:bg-red-500/10"
-              : "text-text/80 hover:bg-white/6 hover:text-text"
+              : "text-text hover:bg-surface-hover hover:text-text"
           }`}
         >
           {item.icon}
