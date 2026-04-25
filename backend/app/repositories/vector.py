@@ -42,7 +42,7 @@ class VectorRepository:
                     ]
                 ),
                 limit=limit,
-                score_threshold=0.55,
+                score_threshold=0.5,
             )
         ).points
 
@@ -50,4 +50,5 @@ class VectorRepository:
         res_knowledge_ids = {
             hit.payload.get("knowledge_id", "") for hit in result if hit.payload
         }
+
         return "\n\n---\n\n".join(contexts), list(res_knowledge_ids)

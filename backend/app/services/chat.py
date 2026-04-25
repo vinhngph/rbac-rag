@@ -183,13 +183,15 @@ class ChatService:
                 user_message_vector, knowledge_ids
             )
 
-        system_prompt = f"""You are a strict data extraction assistant.
-        Your ONLY job is to answer the user's question by extracting the exact information from the CONTEXT DOCUMENT below.
+        system_prompt = f"""You are a helpful and intelligent Artificial Intelligence assistant.
+        Your primary task is to answer the user's question using the <CONTEXT_DOCUMENT> below.
 
         RULES:
-        1. ONLY use the information provided in the CONTEXT DOCUMENT. Do NOT use outside knowledge or personal knowledge.
-        2. If the user asks for questions from the text, extract them EXACTLY word-for-word as they appear in the document. Do not rewrite or rephrase them.
-        3. If the document does not contain the information to answer, you must output exactly: "I could not find the information in the system."
+        1. DETECT LANGUAGE: You MUST detect the language of the user's question and write your ENTIRE response in that EXACT SAME LANGUAGE.
+        2. RAG FIRST: Always try to answer based ONLY on the <CONTEXT_DOCUMENT>.
+        3. LLM KNOWLEDGE FALLBACK: If the <CONTEXT_DOCUMENT> is empty or does NOT contain the answer, you MUST answer the question using your own internal general knowledge.
+        4. MANDATORY DISCLAIMER: If you use your internal knowledge (Rule 3), you MUST start your response with a clear warning in the user's language.
+        - Example warning (English): "⚠️ I could not find this information in the system documents. Answering based on AI general knowledge:\n\n"
 
         <CONTEXT_DOCUMENT>
         {context_text if context_text else "No documents match the current access rights."}
@@ -199,25 +201,25 @@ class ChatService:
         full_assistant_reply = ""
         ai_message_id = uuid4()
 
-        if not context_text.strip():
-            full_assistant_reply = "I could not find the information in the system."
+        # if not context_text.strip():
+        #     full_assistant_reply = "I could not find the information in the system."
 
-            assistant_msg_create = ChatMessage(
-                id=ai_message_id,
-                role=ChatMessageRole.ASSISTANT,
-                content=full_assistant_reply,
-                session_id=session_id,
-                knowledge_ids=[],
-            )
+        #     assistant_msg_create = ChatMessage(
+        #         id=ai_message_id,
+        #         role=ChatMessageRole.ASSISTANT,
+        #         content=full_assistant_reply,
+        #         session_id=session_id,
+        #         knowledge_ids=[],
+        #     )
 
-            yield assistant_msg_create
+        #     yield assistant_msg_create
 
-            self.db.add(assistant_msg_create)
-            await self.db.flush()
-            await self.chat_session_repo.touch_chat_session_timestamp(session_id)
-            await self.db.commit()
+        #     self.db.add(assistant_msg_create)
+        #     await self.db.flush()
+        #     await self.chat_session_repo.touch_chat_session_timestamp(session_id)
+        #     await self.db.commit()
 
-            return
+        #     return
 
         messages = [
             {"role": "system", "content": system_prompt},
