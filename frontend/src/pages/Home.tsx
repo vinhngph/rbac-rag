@@ -48,7 +48,24 @@ const MessageItem = memo(({ msg, user, onOpenSources }: { msg: ChatMessage, user
             {msg.content}
           </div>
           : <div>
-            <div className="prose dark:prose-invert max-w-none text-text prose-strong:text-text">
+            <div className="
+            prose
+            max-w-none
+            text-text
+            prose-headings:text-text
+            prose-headings:font-bold
+            prose-p:text-text
+            prose-li:text-text
+            prose-strong:text-text
+            prose-strong:font-bold
+            prose-pre:text-text
+            prose-pre:bg-surface-active
+            prose-em:italic
+            marker:text-text-muted
+            prose-a:text-emerald-400
+            prose-code:before:hidden
+            prose-code:after:hidden
+            ">
               <MarkdownRenderer content={msg.content} />
             </div>
             {/* Action buttons */}

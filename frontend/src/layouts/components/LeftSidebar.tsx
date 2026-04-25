@@ -1,4 +1,4 @@
-import { Bot, ChevronDown, Loader2, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, Search, SquarePen, User } from "lucide-react";
+import { Bot, ChevronDown, Loader2, LogOut, MessageSquare, PanelLeftClose, PanelLeftOpen, SquarePen, User } from "lucide-react";
 import { useState } from "react";
 import { useLocation, useNavigate } from "react-router";
 import { APP_CONFIG } from "../../core/config";
@@ -110,12 +110,12 @@ function LeftSidebar() {
           </div>
 
           {/* Search */}
-          <div className="px-3 pb-2">
+          {/* <div className="px-3 pb-2">
             <button className="w-full flex items-center gap-2 px-3 py-2 rounded-xl bg-surface hover:bg-surface-hover transition-colors text-sm text-text/60 cursor-pointer">
               <Search className="w-3.5 h-3.5" />
               <span>Search chats</span>
             </button>
-          </div>
+          </div> */}
 
           {/* Chat history */}
           <div className="flex-1 overflow-y-auto px-2 custom-scrollbar">

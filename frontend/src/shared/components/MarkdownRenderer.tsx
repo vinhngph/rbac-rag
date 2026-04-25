@@ -1,15 +1,20 @@
 import Markdown from "react-markdown";
-import  remarkGfm from "remark-gfm";
+import remarkGfm from "remark-gfm";
 import rehypeHighlight from "rehype-highlight";
 import type React from "react";
 import type { HTMLAttributes } from "react";
 
 import "highlight.js/styles/github-dark.css";
 
-function CodeBlock({ inline, className, children, ...props }: Readonly<{inline?:boolean, className?:string, children?: React.ReactNode}>) {
-  if (inline) {
+function CodeBlock({ className, children, ...props }: Readonly<{ className?: string, children?: React.ReactNode }>) {
+  const isInline =
+    !className?.includes("hljs") &&
+    typeof children === "string" &&
+    !children.includes("\n");
+
+  if (isInline) {
     return (
-      <code className="bg-surface-active text-text px-1.5 py-0.5 rounded text-xs" {...props}>
+      <code className="bg-surface-active text-text px-1.5 py-0.5 rounded align-middle leading-none" {...props}>
         {children}
       </code>
     );
@@ -25,7 +30,7 @@ function CodeBlock({ inline, className, children, ...props }: Readonly<{inline?:
 function Pre(props: Readonly<HTMLAttributes<HTMLPreElement>>) {
   const { children, ...rest } = props;
   return (
-    <pre className="custom-scrollbar bg-[#0d1117] text-gray-300 rounded-xl p-0 overflow-x-auto text-sm pb-1" {...rest}>
+    <pre className="custom-scrollbar rounded-xl p-0 overflow-x-auto text-sm" {...rest}>
       {children}
     </pre>
   );
@@ -56,11 +61,11 @@ function BlockQuote(props: Readonly<HTMLAttributes<HTMLQuoteElement>>) {
   );
 }
 
-function MarkdownRenderer({ content }: {readonly content: string}) {
+function MarkdownRenderer({ content }: { readonly content: string }) {
   return (
     <Markdown
       remarkPlugins={[remarkGfm]}
-      rehypePlugins={[rehypeHighlight ]}
+      rehypePlugins={[rehypeHighlight]}
       skipHtml
       components={{
         code: CodeBlock,
