@@ -9,8 +9,9 @@ import { useToast } from "../../shared/toast";
 import useChatSessions from "../../features/chat/hooks/useChatSessions";
 import type { ChatSessionRead } from "../../features/chat/services/chat.service";
 import ThemeToggleButton from "../../shared/components/ThemeToggleButton";
+import { useQueryClient } from "@tanstack/react-query";
 
-function ChatSessionItems({ sessions, activeChatId }: {sessions:ChatSessionRead[], activeChatId: string | null}) {
+function ChatSessionItems({ sessions, activeChatId }: { sessions: ChatSessionRead[], activeChatId: string | null }) {
   const navigate = useNavigate();
 
   return (
@@ -46,6 +47,7 @@ function LeftSidebar() {
 
   const navigate = useNavigate();
   const location = useLocation();
+  const queryClient = useQueryClient();
 
   const { sessions, isLoadingSessions } = useChatSessions();
 
@@ -54,6 +56,8 @@ function LeftSidebar() {
   const handleLogout = async () => {
     try {
       await logout();
+
+      queryClient.clear();
     } catch {
       toastError("Failed to loggout.");
     } finally {
@@ -121,20 +125,20 @@ function LeftSidebar() {
                   <Loader2 className="w-4 h-4 text-text-muted animate-spin" />
                 </div>
               )
-              : <ChatSessionItems sessions={sessions} activeChatId={activeChatId}/>}
+              : <ChatSessionItems sessions={sessions} activeChatId={activeChatId} />}
           </div>
 
           {/* User profile | Login */}
           <div className="border-t border-border-subtle p-2">
             {user
-            // Logged in
+              // Logged in
               ? <div className="relative">
                 <button
                   onClick={() => setIsUserMenu(!isUserMenu)}
                   className="w-full flex items-center gap-2.5 px-2 py-2 rounded-xl hover:bg-surface-hover transition-colors group cursor-pointer"
                 >
                   {/* User avatar */}
-                  <UserAvatar avatar_url={user.avatar_url} name={user.name}/>
+                  <UserAvatar avatar_url={user.avatar_url} name={user.name} />
 
                   {/* User metadata */}
                   <div className="flex-1 text-left min-w-0">

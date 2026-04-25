@@ -14,12 +14,11 @@ interface DepartmentItemProps {
 }
 
 function DepartmentItem({ department, isActive, isChecked, onToggleCheck, onNavigate, onRename, onDelete }: DepartmentItemProps) {
-
   const [menuOpen, setMenuOpen] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
 
   return (
-    <div className={`group flex items-center gap-2 px-2 py-2 rounded-xl transition-colors ${isActive ? "bg-white/10" : "hover:bg-white/6"
+    <div className={`group flex items-center gap-2 px-2 py-2 rounded-xl transition-colors ${isActive ? "bg-surface-active" : "hover:bg-surface-hover"
     }`}>
       {/* Checkbox */}
       <button

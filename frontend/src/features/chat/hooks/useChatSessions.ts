@@ -2,6 +2,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "../../../shared/toast";
 import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
 import { chatService } from "../services/chat.service";
+import { useAuth } from "../../auth/hooks/useAuth";
 
 export const CHAT_SESSIONS_QUERY_KEY = ["chat_sessions"];
 
@@ -10,10 +11,12 @@ function useChatSessions() {
 
   const { error } = useToast();
   const { handleCatch } = useErrorHandler();
+  const { user } = useAuth();
 
   const { data: sessions = [], isLoading: isLoadingSessions } = useQuery({
     queryKey: CHAT_SESSIONS_QUERY_KEY,
-    queryFn: () => chatService.getSessions().then((res) => res.data)
+    queryFn: () => chatService.getSessions().then((res) => res.data),
+    enabled: !!user
   });
 
   const createSessionMut = useMutation({

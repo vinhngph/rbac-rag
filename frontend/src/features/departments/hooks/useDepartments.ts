@@ -1,65 +1,62 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useAuth } from "../../auth/hooks/useAuth";
-import { createDepartment, deleteDepartment, getDepartments, updateDepartment, type DepartmentRead } from "../services/department.service";
+import { createDepartment, deleteDepartment, getDepartments, updateDepartment } from "../services/department.service";
 import { useToast } from "../../../shared/toast";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
 
 function useDepartments() {
   const { user } = useAuth();
-  const { success, error } = useToast();
+  const { error } = useToast();
+  const { handleCatch } = useErrorHandler();
 
-  const [departments, setDepartments] = useState<DepartmentRead[]>([]);
+  const queryClient = useQueryClient();
+  const queryKeyName = ["departments"];
+
   const [checkedDepartments, setCheckedDepartments] = useState<Set<string>>(new Set());
 
-  // Load active departments
-  useEffect(() => {
-    if (!user) return;
+  const { data: departments = [] } = useQuery({
+    queryKey: queryKeyName,
+    queryFn: () => getDepartments().then((res) => res.data),
+    enabled: !!user
+  });
 
-    getDepartments()
-      .then((res) => setDepartments(res.data))
-      .catch(console.error);
-  }, [user]);
-
-  const handleAddDepartment = async (name: string) => {
-    if(!name.trim()) return;
-
-    try {
-      const res = await createDepartment({ name });
-      setDepartments((prev) => [...prev, res.data]);
-      success("Department created successfully.");
-    } catch {
-      error("Failed to create department.");
+  const createDepartmentMut = useMutation({
+    mutationFn: (name: string) => createDepartment({ name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyName });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
-  };
+  });
 
-  const handleUpdateDepartment = async (id: string, name: string) => {
-    try {
-      const res = await updateDepartment(id, { name });
-      setDepartments((prev) => prev.map((d) => d.id === id ? res.data : d));
-    } catch {
-      error("Failed to update department");
+  const renameDepartmentMut = useMutation({
+    mutationFn: ({ id, name }: { id: string, name: string }) => updateDepartment(id, { name }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyName });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
-  };
+  });
 
-  const handleDeleteDepartment = async (id: string) => {
-    try {
-      await deleteDepartment(id);
-      setDepartments((prev) => prev.filter((d) => d.id !== id));
-      setCheckedDepartments((prev) => {
-        const n = new Set(prev);
-        n.delete(id);
-        return n;
-      });
-    } catch {
-      error("Failed to delete department.");
+  const deleteDepartmentMut = useMutation({
+    mutationFn: (id: string) => deleteDepartment(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: queryKeyName });
+    },
+    onError: (err: unknown) => {
+      error(handleCatch(err));
     }
-  };
+  });
 
   const handleToggleCheck = (id: string) => {
     setCheckedDepartments((prev) => {
       const next = new Set(prev);
       if (next.has(id)) {
         next.delete(id);
-      }  else {
+      } else {
         next.add(id);
       }
       return next;
@@ -67,7 +64,12 @@ function useDepartments() {
   };
 
   return {
-    departments, checkedDepartments, handleAddDepartment, handleUpdateDepartment, handleDeleteDepartment, handleToggleCheck
+    departments,
+    checkedDepartments,
+    handleAddDepartment: createDepartmentMut.mutateAsync,
+    handleUpdateDepartment: (id: string, name: string) => renameDepartmentMut.mutateAsync({ id, name }),
+    handleDeleteDepartment: deleteDepartmentMut.mutateAsync,
+    handleToggleCheck
   };
 }
 

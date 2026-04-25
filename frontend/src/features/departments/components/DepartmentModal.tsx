@@ -16,7 +16,7 @@ import AddMemberPanel from "./AddMemberPanel";
 import KnowledgeItem from "../../knowledge/components/KnowledgeItem";
 
 interface DepartmentModalProps {
-    readonly id: string
+  readonly id: string
 }
 
 function DepartmentModal({ id }: DepartmentModalProps) {
@@ -28,7 +28,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
   const { user } = useAuth();
   const { currentRole, childRoles, breadcrumb, rootRole, isRoot, isLoadingRoles, navigateRole, handleCreateRole, handleRenameRole, handleDeleteRole } = useRoles(id);
   const { roleMembers, handleTogglePermission, handleRemoveMember } = useRoleMembers(currentRole?.id);
-  const { roleKnowledges, isUploading, handleUpload, handleRenameKnowledge, handleDeleteKnowledge } = useRoleKnowledges(currentRole?.id);
+  const { roleKnowledges, isLoadingKnowledges, isUploading, handleUpload, handleRenameKnowledge, handleDeleteKnowledge } = useRoleKnowledges(currentRole?.id);
 
   // UI States
   const [contextRole, setContextRole] = useState<string | null>(null);
@@ -41,7 +41,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
   const [showAddMember, setShowAddMember] = useState(false);
 
   const isMany = (n: number) => {
-    return n > 1 ? "s": "";
+    return n > 1 ? "s" : "";
   };
 
   const handleClose = () => { navigate("/"); };
@@ -83,7 +83,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
           {/* Breadcrumb */}
           <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
             <button
-              onClick={() => navigateRole(rootRole?.id?? null) }
+              onClick={() => navigateRole(rootRole?.id ?? null)}
               className="font-semibold text-emerald-400/90 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
             >
               {rootRole?.name}
@@ -93,7 +93,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                 <ChevronRight className="w-3.5 h-3.5 text-text/20" />
                 <button
                   onClick={() => navigateRole(role.id)}
-                  className={`transition-colors cursor-pointer ${role.id === currentRole?.id ? "text-text font-medium": "text-text-muted hover:text-text/80"}`}
+                  className={`transition-colors cursor-pointer ${role.id === currentRole?.id ? "text-text font-medium" : "text-text-muted hover:text-text/80"}`}
                 >
                   {role.name}
                 </button>
@@ -124,13 +124,13 @@ function DepartmentModal({ id }: DepartmentModalProps) {
           {/* Left: Roles Tree */}
           <div className="w-64 shrink-0 border-r border-border-subtle flex flex-col bg-bg-sidebar">
             <div className="px-3 py-2.5 border-b border-border-subtle">
-              <p className="text-[10px] font-semibold text-text/30 uppercase tracking-widest">Roles</p>
+              <p className="text-sm font-semibold text-text uppercase tracking-widest">Roles</p>
             </div>
             <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
               {!isLoadingRoles && childRoles.length === 0 && !showNewRole && (
                 <div className="flex flex-col items-center justify-center h-24 gap-1.5">
                   <House className="w-7 h-7 text-text/10" />
-                  <p className="text-xs text-text/20">No child roles</p>
+                  <p className="text-xs text-text/40">No child roles</p>
                 </div>
               )}
               {childRoles.map((role) => (
@@ -150,20 +150,20 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                       <div className="relative z-20">
                         <InlineRename
                           value={role.name}
-                          onConfirm={(n) => {handleRenameRole(role.id, n); setRenamingRole(null);}}
+                          onConfirm={(n) => { handleRenameRole(role.id, n); setRenamingRole(null); }}
                           onCancel={() => setRenamingRole(null)}
                         />
                       </div>
-                      :<span className="text-sm text-text/80 truncate block">{role.name}</span>
+                      : <span className="text-sm text-text/80 truncate block">{role.name}</span>
                     }
                   </div>
                   <div className="relative z-20">
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
-                        setContextRole(contextRole === role.id? null: role.id);
+                        setContextRole(contextRole === role.id ? null : role.id);
                       }}
-                      className={`p-0.5 rounded-md transition-colors cursor-pointer ${contextRole == role.id ? "text-text/70 bg-surface": "text-transparent group-hover:text-text/35 hover:text-text/60!"}`}
+                      className={`p-0.5 rounded-md transition-colors cursor-pointer ${contextRole == role.id ? "text-text/70 bg-surface" : "text-transparent group-hover:text-text/35 hover:text-text/60!"}`}
                     >
                       <MoreHorizontal className="w-3.5 h-3.5" />
                     </button>
@@ -199,8 +199,8 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                   />
                   <div className="flex gap-1">
                     <button
-                      onClick={() => {setShowNewRole(false); setNewRoleName("");}}
-                      className="flex-1 text-xs text-text-muted hover:text-text/70 bg-surface hover:bg-surface-hover rounded-lg cursor-pointer transition-colors"
+                      onClick={() => { setShowNewRole(false); setNewRoleName(""); }}
+                      className="flex-1 py-1.5 text-xs text-text-muted hover:text-text bg-surface hover:bg-surface-hover rounded-lg transition-colors cursor-pointer"
                     >
                       Cancel
                     </button>
@@ -209,7 +209,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                       onClick={handleNewRoleCreate}
                       isLoading={isLoadingRoles}
                       disabled={!newRoleName.trim()}
-                      className="flex-1 py-1 text-xs text-text bg-emerald-700 hover:bg-emerald-600 disabled:opacity-40 rounded-lg cursor-pointer transition-colors"
+                      className="flex-1 py-1.5 text-xs text-text bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 rounded-lg transition-colors cursor-pointer disabled:cursor-not-allowed"
                     >
                       Create
                     </RequestButton>
@@ -225,7 +225,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
               ? <div className="flex-1 flex items-center justify-center">
                 <Loader2 className="w-6 h-6 text-emerald-400/50 animate-spin" />
               </div>
-              :(
+              : (
                 <div className="flex-1 overflow-y-auto">
                   {/* Current role banner */}
                   <div className="px-6 py-4 border-b border-border-subtle flex items-center gap-3">
@@ -244,7 +244,13 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                         }}
                         className="p-1.5 rounded-lg hover:bg-surface-hover text-text/30 hover:text-text/70 transition-colors cursor-pointer"
                       >
-                        <RefreshCcw className="w-3.5 h-3.5" />
+                        {isLoadingKnowledges
+                          ? (
+                            <RefreshCcw className="w-3.5 h-3.5 animate-spin" />
+                          )
+                          : (
+                            <RefreshCcw className="w-3.5 h-3.5" />
+                          )}
                       </button>
                     </div>
                   </div>
@@ -309,8 +315,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                                     e.stopPropagation();
                                     setContextMember(contextMember === member.id ? null : member.id);
                                   }}
-                                  className={`p-1 rounded-md transition-colors cursor-pointer ${
-                                    contextMember === member.id ? "text-text/70 bg-surface" : "text-transparent group-hover:text-text/30 hover:text-text/60!"
+                                  className={`p-1 rounded-md transition-colors cursor-pointer ${contextMember === member.id ? "text-text/70 bg-surface" : "text-transparent group-hover:text-text/30 hover:text-text/60!"
                                   }`}
                                 >
                                   <MoreHorizontal className="w-3.5 h-3.5" />
@@ -349,7 +354,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                       <div className="flex items-center gap-2">
                         <FileText className="w-3.5 h-3.5 text-text-muted" />
                         <span className="text-[11px] font-semibold text-text-muted uppercase tracking-widest">
-                      Knowledges
+                          Knowledges
                         </span>
                         <span className="ml-auto text-[11px] text-text/25 bg-white/4 px-2 py-0.5 rounded-full">
                           {roleKnowledges.length}
@@ -368,7 +373,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                           ref={fileInputRef}
                           accept=".pdf,.png,.jpg,.jpeg"
                           className="hidden"
-                          onChange={(e) =>  handleUpload(e, fileInputRef)}
+                          onChange={(e) => handleUpload(e, fileInputRef)}
                         />
                       </div>
 
@@ -383,7 +388,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                               onClick={() => fileInputRef.current?.click()}
                               className="text-xs text-emerald-400/60 hover:text-emerald-400 transition-colors cursor-pointer"
                             >
-                            Upload PDF or image
+                              Upload PDF or image
                             </button>
                           </div>
                         )}
@@ -398,7 +403,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
                               setContextKnowledge(null);
                               setRenamingKnowledge(knowledge.id);
                             }}
-                            onSetContextOpen={() => setContextKnowledge(contextKnowledge === knowledge.id ? null: knowledge.id)}
+                            onSetContextOpen={() => setContextKnowledge(contextKnowledge === knowledge.id ? null : knowledge.id)}
                             onCloseContext={() => {
                               setContextKnowledge(null);
                             }}

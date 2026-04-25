@@ -7,11 +7,13 @@ import { getMe, login, register } from "../services/auth.service";
 import { useAuth } from "../hooks/useAuth";
 import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
 import RequestButton from "../../../shared/components/RequestButton";
+import { useQueryClient } from "@tanstack/react-query";
 
 type Tab = "login" | "register";
 
 function AuthModal() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   const [tab, setTab] = useState<Tab>("login");
   const [name, setName] = useState<string>("");
@@ -46,6 +48,9 @@ function AuthModal() {
 
       const res = await getMe();
       setUser(res.data);
+
+      queryClient.clear();
+
       navigate("/");
     } catch (err) {
       setError(handleCatch(err));
@@ -89,7 +94,7 @@ function AuthModal() {
           <h2 className="text-lg font-semibold text-text tracking-tight">
             {APP_CONFIG.APP_NAME}
           </h2>
-          <p className="text-xs text-text-muted mt-1">
+          <p className="text-sm text-text-muted mt-1">
             {tab === "login" ? "Welcome back" : `Start using ${APP_CONFIG.APP_NAME}`}
           </p>
         </div>
@@ -120,7 +125,7 @@ function AuthModal() {
           {/* Name */}
           {tab === "register" && (
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
+              <label className="text-sm font-medium text-text-muted tracking-wide">
                 Full name
                 {/*  */}
                 <input
@@ -136,7 +141,7 @@ function AuthModal() {
 
           {/* Email */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
+            <label className="text-sm font-medium text-text-muted tracking-wide">
               Email
               {/*  */}
               <input
@@ -152,7 +157,7 @@ function AuthModal() {
 
           {/* Password */}
           <div className="space-y-1.5">
-            <label className="text-xs font-medium text-text-muted uppercase tracking-wide">
+            <label className="text-sm font-medium text-text-muted tracking-wide">
               Password
               {/*  */}
               <div className="relative">
