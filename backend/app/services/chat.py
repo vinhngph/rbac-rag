@@ -215,17 +215,23 @@ class ChatService:
             messages.append({"role": msg.role.value, "content": msg.content})
 
         # Bottom Injection / Reminder
-        messages.append(
-            {
-                "role": "system",
-                "content": "Reminder: If the context document does NOT contain the answer to the next question, you MUST start your response with the '⚠️' warning in the user's language.",
-            }
-        )
+        # messages.append(
+        #     {
+        #         "role": "system",
+        #         "content": "Reminder: If the context document does NOT contain the answer to the next question, you MUST start your response with the '⚠️' warning in the user's language.",
+        #     }
+        # )
 
         # Bottom-most
-        messages.append({"role": "user", "content": user_chat_message.content})
+        messages.append(
+            {
+                "role": "user",
+                "content": f"""{user_chat_message.content}
 
-        print(messages)
+                [MANDATORY SYSTEM INSTRUCTION: If you must use your internal knowledge to answer the question above because it is not in the <CONTEXT_DOCUMENT>, you MUST start your response exactly with the '⚠️' warning symbol followed by a disclaimer in my language.]
+                """,
+            }
+        )
 
         ollama_client = AsyncClient(host=settings.OLLAMA_HOST)
         try:
