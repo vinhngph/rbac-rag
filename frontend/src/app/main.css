@@ -17,10 +17,27 @@
         font-style: italic;
         font-display: swap;
     }
+
+    @font-face {
+        font-family: "JetBrainsMono";
+        src: url("../assets/fonts/JetBrainsMono[wght].ttf") format("truetype");
+        font-weight: 100 800;
+        font-style: normal;
+        font-display: swap;
+    }
+
+    @font-face {
+        font-family: "JetBrainsMono";
+        src: url("../assets/fonts/JetBrainsMono-Italic[wght].ttf") format("truetype");
+        font-weight: 100 800;
+        font-style: italic;
+        font-display: swap;
+    }
 }
 
 @theme {
     --font-sans: "Merriweather", sans-serif;
+    --font-mono: "JetBrainsMono", monospace;
 
     --color-bg: var(--bg-base);
     --color-text: var(--text-base);
