@@ -121,6 +121,10 @@ class ChatService:
         if session_id not in user_session_ids:
             raise AppException(403, ErrorMessages.ACCESS_DENIED)
 
+        chat_messages_history = (
+            await self.chat_session_repo.get_chat_session_limit_messages(session_id, 10)
+        )
+
         user_message = await self.chat_message_repo.create(
             session_id, user_chat_message
         )
@@ -201,16 +205,27 @@ class ChatService:
         full_assistant_reply = ""
         ai_message_id = uuid4()
 
+        # Top System Prompt
         messages = [
             {"role": "system", "content": system_prompt},
         ]
 
-        # Chat history
-        chat_messages_history = (
-            await self.chat_session_repo.get_chat_session_limit_messages(session_id, 5)
-        )
+        # Chat History
         for msg in chat_messages_history:
             messages.append({"role": msg.role.value, "content": msg.content})
+
+        # Bottom Injection / Reminder
+        messages.append(
+            {
+                "role": "system",
+                "content": "Reminder: If the context document does NOT contain the answer to the next question, you MUST start your response with the '⚠️' warning in the user's language.",
+            }
+        )
+
+        # Bottom-most
+        messages.append({"role": "user", "content": user_chat_message.content})
+
+        print(messages)
 
         ollama_client = AsyncClient(host=settings.OLLAMA_HOST)
         try:
