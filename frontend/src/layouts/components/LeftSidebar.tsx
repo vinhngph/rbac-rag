@@ -10,6 +10,7 @@ import useChatSessions from "../../features/chat/hooks/useChatSessions";
 import type { ChatSessionRead } from "../../features/chat/services/chat.service";
 import ThemeToggleButton from "../../shared/components/ThemeToggleButton";
 import { useQueryClient } from "@tanstack/react-query";
+import { useDepartmentStore } from "../../features/departments/store/department.store";
 
 function ChatSessionItems({ sessions, activeChatId }: { sessions: ChatSessionRead[], activeChatId: string | null }) {
   const navigate = useNavigate();
@@ -50,6 +51,7 @@ function LeftSidebar() {
   const queryClient = useQueryClient();
 
   const { sessions, isLoadingSessions } = useChatSessions();
+  const { clearDepartments } = useDepartmentStore();
 
   const activeChatId = location.pathname.startsWith("/chat/") ? location.pathname.split("/")[2] : null;
 
@@ -63,6 +65,7 @@ function LeftSidebar() {
     } finally {
       setUser(null);
       setIsUserMenu(false);
+      clearDepartments();
       navigate("/auth");
     }
   };

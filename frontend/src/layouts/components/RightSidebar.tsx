@@ -5,20 +5,24 @@ import { Building2, PanelRightClose, PanelRightOpen, Plus } from "lucide-react";
 import DepartmentItem from "../../features/departments/components/DepartmentItem";
 import PromptModal from "../../shared/components/PromptModal";
 import { useDepartmentStore } from "../../features/departments/store/department.store";
+import { useToast } from "../../shared/toast";
 
 function RightSidebar() {
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const activeChatId = location.pathname.startsWith("/chat/") ? location.pathname.split("/")[2] : null;
+
   const [rightCollapsed, setRightCollapsed] = useState<boolean>(false);
   const [isAddingDepartment, setIsAddingDepartment] = useState<boolean>(false);
   const [newDepartmentName, setNewDepartmentName] = useState<string>("");
   const [renameTarget, setRenameTarget] = useState<{ id: string; name: string } | null>(null);
 
-  const location = useLocation();
-  const navigate = useNavigate();
-
+  const { error } = useToast();
   const { departments, handleAddDepartment, handleUpdateDepartment, handleDeleteDepartment } = useDepartments();
   const { checkedDepartments, toggleDepartment } = useDepartmentStore();
 
-  const handleAdd = async ()  =>{
+  const handleAdd = async () => {
     const name = newDepartmentName.trim();
     if (!name) return;
 
@@ -168,7 +172,13 @@ function RightSidebar() {
                       department={department}
                       isActive={location.pathname === `/department/${department.id}`}
                       isChecked={checkedDepartments.includes(department.id)}
-                      onToggleCheck={() => toggleDepartment(department.id)}
+                      onToggleCheck={() => {
+                        if (activeChatId) {
+                          error("You cannot change departments of an existing chat session.");
+                          return;
+                        }
+                        toggleDepartment(department.id);
+                      }}
                       onNavigate={handleDepartmentNavigate}
                       onRename={(id, name) => setRenameTarget({ id, name })}
                       onDelete={handleDelete}

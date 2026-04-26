@@ -4,6 +4,7 @@ interface DepartmentState {
     checkedDepartments: string[]
     toggleDepartment: (id: string) => void
     clearDepartments: () => void
+    setDepartments: (ids: string[]) => void
 }
 
 export const useDepartmentStore = create<DepartmentState>((set) => ({
@@ -17,5 +18,6 @@ export const useDepartmentStore = create<DepartmentState>((set) => ({
       return { checkedDepartments: [...state.checkedDepartments, id] };
     }
   }),
-  clearDepartments: () => set({ checkedDepartments:[] })
+  clearDepartments: () => set({ checkedDepartments:[] }),
+  setDepartments: (ids: string[]) => set({ checkedDepartments: ids }),
 }));

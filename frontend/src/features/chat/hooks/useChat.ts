@@ -2,6 +2,8 @@ import { useCallback, useEffect, useState } from "react";
 import { APP_CONFIG } from "../../../core/config";
 import { fetchEventSource } from "@microsoft/fetch-event-source";
 import { chatService } from "../services/chat.service";
+import useChatSessions from "./useChatSessions";
+import { useDepartmentStore } from "../../departments/store/department.store";
 
 export interface ChatMessage {
   id: string,
@@ -22,8 +24,19 @@ function useChat(sessionId: string | null) {
     setMessages([]);
   }
 
+  const { sessions } = useChatSessions();
+  const { setDepartments, clearDepartments } = useDepartmentStore();
+
   useEffect(() => {
-    if (!sessionId) return;
+    if (!sessionId) {
+      clearDepartments();
+      return;
+    };
+
+    const currentSession = sessions.find(s => s.id === sessionId);
+    if (currentSession?.department_ids) {
+      setDepartments(currentSession.department_ids);
+    }
 
     const fetchHistory = async () => {
       try {
