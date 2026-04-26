@@ -1,4 +1,4 @@
-import { memo, useEffect, useRef, useState } from "react";
+import { memo, useCallback, useEffect, useRef, useState } from "react";
 import { Bot, Check, Copy, Send, SquareLibrary } from "lucide-react";
 
 import { APP_CONFIG } from "../core/config";
@@ -174,6 +174,12 @@ function Home() {
     }
   };
 
+  const handleOpenSources = useCallback((msgId: string) => {
+    if (activeChatId) {
+      setSourceModalData({ sessionId: activeChatId, messageId: msgId });
+    }
+  }, [activeChatId]);
+
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key == "Enter" && !e.shiftKey) {
       e.preventDefault();
@@ -210,11 +216,7 @@ function Home() {
           // CHAT MESSAGES
           <div className="max-w-3xl mx-auto px-4 py-6 space-y-6">
             {user && messages.map((msg) => (
-              <MessageItem key={msg.id} msg={msg} user={user} onOpenSources={(msgId) => {
-                if (activeChatId) {
-                  setSourceModalData({ sessionId: activeChatId, messageId: msgId });
-                }
-              }} />
+              <MessageItem key={msg.id} msg={msg} user={user} onOpenSources={handleOpenSources} />
             ))}
 
             {/* Loading indicator */}
