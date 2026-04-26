@@ -1,10 +1,13 @@
 import Markdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import rehypeHighlight from "rehype-highlight";
+import rehypeKatex from "rehype-katex";
 import type React from "react";
 import type { HTMLAttributes } from "react";
 
 import "highlight.js/styles/github-dark.css";
+import "katex/dist/katex.min.css";
 
 function CodeBlock({ className, children, ...props }: Readonly<{ className?: string, children?: React.ReactNode }>) {
   const isInline =
@@ -64,8 +67,8 @@ function BlockQuote(props: Readonly<HTMLAttributes<HTMLQuoteElement>>) {
 function MarkdownRenderer({ content }: { readonly content: string }) {
   return (
     <Markdown
-      remarkPlugins={[remarkGfm]}
-      rehypePlugins={[rehypeHighlight]}
+      remarkPlugins={[remarkGfm, remarkMath]}
+      rehypePlugins={[rehypeHighlight, rehypeKatex]}
       skipHtml
       components={{
         code: CodeBlock,
