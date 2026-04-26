@@ -52,3 +52,18 @@ class ChatSessionRepository(BaseRepository[ChatSession]):
             .order_by(col(ChatMessage.updated_at).asc())
         )
         return list((await self.db.exec(stm)).all())
+
+    async def get_chat_session_limit_messages(
+        self, session_id: UUID, limit: int = 5
+    ) -> List[ChatMessage]:
+        stm = (
+            select(ChatMessage)
+            .where(ChatMessage.session_id == session_id)
+            .order_by(col(ChatMessage.updated_at).desc())
+            .limit(limit)
+        )
+
+        messages = list((await self.db.exec(stm)).all())
+        messages.reverse()
+
+        return messages

@@ -201,30 +201,16 @@ class ChatService:
         full_assistant_reply = ""
         ai_message_id = uuid4()
 
-        # if not context_text.strip():
-        #     full_assistant_reply = "I could not find the information in the system."
-
-        #     assistant_msg_create = ChatMessage(
-        #         id=ai_message_id,
-        #         role=ChatMessageRole.ASSISTANT,
-        #         content=full_assistant_reply,
-        #         session_id=session_id,
-        #         knowledge_ids=[],
-        #     )
-
-        #     yield assistant_msg_create
-
-        #     self.db.add(assistant_msg_create)
-        #     await self.db.flush()
-        #     await self.chat_session_repo.touch_chat_session_timestamp(session_id)
-        #     await self.db.commit()
-
-        #     return
-
         messages = [
             {"role": "system", "content": system_prompt},
-            {"role": "user", "content": user_chat_message.content},
         ]
+
+        # Chat history
+        chat_messages_history = (
+            await self.chat_session_repo.get_chat_session_limit_messages(session_id, 5)
+        )
+        for msg in chat_messages_history:
+            messages.append({"role": msg.role.value, "content": msg.content})
 
         ollama_client = AsyncClient(host=settings.OLLAMA_HOST)
         try:
