@@ -32,6 +32,7 @@ function PromptModal({ title, initialName, onConfirm, onCancel }: PromptModalPro
         <h3 className="text-sm font-semibold text-text mb-3">{title}</h3>
         <input
           ref={nameRef}
+          autoFocus
           type="text"
           value={name}
           onChange={(e) => setName(e.target.value)}

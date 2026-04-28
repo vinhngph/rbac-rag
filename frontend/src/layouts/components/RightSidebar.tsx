@@ -141,8 +141,8 @@ function RightSidebar() {
 
             {/* Knowledge context badge */}
             {(checkedDepartments.length > 0) && (
-              <div className="mx-3 mt-2.5 px-2.5 py-1.5 bg-emerald-500/8 border border-emerald-500/15 rounded-xl">
-                <p className="text-[11px] text-emerald-400/80 leading-snug">
+              <div className="mx-3 mt-2.5 px-2.5 py-1.5 bg-emerald-500/8 border border-emerald-500/15 rounded-md">
+                <p className="text-sm text-emerald-400/80 leading-snug">
                   Chat uses{" "}
                   <span className="font-semibold text-emerald-400">
                     {`${checkedDepartments.length} department${checkedDepartments.length > 1 ? "s" : ""}`}
