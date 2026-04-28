@@ -163,8 +163,8 @@ class ChatService:
                     if not user_permissions:
                         raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
-                    if not self.permission_repo.has_all_permissions(
-                        user_permissions, [PermissionName.VIEW]
+                    if not self.permission_repo.has_any_permissions(
+                        user_permissions, [PermissionName.VIEW, PermissionName.EDIT]
                     ):
                         raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 

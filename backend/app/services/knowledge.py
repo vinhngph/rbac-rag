@@ -83,8 +83,8 @@ class KnowledgeService:
             if not user_permissions:
                 raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
-            if not self.permission_repo.has_all_permissions(
-                user_permissions, [PermissionName.VIEW]
+            if not self.permission_repo.has_any_permissions(
+                user_permissions, [PermissionName.VIEW, PermissionName.EDIT]
             ):
                 raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
@@ -167,12 +167,21 @@ class KnowledgeService:
         if not knowledge:
             raise AppException(404, "Knowledge not found")
 
-        if not await self.can_user_access(
-            user,
-            knowledge,
-            [PermissionName.EDIT, PermissionName.VIEW],
+        knowledge_role = await self.role_repo.get_by_id(knowledge.role_id)
+        if not knowledge_role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
+
+        if not await self.role_repo.can_user_edit_role(
+            user, knowledge_role, strict_higher=True
         ):
-            raise AppException(403, "Knowledge access denied.")
+            user_permissions = await self.permission_repo.get_user_role_permissions(
+                user_id=user.id, role_id=knowledge.role_id
+            )
+
+            if not self.permission_repo.has_all_permissions(
+                user_permissions, [PermissionName.EDIT]
+            ):
+                raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
         trash_role = await self.role_repo.get_trash_role()
         if not trash_role:
@@ -197,14 +206,23 @@ class KnowledgeService:
         if not knowledge:
             raise AppException(404, ErrorMessages.KNOWLEDGE_NOT_FOUND)
 
-        user_permissions = await self.permission_repo.get_user_role_permissions(
-            current_user.id, knowledge.role_id
-        )
+        knowledge_role = await self.role_repo.get_by_id(knowledge.role_id)
+        if not knowledge_role:
+            raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
 
-        if not self.permission_repo.has_all_permissions(
-            user_permissions, [PermissionName.VIEW]
+        if not (
+            await self.role_repo.can_user_edit_role(
+                current_user, knowledge_role, strict_higher=True
+            )
         ):
-            raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
+            user_permissions = await self.permission_repo.get_user_role_permissions(
+                current_user.id, knowledge.role_id
+            )
+
+            if not self.permission_repo.has_any_permissions(
+                user_permissions, [PermissionName.VIEW, PermissionName.EDIT]
+            ):
+                raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
         store_service = StoreService()
 

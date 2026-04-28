@@ -42,3 +42,8 @@ class PermissionRepository(BaseRepository[Permission]):
         self, granted: List[PermissionName], required: List[PermissionName]
     ) -> bool:
         return set(required).issubset(set(granted))
+
+    def has_any_permissions(
+        self, granted: List[PermissionName], required: List[PermissionName]
+    ) -> bool:
+        return bool(set(granted) & set(required))
