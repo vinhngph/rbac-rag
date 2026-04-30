@@ -206,9 +206,6 @@ marimo/_static/
 marimo/_lsp/
 __marimo__/
 
-# alembic
-migrations/versions/*
-
 # storage
 storage/quarantine
 storage/safe
