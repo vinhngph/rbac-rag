@@ -43,18 +43,17 @@ class KnowledgeService:
         if not role:
             raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
 
-        if not await self.role_repo.can_user_edit_role(user, role, strict_higher=True):
-            user_permissions = await self.permission_repo.get_user_role_permissions(
-                user.id, role_id
-            )
+        user_permissions = await self.permission_repo.get_user_role_permissions(
+            user.id, role_id
+        )
 
-            if not user_permissions:
-                raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
+        if not user_permissions:
+            raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
-            if not self.permission_repo.has_all_permissions(
-                user_permissions, [PermissionName.EDIT, PermissionName.VIEW]
-            ):
-                raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
+        if not self.permission_repo.has_all_permissions(
+            user_permissions, [PermissionName.EDIT]
+        ):
+            raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
         zero_trust = ZeroTrust()
         knowledge = await zero_trust.execute_security_pipeline(file, user.id, role_id)
@@ -171,17 +170,14 @@ class KnowledgeService:
         if not knowledge_role:
             raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
 
-        if not await self.role_repo.can_user_edit_role(
-            user, knowledge_role, strict_higher=True
-        ):
-            user_permissions = await self.permission_repo.get_user_role_permissions(
-                user_id=user.id, role_id=knowledge.role_id
-            )
+        user_permissions = await self.permission_repo.get_user_role_permissions(
+            user_id=user.id, role_id=knowledge.role_id
+        )
 
-            if not self.permission_repo.has_all_permissions(
-                user_permissions, [PermissionName.EDIT]
-            ):
-                raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
+        if not self.permission_repo.has_all_permissions(
+            user_permissions, [PermissionName.EDIT]
+        ):
+            raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
         trash_role = await self.role_repo.get_trash_role()
         if not trash_role:
