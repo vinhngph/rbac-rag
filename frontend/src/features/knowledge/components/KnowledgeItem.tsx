@@ -82,6 +82,7 @@ function KnowledgeItem({ knowledge, roleId, isRenaming, isContextOpen, onSetPrev
     <div
       key={knowledge.id}
       className="group flex items-center gap-2.5 py-2 px-2.5 rounded-xl hover:bg-surface-hover transition-colors cursor-pointer"
+      title={`${knowledge.name}.${knowledge.type}`}
     >
       {fileIcon(knowledge.type)}
       <div className="flex-1 min-w-0">

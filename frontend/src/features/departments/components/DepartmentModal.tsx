@@ -128,7 +128,7 @@ function DepartmentModal({ id }: DepartmentModalProps) {
           {/* Left: Roles Tree */}
           <div className="w-64 shrink-0 border-r border-border-subtle flex flex-col bg-bg-sidebar">
             <div className="px-3 py-2.5 border-b border-border-subtle">
-              <p className="text-sm font-semibold text-text uppercase tracking-widest">Roles</p>
+              <p className="text-sm font-semibold text-text uppercase tracking-widest">Child roles</p>
             </div>
             <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
               {!isLoadingRoles && childRoles.length === 0 && !showNewRole && (
