@@ -240,6 +240,7 @@ class ChatService:
                 messages=messages,
                 stream=True,
                 options={"temperature": 0.0},
+                keep_alive=-1
             )
 
             async for chunk in response_stream:
