@@ -55,7 +55,7 @@ services:
     ports:
       - "8000:8000"
     volumes:
-      - "./storage:/app/storage"
+      - storage-volume:/app/storage
       - huggingface-volume:/root/.cache/huggingface/hub/
     devices:
       - "nvidia.com/gpu=all"
@@ -77,3 +77,4 @@ volumes:
   vector_database-volume:
   ollama-volume:
   huggingface-volume:
+  storage-volume:
