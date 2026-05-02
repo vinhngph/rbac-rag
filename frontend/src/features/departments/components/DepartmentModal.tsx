@@ -84,16 +84,17 @@ function DepartmentModal({ id }: DepartmentModalProps) {
         {/* Header */}
         <div className="flex items-center gap-3 px-5 py-3.5 border-b border-border-subtle shrink-0">
           {/* Breadcrumb */}
-          <div className="flex items-center gap-1 flex-1 min-w-0 overflow-hidden">
+          <div className="flex items-center gap-1 flex-1 min-w-0 overflow-x-auto whitespace-nowrap scroll-smooth pb-1">
             <button
               onClick={() => navigateRole(rootRole?.id ?? null)}
-              className="font-semibold text-emerald-400/90 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer"
+              title={rootRole?.name}
+              className="font-semibold text-emerald-400/90 hover:text-emerald-400 transition-colors shrink-0 cursor-pointer truncate max-w-37.5 sm:max-w-50"
             >
               {rootRole?.name}
             </button>
             {breadcrumb.slice(1).map((role) => (
               <span key={role.id} className="flex items-center gap-1 shrink-0">
-                <ChevronRight className="w-3.5 h-3.5 text-text/20" />
+                <ChevronRight className="w-3.5 h-3.5 text-text/20 shrink-0" />
                 <button
                   onClick={() => navigateRole(role.id)}
                   className={`transition-colors cursor-pointer ${role.id === currentRole?.id ? "text-text font-medium" : "text-text-muted hover:text-text/80"}`}
