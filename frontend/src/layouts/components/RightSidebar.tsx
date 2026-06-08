@@ -154,7 +154,7 @@ function RightSidebar() {
             )}
             {/* List active departments */}
             <div className="flex-1 overflow-y-auto px-2 py-2 space-y-0.5">
-              {departments.length === 0
+              {!departments || departments.length === 0
                 ? <div className="flex flex-col items-center justify-center h-32 gap-2">
                   <Building2 className="w-7 h-7 text-text/10" />
                   <p className="text-xs text-text/25">No departments yet</p>
