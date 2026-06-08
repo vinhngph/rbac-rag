@@ -16,7 +16,7 @@ function ChatSessionItems({ sessions, activeChatId }: { sessions: ChatSessionRea
   const navigate = useNavigate();
 
   return (
-    sessions.length === 0
+    (!Array.isArray(sessions) || sessions.length === 0)
       ? (
         <p className="text-center text-xs text-text-muted mt-4">No chats yet</p>
       )
