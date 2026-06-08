@@ -3,7 +3,7 @@ interface UserAvatarProps {
     readonly name: string
 }
 
-function UserAvatar({ avatar_url, name } : UserAvatarProps){
+function UserAvatar({ avatar_url, name = "?" } : UserAvatarProps){
   return (
     <>
       {avatar_url
