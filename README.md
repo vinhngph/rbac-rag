@@ -77,17 +77,17 @@ This flowchart details the critical decision points, ensuring that security chec
 
 ```mermaid
 graph TD
-    A[User Submits Query] --> B{Validate User Credentials & Role};
-    B -- Unauthorized --> C[Return: Access Denied (403)];
-    B -- Authorized --> D[Query -> Embedding];
-    D --> E{Check Policy against Scope?};
-    E -- No Data/Context Allowed --> F[Return: Cannot find relevant context for this role.];
-    E -- Yes, Context Required --> G[Search Vector DB (Qdrant)];
-    G --> H{Did Qdrant return relevant chunks?};
-    H -- No Chunks Found --> I[Return: Knowledge base suggests no related documents.]
-    H -- Chunks Found --> J[Assemble Prompt (Query + Chunks) and Send to LLM];
-    J --> K[LLM Generates Final Answer based ONLY on context];
-    K --> L[Return: Contextualized Answer to User]
+    A["User Submits Query"] --> B{"Validate User Credentials & Role"}
+    B -- Unauthorized --> C["Return: Access Denied (403)"]
+    B -- Authorized --> D["Query -> Embedding"]
+    D --> E{"Check Policy against Scope?"}
+    E -- No Data/Context Allowed --> F["Return: Cannot find relevant context for this role."]
+    E -- Yes, Context Required --> G["Search Vector DB (Qdrant)"]
+    G --> H{"Did Qdrant return relevant chunks?"}
+    H -- No Chunks Found --> I["Return: Knowledge base suggests no related documents."]
+    H -- Chunks Found --> J["Assemble Prompt (Query + Chunks) and Send to LLM"]
+    J --> K["LLM Generates Final Answer based ONLY on context"]
+    K --> L["Return: Contextualized Answer to User"]
 ```
 ---
 
