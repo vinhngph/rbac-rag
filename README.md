@@ -35,12 +35,60 @@ RBAC-RAG is a microservices architecture deployed via `docker-compose`, ensuring
 5.  **Ollama (LLM Provider):** Hosts local Large Language Models (LLMs), which receive the retrieved context and formulate the final, coherent answer text.
 
 ### 💡 Data Flow Example: A User Queries Knowledge
-1.  **User Query:** The Frontend sends a query to the **Backend API**.
-2.  **Authorization Check:** The Backend consults **PostgreSQL** to determine if the user's role/permissions allow access to the content related to this query. (RBAC Enforcement).
-3.  **Retrieval:** If authorized, the query is converted into an embedding and sent to **Qdrant**, which returns the top $k$ relevant document chunks.
-4.  **Generation:** The Backend passes these retrieved chunks *and* the original query to the LLM running on **Ollama**.
-5.  **Response:** Ollama generates a synthesized answer based only on the provided context, and the Backend streams this final, secure response back to the Frontend.
 
+The system flow involves two critical stages: authorization using RBAC, and knowledge synthesis using RAG.
+
+#### System Interaction Sequence
+This sequence diagram illustrates how a user's query moves through the microservices architecture to produce a secure answer.
+
+```mermaid
+sequenceDiagram
+    participant U as User
+    participant FE as Frontend UI
+    participant BE as Backend API
+    participant DB as PostgreSQL (RBAC)
+    participant VDB as Qdrant (Vector Search)
+    participant LLM as Ollama (LLM Model)
+
+    U->>FE: 1. Submit Query + Auth Context
+    FE->>BE: 2. /query endpoint(Query, UserID)
+    activate BE
+        BE->>DB: 3. Check Permissions (UserScope?)
+        alt Authorized?
+            DB-->>BE: Yes (Return Allowed Scope/Policy)
+            BE->>VDB: 4. Embed Query & Search Vectors
+            activate VDB
+            VDB-->>BE: 5. Relevant Document Chunks (Context)
+            deactivate VDB
+            BE->>LLM: 6. Generate Answer(Query, Context)
+            activate LLM
+            LLM-->>BE: 7. Synthesized Answer
+            deactivate LLM
+            BE-->>FE: 8. Final Secure Response
+        else Unauthorized
+            BE-->>FE: Access Denied / Error (403 Forbidden)
+        end
+    deactivate BE
+    FE->>U: Display Result/Error
+```
+
+#### Step-by-Step Logic Flow (RBAC + RAG Pipeline)
+This flowchart details the critical decision points, ensuring that security checks occur before any resource-intensive retrieval or generation steps.
+
+```mermaid
+graph TD
+    A[User Submits Query] --> B{Validate User Credentials & Role};
+    B -- Unauthorized --> C[Return: Access Denied (403)];
+    B -- Authorized --> D[Query -> Embedding];
+    D --> E{Check Policy against Scope?};
+    E -- No Data/Context Allowed --> F[Return: Cannot find relevant context for this role.];
+    E -- Yes, Context Required --> G[Search Vector DB (Qdrant)];
+    G --> H{Did Qdrant return relevant chunks?};
+    H -- No Chunks Found --> I[Return: Knowledge base suggests no related documents.]
+    H -- Chunks Found --> J[Assemble Prompt (Query + Chunks) and Send to LLM];
+    J --> K[LLM Generates Final Answer based ONLY on context];
+    K --> L[Return: Contextualized Answer to User]
+```
 ---
 
 ## 🚀 Getting Started (Local Development)
