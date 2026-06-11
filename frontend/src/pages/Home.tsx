@@ -6,14 +6,13 @@ import useChat, { type ChatMessage } from "../features/chat/hooks/useChat";
 import { useLocation, useNavigate } from "react-router";
 import useChatSessions from "../features/chat/hooks/useChatSessions";
 import { useDepartmentStore } from "../features/departments/store/department.store";
-import UserAvatar from "../shared/components/UserAvatar";
 import { useAuth } from "../features/auth/hooks/useAuth";
 import MarkdownRenderer from "../shared/components/MarkdownRenderer";
 import type { User } from "../features/auth/context/auth.context";
 import MessageSources from "../features/chat/components/MessageSources";
 import { useToast } from "../shared/toast";
 
-const MessageItem = memo(({ msg, user, onOpenSources }: { msg: ChatMessage, user: User, onOpenSources: (msgId: string) => void }) => {
+const MessageItem = memo(({ msg, onOpenSources }: { msg: ChatMessage, user: User, onOpenSources: (msgId: string) => void }) => {
   const [isCopied, setIsCopied] = useState(false);
   const { success, error } = useToast();
 
@@ -36,12 +35,6 @@ const MessageItem = memo(({ msg, user, onOpenSources }: { msg: ChatMessage, user
 
   return (
     <div className={`flex gap-3 ${msg.role === "user" ? "justify-end" : ""}`}>
-      {msg.role === "assistant" && (
-        <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400/20 to-cyan-500/20 border border-emerald-400/20 flex items-center justify-center shrink-0 mt-0.5">
-          <Bot className="w-4 h-4 text-emerald-400" />
-        </div>
-      )}
-
       <div className={`${msg.role === "user" ? "max-w-[75%]" : "flex-1 min-w-0"}`}>
         {msg.role === "user"
           ? <div className="bg-surface-active rounded-[20px] rounded-br-md px-4 py-2.5 text-text leading-relaxed">
@@ -97,10 +90,6 @@ const MessageItem = memo(({ msg, user, onOpenSources }: { msg: ChatMessage, user
           </div>
         }
       </div>
-
-      {msg.role === "user" && (
-        <UserAvatar avatar_url={user?.avatar_url} name={user?.name ?? ""} />
-      )}
     </div>
   );
 });
@@ -222,13 +211,10 @@ function Home() {
             {/* Loading indicator */}
             {isLoading && messages.at(-1)?.role !== "assistant" && (
               <div className="flex gap-3">
-                <div className="w-8 h-8 rounded-full bg-linear-to-br from-emerald-400/20 to-cyan-500/20 border border-emerald-400/20 flex items-center justify-center shrink-0">
-                  <Bot className="w-4 h-4 text-emerald-400" />
-                </div>
                 <div className="flex items-center gap-1 pt-2">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400/60 animate-bounce [animation-delay:0ms]"></span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400/60 animate-bounce [animation-delay:150ms]"></span>
-                  <span className="w-2 h-2 rounded-full bg-emerald-400/60 animate-bounce [animation-delay:300ms]"></span>
+                  <span className="w-2 h-2 rounded-full bg-text animate-bounce [animation-delay:0ms]"></span>
+                  <span className="w-2 h-2 rounded-full bg-text animate-bounce [animation-delay:150ms]"></span>
+                  <span className="w-2 h-2 rounded-full bg-text animate-bounce [animation-delay:300ms]"></span>
                 </div>
               </div>
             )}
