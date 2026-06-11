@@ -71,7 +71,7 @@ function LeftSidebar() {
   };
 
   return (
-    <aside className={`flex flex-col transition-all duration-300 ease-in-out bg-bg-sidebar border-r border-border-subtle ${leftCollapsed ? "w-15" : "w-65"}`}>
+    <aside className={`flex flex-col transition-all duration-300 ease-in-out bg-bg-sidebar border-r border-border-subtle ${leftCollapsed ? "w-15" : "w-70"}`}>
       {/* Top bar */}
       <div className="flex items-center justify-between px-3 py-3 h-13">
         {!leftCollapsed && (
