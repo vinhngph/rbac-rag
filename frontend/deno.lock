@@ -16,6 +16,7 @@
     "npm:eslint@10.1.0": "10.1.0",
     "npm:globals@17.4.0": "17.4.0",
     "npm:highlight.js@11.11.1": "11.11.1",
+    "npm:katex@0.17": "0.17.0",
     "npm:lucide-react@1.7.0": "1.7.0_react@19.2.4",
     "npm:react-dom@19.2.4": "19.2.4_react@19.2.4",
     "npm:react-markdown@10.1.0": "10.1.0_@types+react@19.2.14_react@19.2.4",
@@ -1336,6 +1337,13 @@
       ],
       "bin": true
     },
+    "katex@0.17.0": {
+      "integrity": "sha512-Vdw0ATsQ9V+LuegM/BTwQqV/6cTl5lbGcIrU+BCgLxyf6bo38ybOr372tuSIxir3CN720flu1meYR6XzNMwQnw==",
+      "dependencies": [
+        "commander"
+      ],
+      "bin": true
+    },
     "keyv@4.5.4": {
       "integrity": "sha512-oxVHkHR/EJf2CNXnWxRLW6mg7JyCCUcG0DtEGmL2ctUo1PNTin1PUil+r/+4r5MpVgC/fn1kjsx7mjSujKqIpw==",
       "dependencies": [
@@ -1761,7 +1769,7 @@
       "dependencies": [
         "@types/katex",
         "devlop",
-        "katex",
+        "katex@0.16.47",
         "micromark-factory-space",
         "micromark-util-character",
         "micromark-util-symbol",
@@ -2106,7 +2114,7 @@
         "@types/katex",
         "hast-util-from-html-isomorphic",
         "hast-util-to-text",
-        "katex",
+        "katex@0.16.47",
         "unist-util-visit-parents",
         "vfile"
       ]
@@ -2469,6 +2477,7 @@
         "npm:eslint@10.1.0",
         "npm:globals@17.4.0",
         "npm:highlight.js@11.11.1",
+        "npm:katex@0.17",
         "npm:lucide-react@1.7.0",
         "npm:react-dom@19.2.4",
         "npm:react-markdown@10.1.0",
