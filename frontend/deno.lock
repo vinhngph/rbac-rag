@@ -45,8 +45,8 @@
     "@babel/compat-data@7.29.7": {
       "integrity": "sha512-locTkQyKvwIEgBzVrn8693ebc97F2U8ZHjbXwDXJ5Fn2TCpNwTlKcaKLkdHop5c/icOFE7qt7Q9JC5hnKNa6Gg=="
     },
-    "@babel/core@7.29.7": {
-      "integrity": "sha512-RgHBCvtjbOK2gXSNBNIkNoEc9qoVEtau3hj8gEqKQuL3HZAibKarWFEI3Lfm6EYKkLalOh8eSrj9b+ch9H/VBA==",
+    "@babel/core@7.29.6": {
+      "integrity": "sha512-QdxmAo/ikZqqRGA8s43ww8lcql6naWRvEz0FFrl6MIlc7Gi6TroXnSdWa5U/kq6fzcpqpHesicQxFZIieZbyIA==",
       "dependencies": [
         "@babel/code-frame",
         "@babel/generator",
@@ -95,7 +95,7 @@
         "@babel/types"
       ]
     },
-    "@babel/helper-module-transforms@7.29.7_@babel+core@7.29.7": {
+    "@babel/helper-module-transforms@7.29.7_@babel+core@7.29.6": {
       "integrity": "sha512-UPUVSyXbOh627KiCIGQSgwWzGeBKLkaJ9PJEdrngIwMSzxLR4jS4+f1f1jb7VzBbg8nFLaYotvVPFCTqdrmTAg==",
       "dependencies": [
         "@babel/core",
@@ -2485,7 +2485,10 @@
         "npm:vite@8.0.16",
         "npm:zod@4.3.6",
         "npm:zustand@5.0.12"
-      ]
+      ],
+      "overrides": {
+        "@babel/core": "7.29.6"
+      }
     }
   }
 }
