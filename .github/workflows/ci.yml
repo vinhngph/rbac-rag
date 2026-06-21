@@ -13,30 +13,34 @@ jobs:
         steps:
             - name: Checkout repository
               uses: actions/checkout@v6
-            
+
             - name: Setup Socket Firewall Free
               uses: socketdev/action@v1
               with:
-                mode: firewall-free
+                  mode: firewall-free
 
             - name: Setup Python
               uses: actions/setup-python@v6
               with:
-                python-version: "3.13.5"
-            
+                  python-version: "3.13.5"
+
             - name: Install Backend Dependencies
               working-directory: ./backend
               run: sfw pip install -r requirements.txt
 
-            - name: Setup Node.js
-              uses: actions/setup-node@v6
+            - name: Setup Deno
+              uses: denoland/setup-deno@v2
               with:
-                node-version: "24"
-            
+                  deno-version: v2.x
+
             - name: Install Frontend Dependencies
               working-directory: ./frontend
-              run: sfw npm install --legacy-peer-deps
+              run: deno install
+
+            - name: Audit Frontend dependencies
+              working-directory: ./frontend
+              run: deno audit --socket
 
             - name: Build Frontend
               working-directory: ./frontend
-              run: npm run build
+              run: deno task build
