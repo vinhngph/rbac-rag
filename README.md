@@ -1,4 +1,6 @@
-# 🧠 RBAC-RAG: Enterprise Knowledge Management System
+<div align="center">
+    <img src="./docs/assets/rbac-rag.png" alt="" align="center"/>
+</div>
 
 ## Overview
 
@@ -8,22 +10,22 @@ By combining Retrieval-Augmented Generation (RAG) with robust access control mec
 
 ---
 
-## ✨ Key Features
+## Key Features
 
-### 📚 Knowledge Retrieval (RAG)
+### Knowledge Retrieval (RAG)
 *   **Semantic Search:** Documents are chunked and embedded into a vector database (Qdrant), enabling semantic searches that understand the *meaning* of queries, not just keywords.
 *   **Contextual Generation:** The system retrieves the most relevant knowledge snippets from proprietary documents and passes them to an LLM for accurate answer generation, drastically reducing hallucinations.
 
-### 🔒 Role-Based Access Control (RBAC)
+### Role-Based Access Control (RBAC)
 *   **Granular Permissions:** Every piece of data and every query result is filtered based on user roles, departments, and explicit permissions managed via PostgreSQL.
 *   **Data Segregation:** Users are guaranteed to only see information they are authorized to access, critical for maintaining security in an enterprise setting.
 
-### 💻 Modern Web Interface
+### Modern Web Interface
 *   The system features a responsive frontend allowing users to interact with the knowledge base through a clean, intuitive chat interface.
 
 ---
 
-## ⚙️ Architecture & Technology Stack
+## Architecture & Technology Stack
 
 RBAC-RAG is a microservices architecture deployed via `docker-compose`, ensuring scalability and modularity.
 
@@ -34,122 +36,19 @@ RBAC-RAG is a microservices architecture deployed via `docker-compose`, ensuring
 4.  **Qdrant (Vector Database):** Specialized database for storing document embeddings (vectors). It handles the fast retrieval of semantically similar knowledge chunks.
 5.  **Ollama (LLM Provider):** Hosts local Large Language Models (LLMs), which receive the retrieved context and formulate the final, coherent answer text.
 
-### 💡 Data Flow Example: A User Queries Knowledge
-
-The system flow involves two critical stages: authorization using RBAC, and knowledge synthesis using RAG.
-
-#### System Interaction Sequence
-This sequence diagram illustrates how a user's query moves through the microservices architecture to produce a secure answer.
-
-```mermaid
-sequenceDiagram
-    participant U as User
-    participant FE as Frontend UI
-    participant BE as Backend API
-    participant DB as PostgreSQL (RBAC)
-    participant VDB as Qdrant (Vector Search)
-    participant LLM as Ollama (LLM Model)
-
-    U->>FE: 1. Submit Query + Auth Context
-    FE->>BE: 2. /query endpoint(Query, UserID)
-    activate BE
-        BE->>DB: 3. Check Permissions (UserScope?)
-        alt Authorized?
-            DB-->>BE: Yes (Return Allowed Scope/Policy)
-            BE->>VDB: 4. Embed Query & Search Vectors
-            activate VDB
-            VDB-->>BE: 5. Relevant Document Chunks (Context)
-            deactivate VDB
-            BE->>LLM: 6. Generate Answer(Query, Context)
-            activate LLM
-            LLM-->>BE: 7. Synthesized Answer
-            deactivate LLM
-            BE-->>FE: 8. Final Secure Response
-        else Unauthorized
-            BE-->>FE: Access Denied / Error (403 Forbidden)
-        end
-    deactivate BE
-    FE->>U: Display Result/Error
-```
-
-#### Step-by-Step Logic Flow (RBAC + RAG Pipeline)
-This flowchart details the critical decision points, ensuring that security checks occur before any resource-intensive retrieval or generation steps.
-
-```mermaid
-graph TD
-    A["User Submits Query"] --> B{"Validate User Credentials & Role"}
-    B -- Unauthorized --> C["Return: Access Denied (403)"]
-    B -- Authorized --> D["Query -> Embedding"]
-    D --> E{"Check Policy against Scope?"}
-    E -- No Data/Context Allowed --> F["Return: Cannot find relevant context for this role."]
-    E -- Yes, Context Required --> G["Search Vector DB (Qdrant)"]
-    G --> H{"Did Qdrant return relevant chunks?"}
-    H -- No Chunks Found --> I["Return: Knowledge base suggests no related documents."]
-    H -- Chunks Found --> J["Assemble Prompt (Query + Chunks) and Send to LLM"]
-    J --> K["LLM Generates Final Answer based ONLY on context"]
-    K --> L["Return: Contextualized Answer to User"]
-```
 ---
 
-## 🚀 Getting Started (Local Development)
+## Local Development
 
-### Prerequisites
-You must have Python 3.10+ (`pipenv` or `venv`), Node.js/NPM, and Docker installed for containerized setup.
-
-### Option 1: Containerized Setup (Recommended)
-For the full stack experience with services like PostgreSQL, Qdrant, and Ollama running in isolation, use `docker-compose`.
-
-**Setup Steps:**
-1.  **Set up Environment Variables:** Create a `.env` file in the root directory and define your database credentials:
-    ```bash
-    # Example .env content
-    POSTGRES_USER=user
-    POSTGRES_PASSWORD=password
-    POSTGRES_DB=rbac_db
-    ```
-2.  **Run Stack:** Use `docker compose up` to build and run all necessary services, then run migrations:
-    ```bash
-    # 1. Build/Start all services in detached mode
-    docker compose up -d 
-    # Wait a moment for Postgres/Qdrant initialization, then run database migrations:
-    docker compose exec backend alembic upgrade head
-    ```
-
-### Option 2: Local Stack Setup (For Development Workflow)
-
-#### 💻 Backend API Setup (`backend/`)
-This setup assumes you have an external running PostgreSQL instance and Qdrant accessible.
-1.  **Setup Virtual Environment:** Navigate to the `backend` directory and set up a virtual environment, then install dependencies:
-    ```bash
-    python -m venv .venv
-    source .venv/bin/activate # On Windows use .venv\Scripts\activate
-    pip install -r requirements.txt
-    ```
-2.  **Environment Variables:** Create or update the `.env` file in the `backend` directory with necessary credentials.
-3.  **Run Migrations:** Run database migrations manually to ensure schema correctness:
-    ```bash
-    alembic upgrade head
-    # Run the backend service directly (adjust command based on your framework)
-    export FLASK_APP=./app
-    flask run --host 0.0.0.0 --port 8000
-    ```
-
-#### 🎨 Frontend UI Setup (`frontend/`)
-This setup assumes Node.js and NPM are installed globally.
-1.  **Install Dependencies:** Navigate to the `frontend` directory and install project dependencies:
-    ```bash
-    cd frontend
-    npm install
-    # or yarn install
-    ```
-2.  **Run Development Server:** Start the development server using the provided script:
-    ```bash
-    npm run dev
-    # or yarn dev
-    ```
+* [Backend API Setup](./backend/README.md)
+* [Frontend UI Setup](./frontend/README.md)
 
 ### Accessing the Application
-Once setup is complete (using either Option 1 or 2), the services will be accessible at the following ports:
+Once setup is complete, the services will be accessible at the following ports:
 
 *   **Frontend UI:** `http://localhost:5173` (The main user interface)
 *   **Backend API:** `http://localhost:8000` (For developers or programmatic access to the core logic)
+
+## Licensing
+
+The `RBAC RAG` is licensed under the GPLv3 license.
