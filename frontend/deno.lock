@@ -18,10 +18,10 @@
     "npm:highlight.js@11.11.1": "11.11.1",
     "npm:katex@0.17.0": "0.17.0",
     "npm:lucide-react@1.7.0": "1.7.0_react@19.2.8",
-    "npm:react-dom@19.2.4": "19.2.4_react@19.2.8",
+    "npm:react-dom@19.2.8": "19.2.8_react@19.2.8",
     "npm:react-markdown@10.1.0": "10.1.0_@types+react@19.2.14_react@19.2.8",
-    "npm:react-pdf@10.4.1": "10.4.1_@types+react@19.2.14_react@19.2.8_react-dom@19.2.4__react@19.2.8",
-    "npm:react-router@8.3.0": "8.3.0_react@19.2.8_react-dom@19.2.4__react@19.2.8",
+    "npm:react-pdf@10.4.1": "10.4.1_@types+react@19.2.14_react@19.2.8_react-dom@19.2.8__react@19.2.8",
+    "npm:react-router@8.3.0": "8.3.0_react@19.2.8_react-dom@19.2.8__react@19.2.8",
     "npm:react@19.2.8": "19.2.8",
     "npm:rehype-highlight@7.0.2": "7.0.2",
     "npm:rehype-katex@7.0.1": "7.0.1",
@@ -2052,8 +2052,8 @@
     "punycode@2.3.1": {
       "integrity": "sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg=="
     },
-    "react-dom@19.2.4_react@19.2.8": {
-      "integrity": "sha512-AXJdLo8kgMbimY95O2aKQqsz2iWi9jMgKJhRBAxECE4IFxfcazB2LmzloIoibJI3C12IlY20+KFaLv+71bUJeQ==",
+    "react-dom@19.2.8_react@19.2.8": {
+      "integrity": "sha512-rVprimfGBG3DR+Tq0IQG2DT5PxKth1WIGDmj5yPmlzr4YBe7uyE+Du4oVqTDXZSHGGGXRtTJEGSSePyQCMBglQ==",
       "dependencies": [
         "react",
         "scheduler"
@@ -2077,7 +2077,7 @@
         "vfile"
       ]
     },
-    "react-pdf@10.4.1_@types+react@19.2.14_react@19.2.8_react-dom@19.2.4__react@19.2.8": {
+    "react-pdf@10.4.1_@types+react@19.2.14_react@19.2.8_react-dom@19.2.8__react@19.2.8": {
       "integrity": "sha512-kS/35staVCBqS29verTQJQZXw7RfsRCPO3fdJoW1KXylcv7A9dw6DZ3vJXC2w+bIBgLw5FN4pOFvKSQtkQhPfA==",
       "dependencies": [
         "@types/react",
@@ -2096,7 +2096,7 @@
         "@types/react"
       ]
     },
-    "react-router@8.3.0_react@19.2.8_react-dom@19.2.4__react@19.2.8": {
+    "react-router@8.3.0_react@19.2.8_react-dom@19.2.8__react@19.2.8": {
       "integrity": "sha512-qyPMvW83jGIct3yiieisxdk9M745anqhpIMKN5m1t6yBMfgVPpt77aHOqs5fUlEJRMCGffg9BaQLH9oPVOL7xQ==",
       "dependencies": [
         "cookie-es",
@@ -2489,7 +2489,7 @@
         "npm:highlight.js@11.11.1",
         "npm:katex@0.17.0",
         "npm:lucide-react@1.7.0",
-        "npm:react-dom@19.2.4",
+        "npm:react-dom@19.2.8",
         "npm:react-markdown@10.1.0",
         "npm:react-pdf@10.4.1",
         "npm:react-router@8.3.0",
