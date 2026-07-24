@@ -1,22 +1,22 @@
+from asyncio import CancelledError
+from asyncio import create_task as async_create_task
+from contextlib import asynccontextmanager
+
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from contextlib import asynccontextmanager
 from sqlmodel.ext.asyncio.session import AsyncSession
-from asyncio import create_task as async_create_task, CancelledError
 
-from app.api.v1.routers import role
-from app.api.v1.routers import auth, departments, knowledge, chat
-from app.core.exceptions.http_handler import http_exception_handler
-from app.core.exceptions.app_exception import AppException
+from app.api.v1.routers import auth, chat, departments, knowledge, role, user
 from app.core.config import settings
+from app.core.exceptions.app_exception import AppException
+from app.core.exceptions.http_handler import http_exception_handler
+from app.core.logger import logger_error, logger_info
 from app.core.seed_db import seed_db
-from app.api.v1.routers import user
-from app.db.session import engine
-from app.services.zero_trust import ZeroTrust
-from app.core.logger import logger_info, logger_error
-from app.services.worker.knowledge import knowledge_worker_daemon
 from app.db.qdrant import app_qdrant_client
+from app.db.session import engine
 from app.repositories.vector import VectorRepository
+from app.services.worker.knowledge import knowledge_worker_daemon
+from app.services.zero_trust import ZeroTrust
 
 
 @asynccontextmanager
