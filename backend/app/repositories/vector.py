@@ -1,13 +1,14 @@
-from qdrant_client import AsyncQdrantClient
-from qdrant_client.models import (
-    VectorParams,
-    Distance,
-    Filter,
-    FieldCondition,
-    MatchAny,
-)
-
 from typing import List, Tuple
+
+from qdrant_client import AsyncQdrantClient
+from qdrant_client.http.models import Document, PayloadSchemaType
+from qdrant_client.models import (
+    Distance,
+    FieldCondition,
+    Filter,
+    MatchAny,
+    VectorParams,
+)
 
 from app.core.config import settings
 
@@ -26,9 +27,17 @@ class VectorRepository:
                     size=settings.VECTOR_SIZE, distance=Distance.COSINE
                 ),
             )
+            await self.client.create_payload_index(
+                collection_name=self.collection_name,
+                field_name="knowledge_id",
+                field_schema=PayloadSchemaType.KEYWORD,
+            )
 
     async def search_context(
-        self, query_vector: List[float], knowledge_ids: List[str], limit: int = 5
+        self,
+        query_vector: List[float] | Document,
+        knowledge_ids: List[str],
+        limit: int = 5,
     ) -> Tuple[str, List[str]]:
         result = (
             await self.client.query_points(
