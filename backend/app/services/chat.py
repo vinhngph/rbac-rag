@@ -6,6 +6,7 @@ from typing import List
 from uuid import UUID, uuid4
 
 from ollama import AsyncClient
+from qdrant_client.http.models import Document
 from sqlmodel.ext.asyncio.session import AsyncSession
 from torch.backends.mps import is_available as mps_is_available
 from torch.cuda import (
@@ -247,7 +248,7 @@ class ChatService:
         )
         try:
             response_stream = await ollama_client.chat(  # type: ignore
-                model="gemma4:e2b-it-q4_K_M",
+                model=settings.LLM_MODEL,
                 messages=messages,
                 stream=True,
                 options={"temperature": 0.0},

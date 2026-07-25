@@ -51,7 +51,7 @@ async def lifespan(app: FastAPI):
         pass
 
 
-app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan)
+app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan, debug=settings.DEBUG == 1)
 
 origins = [settings.FRONTEND_ORIGIN]
 

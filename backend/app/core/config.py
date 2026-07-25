@@ -17,18 +17,20 @@ class Settings(BaseSettings):
     # Qdrant
     QDRANT_SERVER: NonEmptyString
     QDRANT_COLLECTION: NonEmptyString
-    QDRANT_API_KEY: str | None
+    QDRANT_API_KEY: str
 
     # Embed
     EMBEDDING_MODEL: NonEmptyString
-    VECTOR_SIZE: int = 1024
+    VECTOR_SIZE: int
 
     # OLLAMA
     OLLAMA_HOST: NonEmptyString
-    OLLAMA_API_KEY: str | None
+    OLLAMA_API_KEY: str
+
+    LLM_MODEL: NonEmptyString
 
     # System
-    DEBUG: NonEmptyString
+    DEBUG: int
     JWT_AT_KEY: NonEmptyString
     JWT_SECRET_KEY: NonEmptyString
     JWT_ALGORITHM: NonEmptyString
