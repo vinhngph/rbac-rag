@@ -25,6 +25,7 @@ class Settings(BaseSettings):
 
     # OLLAMA
     OLLAMA_HOST: NonEmptyString
+    OLLAMA_API_KEY: str | None
 
     # System
     DEBUG: NonEmptyString

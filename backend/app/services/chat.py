@@ -1,38 +1,37 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
+from asyncio import to_thread as async_to_thread
 from collections.abc import AsyncIterable
 from functools import cached_property
+from gc import collect as gc_collect
 from typing import List
 from uuid import UUID, uuid4
+
 from ollama import AsyncClient
-from gc import collect as gc_collect
+from sqlmodel.ext.asyncio.session import AsyncSession
+from torch.backends.mps import is_available as mps_is_available
 from torch.cuda import (
-    is_available as cuda_is_available,
     empty_cache as cuda_empty_cache,
 )
-from torch.backends.mps import is_available as mps_is_available
+from torch.cuda import (
+    is_available as cuda_is_available,
+)
 from torch.mps import empty_cache as mps_empty_cache
-from asyncio import to_thread as async_to_thread
 
-from app.models.chat_session import ChatSessionCreate, ChatSession
-from app.models.chat_message import ChatMessageCreate, ChatMessage, ChatMessageRole
-from app.models.user import User
-from app.models.knowledge import Knowledge
-
-from app.repositories.chat_session import ChatSessionRepository
-from app.repositories.chat_message import ChatMessageRepository
-from app.repositories.role import RoleRepository
-from app.repositories.permission import PermissionRepository
-from app.repositories.knowledge import KnowledgeRepository
-from app.repositories.vector import VectorRepository
-
+from app.core.config import settings
+from app.core.constants import PermissionName
 from app.core.exceptions.app_exception import AppException
 from app.core.messages import ErrorMessages
-from app.core.constants import PermissionName
-from app.core.config import settings
-
-from app.services.embed import embed_chunks
-
 from app.db.qdrant import app_qdrant_client
+from app.models.chat_message import ChatMessage, ChatMessageCreate, ChatMessageRole
+from app.models.chat_session import ChatSession, ChatSessionCreate
+from app.models.knowledge import Knowledge
+from app.models.user import User
+from app.repositories.chat_message import ChatMessageRepository
+from app.repositories.chat_session import ChatSessionRepository
+from app.repositories.knowledge import KnowledgeRepository
+from app.repositories.permission import PermissionRepository
+from app.repositories.role import RoleRepository
+from app.repositories.vector import VectorRepository
+from app.services.embed import embed_chunks
 
 
 def _get_embedding_and_cleanup(text: str) -> List[float]:
@@ -233,14 +232,21 @@ class ChatService:
             }
         )
 
-        ollama_client = AsyncClient(host=settings.OLLAMA_HOST)
+        ollama_client = AsyncClient(
+            host=settings.OLLAMA_HOST,
+            headers={
+                "Authorization": f"Bearer {settings.OLLAMA_API_KEY}"
+                if settings.OLLAMA_API_KEY
+                else None
+            },
+        )
         try:
             response_stream = await ollama_client.chat(  # type: ignore
                 model="gemma4:e2b-it-q4_K_M",
                 messages=messages,
                 stream=True,
                 options={"temperature": 0.0},
-                keep_alive=-1
+                keep_alive=-1,
             )
 
             async for chunk in response_stream:
