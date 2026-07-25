@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     # Qdrant
     QDRANT_SERVER: NonEmptyString
     QDRANT_COLLECTION: NonEmptyString
+    QDRANT_API_KEY: str | None
 
     # Embed
     EMBEDDING_MODEL: NonEmptyString
