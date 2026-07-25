@@ -1,19 +1,21 @@
-from uuid import UUID, uuid4
-from asyncio import Queue, CancelledError, get_running_loop
 import multiprocessing
-from langchain_text_splitters import RecursiveCharacterTextSplitter
-from qdrant_client.models import PointStruct
+from asyncio import CancelledError, Queue, get_running_loop
 from typing import List
+from uuid import UUID, uuid4
 
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from qdrant_client.http.models import Document
+from qdrant_client.models import PointStruct
+
+from app.core.config import settings
+from app.core.constants import KnowledgeStatus
+from app.core.logger import logger_error, logger_info
+from app.db.qdrant import app_qdrant_client
 from app.db.session import AsyncSessionLocal
 from app.models.knowledge import Knowledge
-from app.core.constants import KnowledgeStatus
-from app.services.store import StoreService
-from app.services.extractor import extract_file_pdf
 from app.services.embed import embed_chunks
-from app.db.qdrant import app_qdrant_client
-from app.core.config import settings
-from app.core.logger import logger_info, logger_error
+from app.services.extractor import extract_file_pdf
+from app.services.store import StoreService
 
 _knowledge_queue: Queue[UUID] = Queue()
 
@@ -44,7 +46,7 @@ async def run_marker_in_isolated_process(file_path: str) -> str:
         if result["status"] == "success":
             return result["data"]
         else:
-            raise RuntimeError(f"Marker Process: {result["error"]}")
+            raise RuntimeError(f"Marker Process: {result['error']}")
     else:
         raise RuntimeError("Marker Process has been stopped imediately")
 
@@ -75,7 +77,7 @@ async def run_embed_in_isolated_process(chunks: List[str]):
         if result["status"] == "success":
             return result["data"]
         else:
-            raise RuntimeError(f"Marker Process: {result["error"]}")
+            raise RuntimeError(f"Marker Process: {result['error']}")
     else:
         raise RuntimeError("Marker Process has been stopped imediately")
 
@@ -123,17 +125,32 @@ async def _run_rag_pipeline(knowledge_id: UUID):
 
             knowledge.status = KnowledgeStatus.EMBEDDING
             await db.commit()
-            vectors = await run_embed_in_isolated_process(chunks)
 
             points: List[PointStruct] = []
-            for chunk, vector in zip(chunks, vectors):
-                points.append(
-                    PointStruct(
-                        id=str(uuid4()),
-                        vector=vector,
-                        payload={"text": chunk, "knowledge_id": str(knowledge.id)},
+
+            if settings.QDRANT_API_KEY:
+                for chunk in chunks:
+                    points.append(
+                        PointStruct(
+                            id=str(uuid4()),
+                            payload={"text": chunk, "knowledge_id": str(knowledge.id)},
+                            vector=Document(
+                                text=chunk,
+                                model="sentence-transformers/all-minilm-l6-v2",
+                            ),
+                        )
                     )
-                )
+            else:
+                vectors = await run_embed_in_isolated_process(chunks)
+
+                for chunk, vector in zip(chunks, vectors):
+                    points.append(
+                        PointStruct(
+                            id=str(uuid4()),
+                            vector=vector,
+                            payload={"text": chunk, "knowledge_id": str(knowledge.id)},
+                        )
+                    )
 
             await app_qdrant_client.upsert(
                 collection_name=settings.QDRANT_COLLECTION, points=points
