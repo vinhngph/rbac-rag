@@ -136,7 +136,7 @@ async def _run_rag_pipeline(knowledge_id: UUID):
                             payload={"text": chunk, "knowledge_id": str(knowledge.id)},
                             vector=Document(
                                 text=chunk,
-                                model="sentence-transformers/all-minilm-l6-v2",
+                                model=settings.EMBEDDING_MODEL,
                             ),
                         )
                     )
