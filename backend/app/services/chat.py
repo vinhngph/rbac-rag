@@ -174,9 +174,14 @@ class ChatService:
                     knowledge_ids.append(str(k.id))
 
         # Embedding user message
-        user_message_vector = await async_to_thread(
-            _get_embedding_and_cleanup, user_chat_message.content
-        )
+        if settings.QDRANT_API_KEY:
+            user_message_vector = Document(
+                text=user_chat_message.content, model=settings.EMBEDDING_MODEL
+            )
+        else:
+            user_message_vector = await async_to_thread(
+                _get_embedding_and_cleanup, user_chat_message.content
+            )
 
         context_text = ""
         rs_knowledge_ids: List[str] = []
