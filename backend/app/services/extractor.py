@@ -73,7 +73,7 @@ def extract_file_pdf(file_path: str) -> str:
             pdf_document = fitz_open(file_path)
             total_pages = len(pdf_document)
         except Exception as e:
-            raise ValueError(f"Cannot open file {file_path}: {str(e)}")
+            raise ValueError(f"Cannot open file {file_path}: {e!s}")
 
         logger_info("Extractor", f"Total pages - {file_path}: {total_pages}")
 
