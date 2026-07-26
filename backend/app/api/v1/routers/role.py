@@ -1,4 +1,4 @@
-from typing import Annotated, List
+from typing import Annotated
 from uuid import UUID
 
 from fastapi import APIRouter, BackgroundTasks, File, UploadFile, status
@@ -55,13 +55,13 @@ async def upload_knowledge(
     return knowledge
 
 
-@router.get("/{role_id}/knowledges", response_model=List[KnowledgeRead])
+@router.get("/{role_id}/knowledges", response_model=list[KnowledgeRead])
 async def get_role_knowledges(role_id: UUID, user: CurrentUser, db: DB_Session):
     knowledge_service = KnowledgeService(db)
     return await knowledge_service.get_role_knowledges(user, role_id)
 
 
-@router.get("/{role_id}/members", response_model=List[MemberRead])
+@router.get("/{role_id}/members", response_model=list[MemberRead])
 async def get_role_members(role_id: UUID, user: CurrentUser, db: DB_Session):
     role_service = RoleService(db)
     return await role_service.get_members_of_role(user, role_id)

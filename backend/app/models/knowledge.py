@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, Optional
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from sqlmodel import Column, DateTime, Field, Relationship, SQLModel
@@ -20,7 +20,7 @@ class KnowledgeBase(SQLModel):
         description=f"{[s.value for s in KnowledgeStatus]}",
     )
 
-    original_role_id: Optional[UUID] = Field(
+    original_role_id: UUID | None = Field(
         default=None, foreign_key="roles.id", nullable=True
     )
     role_id: UUID = Field(foreign_key="roles.id", index=True)
@@ -49,5 +49,5 @@ class KnowledgeRead(KnowledgeBase):
 
 
 class KnowledgeUpdate(SQLModel):
-    name: Optional[NonEmptyString] = None
-    role_id: Optional[UUID] = None
+    name: NonEmptyString | None = None
+    role_id: UUID | None = None

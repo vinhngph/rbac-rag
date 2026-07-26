@@ -1,4 +1,3 @@
-from typing import List, Optional
 from uuid import UUID
 
 from sqlmodel import col, delete, exists, literal, select
@@ -50,7 +49,7 @@ class RoleRepository(BaseRepository[Role]):
 
     async def get_user_role_of_department(
         self, user: User, department: Role
-    ) -> Optional[Role]:
+    ) -> Role | None:
         dept_hierarchy = (
             select(Role.id)
             .where(col(Role.id) == department.id)
@@ -73,7 +72,7 @@ class RoleRepository(BaseRepository[Role]):
         return (await self.db.exec(stm)).one_or_none()
 
     async def add_user_to_role(
-        self, user: User, permission_ids: List[UUID], role: Role
+        self, user: User, permission_ids: list[UUID], role: Role
     ) -> None:
         links = [
             UserRolePermissionLink(
@@ -128,7 +127,7 @@ class RoleRepository(BaseRepository[Role]):
         return bool(await self.db.scalar(stm))
 
     async def delete_user_role_permissions(
-        self, user_id: UUID, role_id: UUID, permission_ids: List[UUID] | None = None
+        self, user_id: UUID, role_id: UUID, permission_ids: list[UUID] | None = None
     ) -> None:
         stm = delete(UserRolePermissionLink).where(
             col(UserRolePermissionLink.user_id) == user_id,
@@ -143,7 +142,7 @@ class RoleRepository(BaseRepository[Role]):
         await self.db.exec(stm)
 
     async def add_user_role_permissions(
-        self, user_id: UUID, role_id: UUID, permission_ids: List[UUID]
+        self, user_id: UUID, role_id: UUID, permission_ids: list[UUID]
     ) -> None:
         links = [
             UserRolePermissionLink(
@@ -184,7 +183,7 @@ class RoleRepository(BaseRepository[Role]):
 
         return rs is not None
 
-    async def get_user_roles(self, user_id: UUID) -> List[Role]:
+    async def get_user_roles(self, user_id: UUID) -> list[Role]:
         stm = (
             select(Role)
             .join(UserRolePermissionLink)
@@ -193,7 +192,7 @@ class RoleRepository(BaseRepository[Role]):
         )
         return list((await self.db.exec(stm)).all())
 
-    async def get_roles_chain_bottom_up(self, from_role_id: UUID) -> List[Role]:
+    async def get_roles_chain_bottom_up(self, from_role_id: UUID) -> list[Role]:
         hierarchy = (
             select(Role.id, Role.parent_id, literal(0).label("level"))
             .where(col(Role.id) == from_role_id)
@@ -211,7 +210,7 @@ class RoleRepository(BaseRepository[Role]):
         )
         return list((await self.db.exec(stm)).all())
 
-    async def get_roles_chain_top_down(self, root_role_id: UUID) -> List[Role]:
+    async def get_roles_chain_top_down(self, root_role_id: UUID) -> list[Role]:
         hierarchy = (
             select(Role.id, Role.parent_id, literal(0).label("level"))
             .where(col(Role.id) == root_role_id)
@@ -229,7 +228,7 @@ class RoleRepository(BaseRepository[Role]):
         )
         return list((await self.db.exec(stm)).all())
 
-    async def get_user_departments(self, user_id: UUID) -> List[Role]:
+    async def get_user_departments(self, user_id: UUID) -> list[Role]:
         user_role_ids = [role.id for role in (await self.get_user_roles(user_id))]
 
         if not user_role_ids:
@@ -261,7 +260,7 @@ class RoleRepository(BaseRepository[Role]):
 
         return list((await self.db.exec(stmt)).all())
 
-    async def get_child_roles_of_role(self, role_id: UUID) -> List[Role]:
+    async def get_child_roles_of_role(self, role_id: UUID) -> list[Role]:
         hierarchy = (
             select(Role.id)
             .where(col(Role.id) == role_id)

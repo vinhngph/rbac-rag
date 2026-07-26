@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from sqlmodel import col, select
@@ -15,8 +14,8 @@ class PermissionRepository(BaseRepository[Permission]):
         super().__init__(Permission, db)
 
     async def get_ids_by_name(
-        self, permission_names: List[PermissionName]
-    ) -> List[UUID]:
+        self, permission_names: list[PermissionName]
+    ) -> list[UUID]:
         if not permission_names:
             return []
 
@@ -25,7 +24,7 @@ class PermissionRepository(BaseRepository[Permission]):
 
     async def get_user_role_permissions(
         self, user_id: UUID, role_id: UUID
-    ) -> List[PermissionName]:
+    ) -> list[PermissionName]:
         stm = (
             select(Permission.name)
             .join(UserRolePermissionLink)
@@ -40,11 +39,11 @@ class PermissionRepository(BaseRepository[Permission]):
         return [PermissionName(p) for p in rs]
 
     def has_all_permissions(
-        self, granted: List[PermissionName], required: List[PermissionName]
+        self, granted: list[PermissionName], required: list[PermissionName]
     ) -> bool:
         return set(required).issubset(set(granted))
 
     def has_any_permissions(
-        self, granted: List[PermissionName], required: List[PermissionName]
+        self, granted: list[PermissionName], required: list[PermissionName]
     ) -> bool:
         return bool(set(granted) & set(required))

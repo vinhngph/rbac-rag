@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -19,12 +19,12 @@ class Permission(PermissionBase, table=True):
 
     id: UUID = Field(default_factory=uuid4, primary_key=True)
 
-    user_links: List["UserRolePermissionLink"] = Relationship(
+    user_links: list["UserRolePermissionLink"] = Relationship(
         back_populates="permission"
     )
 
     @property
-    def users(self) -> List["User"]:
+    def users(self) -> list["User"]:
         unique_users = {
             link.user.id: link.user for link in self.user_links if link.user
         }

@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import TYPE_CHECKING, Any, List
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from sqlmodel import (
@@ -20,7 +20,7 @@ if TYPE_CHECKING:
 
 
 class ChatSessionBase(SQLModel):
-    department_ids: List[UUID] = Field(sa_column=Column(ARRAY(sa_UUID(as_uuid=True))), min_length=1)
+    department_ids: list[UUID] = Field(sa_column=Column(ARRAY(sa_UUID(as_uuid=True))), min_length=1)
 
     title: str = Field(default="Untitled chat")
 
@@ -37,7 +37,7 @@ class ChatSession(ChatSessionBase, table=True):
         sa_column=Column(DateTime(timezone=True)),
     )
 
-    messages: List["ChatMessage"] = Relationship(back_populates="session")
+    messages: list["ChatMessage"] = Relationship(back_populates="session")
     user: "User" = Relationship(back_populates="chats")
 
 

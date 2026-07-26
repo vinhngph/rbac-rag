@@ -1,5 +1,3 @@
-from typing import List
-
 from fastapi import HTTPException, status
 from sqlmodel import col, select
 
@@ -13,7 +11,7 @@ class PermissionService:
     def __init__(self, db: DB_Session):
         self.db = db
 
-    async def get_permissions(self) -> List[Permission]:
+    async def get_permissions(self) -> list[Permission]:
         default_permission_names = [p.value for p in PermissionName]
         stm = select(Permission).where(
             col(Permission.name).in_(default_permission_names)

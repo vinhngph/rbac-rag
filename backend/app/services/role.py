@@ -1,5 +1,4 @@
 from functools import cached_property
-from typing import List
 from uuid import UUID
 
 from fastapi import HTTPException, status
@@ -36,7 +35,7 @@ class RoleService:
     def permission_repo(self) -> PermissionRepository:
         return PermissionRepository(self.db)
 
-    async def get_user_departments(self, user: User) -> List[Role]:
+    async def get_user_departments(self, user: User) -> list[Role]:
         return await self.role_repo.get_user_departments(user.id)
 
     async def create_user_department(
@@ -128,7 +127,6 @@ class RoleService:
         await self.role_repo.move_role_to_trash(department, trash)
         await self.db.commit()
 
-        return None
 
     async def get_role(self, role_id: UUID) -> Role:
         role = (
@@ -140,7 +138,7 @@ class RoleService:
 
         return role
 
-    async def get_members_of_role(self, user: User, role_id: UUID) -> List[MemberRead]:
+    async def get_members_of_role(self, user: User, role_id: UUID) -> list[MemberRead]:
         current_role = await self.role_repo.get_by_id(role_id)
         if not current_role:
             raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
@@ -153,7 +151,7 @@ class RoleService:
         if not user_role:
             raise AppException(403, ErrorMessages.ROLE_ACCESS_BLOCK)
 
-        members: List[MemberRead] = []
+        members: list[MemberRead] = []
 
         if await self.role_repo.is_children_of_role(current_role.id, user_role.id):
             stm = (
@@ -412,5 +410,3 @@ class RoleService:
 
         await self.role_repo.move_role_to_trash(role, trash)
         await self.db.commit()
-
-        return None

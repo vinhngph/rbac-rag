@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from sqlmodel import select
@@ -16,6 +15,6 @@ class KnowledgeRepository(BaseRepository[Knowledge]):
         self.db.add(knowledge)
         return knowledge
 
-    async def get_role_knowledges(self, role_id: UUID) -> List[Knowledge]:
+    async def get_role_knowledges(self, role_id: UUID) -> list[Knowledge]:
         stm = select(Knowledge).where(Knowledge.role_id == role_id)
         return list((await self.db.exec(stm)).all())

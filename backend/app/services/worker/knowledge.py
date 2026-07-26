@@ -1,6 +1,5 @@
 import multiprocessing
 from asyncio import CancelledError, Queue, get_running_loop
-from typing import List
 from uuid import UUID, uuid4
 
 from langchain_text_splitters import RecursiveCharacterTextSplitter
@@ -51,7 +50,7 @@ async def run_marker_in_isolated_process(file_path: str) -> str:
         raise RuntimeError("Marker Process has been stopped imediately")
 
 
-def _embed_worker_process(chunks: List[str], result_queue):  # type: ignore
+def _embed_worker_process(chunks: list[str], result_queue):  # type: ignore
     try:
         vectors = embed_chunks(chunks)
         result_queue.put({"status": "success", "data": vectors})  # type: ignore
@@ -59,7 +58,7 @@ def _embed_worker_process(chunks: List[str], result_queue):  # type: ignore
         result_queue.put({"status": "error", "error": str(e)})  # type: ignore
 
 
-async def run_embed_in_isolated_process(chunks: List[str]):
+async def run_embed_in_isolated_process(chunks: list[str]):
     loop = get_running_loop()
 
     ctx = multiprocessing.get_context("spawn")
@@ -96,7 +95,7 @@ async def knowledge_worker_daemon():
         except CancelledError:
             break
         except Exception as e:
-            logger_error("RAG", f"RAG pipeline {knowledge_id}: {str(e)}")
+            logger_error("RAG", f"RAG pipeline {knowledge_id}: {e!s}")
 
 
 async def _run_rag_pipeline(knowledge_id: UUID):
@@ -126,7 +125,7 @@ async def _run_rag_pipeline(knowledge_id: UUID):
             knowledge.status = KnowledgeStatus.EMBEDDING
             await db.commit()
 
-            points: List[PointStruct] = []
+            points: list[PointStruct] = []
 
             if settings.QDRANT_API_KEY:
                 for chunk in chunks:

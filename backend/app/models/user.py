@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
 from pydantic import EmailStr, HttpUrl
@@ -17,7 +17,7 @@ class UserBase(SQLModel):
     email: EmailStr = Field(unique=True, index=True, sa_type=AutoString)
     name: NonEmptyString
 
-    avatar_url: Optional[HttpUrl] = Field(
+    avatar_url: HttpUrl | None = Field(
         default=None, description="Avatar url.", sa_type=AutoString
     )
 
@@ -28,14 +28,14 @@ class User(UserBase, table=True):
     id: UUID = Field(default_factory=uuid4, primary_key=True)
     hashed_password: NonEmptyString
 
-    role_links: List["UserRolePermissionLink"] = Relationship(back_populates="user")
+    role_links: list["UserRolePermissionLink"] = Relationship(back_populates="user")
 
-    knowledges: List["Knowledge"] = Relationship(back_populates="author")
+    knowledges: list["Knowledge"] = Relationship(back_populates="author")
 
-    chats: List["ChatSession"] = Relationship(back_populates="user")
+    chats: list["ChatSession"] = Relationship(back_populates="user")
 
     @property
-    def roles(self) -> List["Role"]:
+    def roles(self) -> list["Role"]:
         unique_roles = {
             link.role.id: link.role for link in self.role_links if link.role
         }

@@ -1,4 +1,4 @@
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, Optional
 from uuid import UUID, uuid4
 
 from sqlmodel import Field, Relationship, SQLModel
@@ -14,7 +14,7 @@ class RoleBase(SQLModel):
 
     # None -> root role
     # uuid -> child role
-    parent_id: Optional[UUID] = Field(
+    parent_id: UUID | None = Field(
         default=None,
         foreign_key="roles.id",
         index=True,
@@ -22,7 +22,7 @@ class RoleBase(SQLModel):
         description="NULL means this is the root role in the department.",
     )
 
-    original_parent_id: Optional[UUID] = Field(
+    original_parent_id: UUID | None = Field(
         default=None, foreign_key="roles.id", nullable=True
     )
 
@@ -40,20 +40,20 @@ class Role(RoleBase, table=True):
         },
     )
 
-    children: List["Role"] = Relationship(
+    children: list["Role"] = Relationship(
         back_populates="parent",
         sa_relationship_kwargs={"foreign_keys": "[Role.parent_id]"},
     )
 
-    knowledges: List["Knowledge"] = Relationship(
+    knowledges: list["Knowledge"] = Relationship(
         back_populates="role",
         sa_relationship_kwargs={"foreign_keys": "[Knowledge.role_id]"},
     )
 
-    user_links: List["UserRolePermissionLink"] = Relationship(back_populates="role")
+    user_links: list["UserRolePermissionLink"] = Relationship(back_populates="role")
 
     @property
-    def users(self) -> List["User"]:
+    def users(self) -> list["User"]:
         unique_users = {
             link.user.id: link.user for link in self.user_links if link.user
         }
@@ -70,8 +70,8 @@ class RoleRead(RoleBase):
 
 
 class RoleUpdate(SQLModel):
-    name: Optional[str] = None
-    parent_id: Optional[UUID] = None
+    name: str | None = None
+    parent_id: UUID | None = None
 
 
 class RootRoleBase(SQLModel):
@@ -87,4 +87,4 @@ class RootRoleRead(RootRoleBase):
 
 
 class RootRoleUpdate(SQLModel):
-    name: Optional[str] = None
+    name: str | None = None

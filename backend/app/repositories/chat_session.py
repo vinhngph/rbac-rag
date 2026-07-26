@@ -1,5 +1,4 @@
 from datetime import datetime, timezone
-from typing import List
 from uuid import UUID
 
 from sqlmodel import col, select, update
@@ -37,7 +36,7 @@ class ChatSessionRepository(BaseRepository[ChatSession]):
         )
         await self.db.exec(stm)
 
-    async def get_chat_sessions(self, user_id: UUID) -> List[ChatSession]:
+    async def get_chat_sessions(self, user_id: UUID) -> list[ChatSession]:
         stm = (
             select(ChatSession)
             .where(ChatSession.user_id == user_id)
@@ -46,7 +45,7 @@ class ChatSessionRepository(BaseRepository[ChatSession]):
 
         return list((await self.db.exec(stm)).all())
 
-    async def get_chat_session_messages(self, session_id: UUID) -> List[ChatMessage]:
+    async def get_chat_session_messages(self, session_id: UUID) -> list[ChatMessage]:
         stm = (
             select(ChatMessage)
             .where(ChatMessage.session_id == session_id)
@@ -56,7 +55,7 @@ class ChatSessionRepository(BaseRepository[ChatSession]):
 
     async def get_chat_session_limit_messages(
         self, session_id: UUID, limit: int = 5
-    ) -> List[ChatMessage]:
+    ) -> list[ChatMessage]:
         stm = (
             select(ChatMessage)
             .where(ChatMessage.session_id == session_id)

@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter
@@ -22,7 +21,7 @@ async def create_chat_session(
     return await chat_service.create_chat_session(chat_session_create, current_user)
 
 
-@router.get("/sessions", response_model=List[ChatSessionRead])
+@router.get("/sessions", response_model=list[ChatSessionRead])
 async def read_chat_sessions(current_user: CurrentUser, db: DB_Session):
     chat_service = ChatService(db)
     return await chat_service.read_chat_sessions(current_user)
@@ -47,7 +46,7 @@ async def create_chat_message_and_stream(
         yield chunk
 
 
-@router.get("/sessions/{session_id}/messages", response_model=List[ChatMessageRead])
+@router.get("/sessions/{session_id}/messages", response_model=list[ChatMessageRead])
 async def read_chat_messages(
     session_id: UUID, current_user: CurrentUser, db: DB_Session
 ):
@@ -56,7 +55,7 @@ async def read_chat_messages(
 
 
 @router.get(
-    "/sessions/{session_id}/messages/{message_id}", response_model=List[KnowledgeRead]
+    "/sessions/{session_id}/messages/{message_id}", response_model=list[KnowledgeRead]
 )
 async def get_message_sources(
     session_id: UUID, message_id: UUID, current_user: CurrentUser, db: DB_Session

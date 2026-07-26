@@ -1,4 +1,4 @@
-from typing import List, Optional, TypedDict
+from typing import TypedDict
 from uuid import UUID
 
 from pydantic import EmailStr
@@ -9,19 +9,19 @@ from app.models.user import User, UserRead
 
 
 class MemberRead(UserRead):
-    permissions: Optional[List[PermissionName]] = None
+    permissions: list[PermissionName] | None = None
 
 
 class MemberUpdate(SQLModel):
     id: UUID
-    permissions: List[PermissionName]
+    permissions: list[PermissionName]
 
 
 class MemberDict(TypedDict):
     user: User
-    permissions: List[PermissionName]
+    permissions: list[PermissionName]
 
 
 class MemberCreate(SQLModel):
     email: EmailStr
-    permissions: List[PermissionName]
+    permissions: list[PermissionName]

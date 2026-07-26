@@ -1,5 +1,3 @@
-from typing import List, Tuple
-
 from qdrant_client import AsyncQdrantClient
 from qdrant_client.http.models import Document, PayloadSchemaType
 from qdrant_client.models import (
@@ -35,10 +33,10 @@ class VectorRepository:
 
     async def search_context(
         self,
-        query_vector: List[float] | Document,
-        knowledge_ids: List[str],
+        query_vector: list[float] | Document,
+        knowledge_ids: list[str],
         limit: int = 5,
-    ) -> Tuple[str, List[str]]:
+    ) -> tuple[str, list[str]]:
         result = (
             await self.client.query_points(
                 collection_name=self.collection_name,

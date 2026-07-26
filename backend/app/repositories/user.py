@@ -1,5 +1,3 @@
-from typing import Optional
-
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
@@ -11,7 +9,7 @@ class UserRepository(BaseRepository[User]):
     def __init__(self, db: AsyncSession) -> None:
         super().__init__(User, db)
 
-    async def get_user_by_email(self, email: str) -> Optional[User]:
+    async def get_user_by_email(self, email: str) -> User | None:
         stm = select(User).where(User.email == email)
         return (await self.db.exec(stm)).one_or_none()
 

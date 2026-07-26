@@ -1,5 +1,4 @@
 from functools import cached_property
-from typing import List, Tuple
 from uuid import UUID
 
 from fastapi import UploadFile
@@ -70,7 +69,7 @@ class KnowledgeService:
         self,
         user: User,
         role_id: UUID,
-    ) -> List[Knowledge]:
+    ) -> list[Knowledge]:
         role = await self.role_repo.get_by_id(role_id)
         if not role:
             raise AppException(404, ErrorMessages.ROLE_NOT_FOUND)
@@ -137,7 +136,7 @@ class KnowledgeService:
         self,
         user: User,
         knowledge: Knowledge,
-        required: List[PermissionName],
+        required: list[PermissionName],
     ) -> bool:
         role = await self.role_repo.get_by_id(knowledge.role_id)
         if not role:
@@ -198,7 +197,7 @@ class KnowledgeService:
 
     async def get_knowledge_file(
         self, knowledge_id: UUID, current_user: User
-    ) -> Tuple[str, Knowledge]:
+    ) -> tuple[str, Knowledge]:
         knowledge = await self.knowledge_repo.get_by_id(knowledge_id)
         if not knowledge:
             raise AppException(404, ErrorMessages.KNOWLEDGE_NOT_FOUND)

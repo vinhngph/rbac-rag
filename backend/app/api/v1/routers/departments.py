@@ -1,4 +1,3 @@
-from typing import List
 from uuid import UUID
 
 from fastapi import APIRouter, status
@@ -11,7 +10,7 @@ from app.services.role import RoleService
 router = APIRouter(prefix="/departments", tags=["Departments"])
 
 
-@router.get("/", response_model=List[RootRoleRead])
+@router.get("/", response_model=list[RootRoleRead])
 async def get_departments(user: CurrentUser, db: DB_Session):
     """
     **List all joined departments of user**
