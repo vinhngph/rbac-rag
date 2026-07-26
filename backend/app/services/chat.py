@@ -268,10 +268,11 @@ class ChatService:
                         knowledge_ids=[UUID(rs_id) for rs_id in rs_knowledge_ids],
                     )
         except Exception as e:
+            full_assistant_reply += ErrorMessages.CHAT_ERROR + " " + str(e)
             yield ChatMessage(
                 id=ai_message_id,
                 role=ChatMessageRole.ASSISTANT,
-                content=ErrorMessages.CHAT_ERROR + str(e),
+                content=full_assistant_reply,
                 session_id=session_id,
                 knowledge_ids=[UUID(rs_id) for rs_id in rs_knowledge_ids],
             )
