@@ -2,10 +2,9 @@ from asyncio import to_thread as async_to_thread
 from collections.abc import AsyncIterable
 from functools import cached_property
 from gc import collect as gc_collect
-from typing import List
 from uuid import UUID, uuid4
 
-from ollama import AsyncClient
+from ollama import AsyncClient, RequestError, ResponseError
 from qdrant_client.http.models import Document
 from sqlmodel.ext.asyncio.session import AsyncSession
 from torch.backends.mps import is_available as mps_is_available
@@ -35,7 +34,7 @@ from app.repositories.vector import VectorRepository
 from app.services.embed import embed_chunks
 
 
-def _get_embedding_and_cleanup(text: str) -> List[float]:
+def _get_embedding_and_cleanup(text: str) -> list[float]:
     vector = embed_chunks([text])[0]
 
     gc_collect()
@@ -94,12 +93,12 @@ class ChatService:
         await self.db.commit()
         return chat_session
 
-    async def read_chat_sessions(self, current_user: User) -> List[ChatSession]:
+    async def read_chat_sessions(self, current_user: User) -> list[ChatSession]:
         return await self.chat_session_repo.get_chat_sessions(current_user.id)
 
     async def read_chat_messages(
         self, session_id: UUID, current_user: User
-    ) -> List[ChatMessage]:
+    ) -> list[ChatMessage]:
         user_sessions = await self.chat_session_repo.get_chat_sessions(current_user.id)
         if not user_sessions:
             raise AppException(404, ErrorMessages.CHAT_SESSIONS_NOT_FOUND)
@@ -137,7 +136,7 @@ class ChatService:
         if not chat_session:
             raise AppException(404, ErrorMessages.CHAT_SESSIONS_NOT_FOUND)
 
-        knowledge_ids: List[str] = []
+        knowledge_ids: list[str] = []
         for department_id in chat_session.department_ids:
             department = await self.role_repo.get_by_id(department_id)
             if not department:
@@ -185,7 +184,7 @@ class ChatService:
             )
 
         context_text = ""
-        rs_knowledge_ids: List[str] = []
+        rs_knowledge_ids: list[str] = []
 
         if knowledge_ids:
             context_text, rs_knowledge_ids = await self.vector_repo.search_context(
@@ -292,7 +291,7 @@ class ChatService:
 
     async def get_message_sources(
         self, session_id: UUID, message_id: UUID, current_user: User
-    ) -> List[Knowledge]:
+    ) -> list[Knowledge]:
         user_sessions = await self.chat_session_repo.get_chat_sessions(current_user.id)
         if not user_sessions:
             raise AppException(404, ErrorMessages.CHAT_SESSIONS_NOT_FOUND)
@@ -305,7 +304,7 @@ class ChatService:
         if not message:
             raise AppException(404, ErrorMessages.CHAT_MESSAGE_NOT_FOUND)
 
-        knowledges: List[Knowledge] = []
+        knowledges: list[Knowledge] = []
         for k_id in message.knowledge_ids:
             k = await self.knowledge_repo.get_by_id(k_id)
             if k:
