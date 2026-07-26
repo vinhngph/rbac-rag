@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
         logger_info("System", f"{settings.QDRANT_COLLECTION} ready.")
     except Exception as e:
         logger_error(
-            "System", f"Failed to connect {settings.QDRANT_COLLECTION}: {str(e)}"
+            "System", f"Failed to connect {settings.QDRANT_COLLECTION}: {e!s}"
         )
 
     yield
