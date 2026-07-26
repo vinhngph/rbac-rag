@@ -137,7 +137,7 @@ class ZeroTrust:
             except Exception as e:
                 await self.store_service.delete_from_quarantine(knowledge.id)
                 raise ValueError(
-                    f"Layer 4 Error: Data disinfection error. Error: {str(e)}"
+                    f"Layer 4 Error: Data disinfection error. Error: {e!s}"
                 )
         elif knowledge.type == FileType.PDF:
             # Remove hidden JavaScript/Macro from PDFs.
