@@ -1,12 +1,13 @@
-from sqlmodel import SQLModel, Field, Relationship
-from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Any, List
+from uuid import UUID, uuid4
+
+from sqlmodel import Field, Relationship, SQLModel
 
 from app.core.constants import PermissionName
 
 if TYPE_CHECKING:
-    from app.models.user import User
     from app.models.links import UserRolePermissionLink
+    from app.models.user import User
 
 
 class PermissionBase(SQLModel):

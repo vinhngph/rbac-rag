@@ -1,15 +1,18 @@
-from sqlmodel import (
-    SQLModel,
-    Field,
-    Column,
-    DateTime,
-    Relationship,
-    ARRAY,
-    UUID as sa_UUID,
-)
+from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, List
 from uuid import UUID, uuid4
-from datetime import datetime, timezone
+
+from sqlmodel import (
+    ARRAY,
+    Column,
+    DateTime,
+    Field,
+    Relationship,
+    SQLModel,
+)
+from sqlmodel import (
+    UUID as sa_UUID,
+)
 
 if TYPE_CHECKING:
     from app.models.chat_message import ChatMessage

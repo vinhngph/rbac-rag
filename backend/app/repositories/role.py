@@ -1,12 +1,13 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select, col, delete, exists, literal
-from typing import Optional, List
+from typing import List, Optional
 from uuid import UUID
 
-from app.repositories.base import BaseRepository
+from sqlmodel import col, delete, exists, literal, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.models.links import UserRolePermissionLink
 from app.models.role import Role
 from app.models.user import User
+from app.repositories.base import BaseRepository
 
 
 class RoleRepository(BaseRepository[Role]):

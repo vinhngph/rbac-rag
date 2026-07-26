@@ -1,17 +1,20 @@
+from datetime import datetime, timezone
+from enum import Enum
+from typing import TYPE_CHECKING, Any, List
+from uuid import UUID, uuid4
+
 from sqlmodel import (
-    SQLModel,
-    Field,
-    Text,
-    Relationship,
+    ARRAY,
     Column,
     DateTime,
-    ARRAY,
+    Field,
+    Relationship,
+    SQLModel,
+    Text,
+)
+from sqlmodel import (
     UUID as sa_UUID,
 )
-from uuid import uuid4, UUID
-from typing import TYPE_CHECKING, Any, List
-from enum import Enum
-from datetime import datetime, timezone
 
 if TYPE_CHECKING:
     from app.models.chat_session import ChatSession

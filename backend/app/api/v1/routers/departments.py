@@ -1,10 +1,11 @@
-from fastapi import APIRouter, status
 from typing import List
 from uuid import UUID
 
-from app.models.role import RootRoleRead, RootRoleCreate, RootRoleUpdate
-from app.schemas.department import DepartmentContextRead
+from fastapi import APIRouter, status
+
 from app.api.dependencies import CurrentUser, DB_Session
+from app.models.role import RootRoleCreate, RootRoleRead, RootRoleUpdate
+from app.schemas.department import DepartmentContextRead
 from app.services.role import RoleService
 
 router = APIRouter(prefix="/departments", tags=["Departments"])

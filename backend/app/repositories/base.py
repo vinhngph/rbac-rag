@@ -1,7 +1,8 @@
+from typing import Generic, Optional, Type, TypeVar
+from uuid import UUID
+
 from sqlmodel import SQLModel, select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import Generic, TypeVar, Type, Optional
-from uuid import UUID
 
 T = TypeVar("T", bound=SQLModel)
 

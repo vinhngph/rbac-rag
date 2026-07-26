@@ -1,14 +1,15 @@
-from sqlmodel import SQLModel, Field, Relationship, Column, DateTime
-from uuid import UUID, uuid4
 from datetime import datetime, timezone
 from typing import TYPE_CHECKING, Any, Optional
+from uuid import UUID, uuid4
 
+from sqlmodel import Column, DateTime, Field, Relationship, SQLModel
+
+from app.core.constants import FileType, KnowledgeStatus
 from app.core.types import NonEmptyString
-from app.core.constants import KnowledgeStatus, FileType
 
 if TYPE_CHECKING:
-    from app.models.user import User
     from app.models.role import Role
+    from app.models.user import User
 
 
 class KnowledgeBase(SQLModel):

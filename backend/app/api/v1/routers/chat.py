@@ -1,15 +1,14 @@
-from fastapi import APIRouter
-from fastapi.sse import EventSourceResponse
 from typing import List
 from uuid import UUID
 
-from app.models.chat_session import ChatSessionCreate, ChatSessionRead
-from app.models.chat_message import ChatMessageCreate, ChatMessageRead
-from app.models.knowledge import KnowledgeRead
+from fastapi import APIRouter
+from fastapi.sse import EventSourceResponse
 
 from app.api.dependencies.current_user import CurrentUser
 from app.api.dependencies.db_session import DB_Session
-
+from app.models.chat_message import ChatMessageCreate, ChatMessageRead
+from app.models.chat_session import ChatSessionCreate, ChatSessionRead
+from app.models.knowledge import KnowledgeRead
 from app.services.chat import ChatService
 
 router = APIRouter(prefix="/chat", tags=["Chat"])

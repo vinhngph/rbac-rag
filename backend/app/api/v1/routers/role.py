@@ -1,19 +1,16 @@
-from fastapi import APIRouter, UploadFile, File, BackgroundTasks, status
-from typing import List, Annotated
+from typing import Annotated, List
 from uuid import UUID
+
+from fastapi import APIRouter, BackgroundTasks, File, UploadFile, status
 
 from app.api.dependencies.current_user import CurrentUser
 from app.api.dependencies.db_session import DB_Session
-
 from app.models.knowledge import KnowledgeRead
-from app.models.role import RoleRead, RoleCreate, RoleUpdate
-
-from app.schemas.member import MemberRead, MemberCreate, MemberUpdate
-
+from app.models.role import RoleCreate, RoleRead, RoleUpdate
+from app.schemas.member import MemberCreate, MemberRead, MemberUpdate
 from app.services.knowledge import KnowledgeService
 from app.services.role import RoleService
 from app.services.worker.knowledge import process_knowledge
-
 
 router = APIRouter(prefix="/roles", tags=["Role Organization"])
 

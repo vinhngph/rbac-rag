@@ -1,10 +1,12 @@
-from fastapi import Request, HTTPException, status, Depends
-from jwt import decode as jwt_decode, InvalidTokenError  # type: ignore
 from typing import Annotated
+
+from fastapi import Depends, HTTPException, Request, status
+from jwt import InvalidTokenError
+from jwt import decode as jwt_decode  # type: ignore
 from sqlmodel import select
 
-from app.core.config import settings
 from app.api.dependencies.db_session import DB_Session
+from app.core.config import settings
 from app.models.user import User
 
 

@@ -1,13 +1,16 @@
-from os.path import exists as path_exists
+from gc import collect as gc_collect
 from os import remove as os_remove
+from os.path import exists as path_exists
+
+from fitz import open as fitz_open  # type: ignore
 from marker.converters.pdf import PdfConverter  # type: ignore
 from marker.models import create_model_dict  # type: ignore
 from marker.output import text_from_rendered  # type: ignore
-from fitz import open as fitz_open  # type: ignore
-from gc import collect as gc_collect
+from torch.cuda import (
+    empty_cache as cuda_empty_cache,
+)
 from torch.cuda import (
     is_available as cuda_is_available,
-    empty_cache as cuda_empty_cache,
 )
 
 from app.core.logger import logger_info

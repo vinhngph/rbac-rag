@@ -1,8 +1,8 @@
 from fastapi import APIRouter, Response
 
-from app.models.user import UserLogin, UserRegister
-from app.core.config import settings
 from app.api.dependencies import DB_Session
+from app.core.config import settings
+from app.models.user import UserLogin, UserRegister
 from app.services.auth import AuthService
 
 router = APIRouter(prefix="/auth", tags=["Auth"])

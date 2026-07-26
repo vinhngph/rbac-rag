@@ -1,10 +1,11 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select
-from uuid import UUID
 from typing import List
+from uuid import UUID
 
-from app.repositories.base import BaseRepository
+from sqlmodel import select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.models.knowledge import Knowledge
+from app.repositories.base import BaseRepository
 
 
 class KnowledgeRepository(BaseRepository[Knowledge]):

@@ -1,15 +1,17 @@
-from anyio import open_file, Path as AsyncPath, to_thread
-from fastapi import UploadFile, HTTPException, status
-from re import sub as re_sub
 from hashlib import sha256
-from PIL import Image
 from pathlib import Path as PathLib
+from re import sub as re_sub
 from uuid import UUID
 
-from app.core.constants import FileType, MAGIC_BYTES_RULES
+from anyio import Path as AsyncPath
+from anyio import open_file, to_thread
+from fastapi import HTTPException, UploadFile, status
+from PIL import Image
+
+from app.core.constants import MAGIC_BYTES_RULES, FileType
 from app.core.logger import logger_info
-from app.services.store import StoreService
 from app.models.knowledge import Knowledge
+from app.services.store import StoreService
 
 
 def _clean_image(img_path: str):

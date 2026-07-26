@@ -1,9 +1,9 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
 from uuid import UUID
 
-from app.repositories.base import BaseRepository
+from sqlmodel.ext.asyncio.session import AsyncSession
 
 from app.models.chat_message import ChatMessage, ChatMessageCreate
+from app.repositories.base import BaseRepository
 
 
 class ChatMessageRepository(BaseRepository[ChatMessage]):

@@ -1,6 +1,7 @@
-from fastapi import HTTPException, status
-from sqlmodel import select, col
 from typing import List
+
+from fastapi import HTTPException, status
+from sqlmodel import col, select
 
 from app.api.dependencies.db_session import DB_Session
 from app.core.constants import PermissionName

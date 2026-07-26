@@ -1,10 +1,10 @@
-from sqlmodel import select, col
+from sqlmodel import col, select
 
 from app.api.dependencies import DB_Session
 from app.core.constants import PermissionName
+from app.core.logger import logger_info
 from app.models.permission import Permission
 from app.models.role import Role
-from app.core.logger import logger_info
 
 
 async def seed_db(db: DB_Session):

@@ -1,12 +1,13 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select, col, update
+from datetime import datetime, timezone
 from typing import List
 from uuid import UUID
-from datetime import datetime, timezone
 
-from app.repositories.base import BaseRepository
-from app.models.chat_session import ChatSession, ChatSessionCreate
+from sqlmodel import col, select, update
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.models.chat_message import ChatMessage
+from app.models.chat_session import ChatSession, ChatSessionCreate
+from app.repositories.base import BaseRepository
 
 
 class ChatSessionRepository(BaseRepository[ChatSession]):

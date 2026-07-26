@@ -1,10 +1,11 @@
-from sqlmodel import SQLModel
-from pydantic import EmailStr
-from typing import Optional, List, TypedDict
+from typing import List, Optional, TypedDict
 from uuid import UUID
 
-from app.models.user import UserRead, User
+from pydantic import EmailStr
+from sqlmodel import SQLModel
+
 from app.core.constants import PermissionName
+from app.models.user import User, UserRead
 
 
 class MemberRead(UserRead):

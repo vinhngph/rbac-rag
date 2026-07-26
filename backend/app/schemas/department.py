@@ -1,7 +1,8 @@
-from sqlmodel import SQLModel
 from typing import List
 
-from app.models.role import RoleRead, Role
+from sqlmodel import SQLModel
+
+from app.models.role import Role, RoleRead
 
 
 class DepartmentContextRead(SQLModel):

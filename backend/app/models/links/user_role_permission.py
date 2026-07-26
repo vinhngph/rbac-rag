@@ -1,11 +1,12 @@
-from sqlmodel import SQLModel, Field, Relationship
-from uuid import UUID
 from typing import TYPE_CHECKING, Any
+from uuid import UUID
+
+from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from app.models.user import User
-    from app.models.role import Role
     from app.models.permission import Permission
+    from app.models.role import Role
+    from app.models.user import User
 
 
 class UserRolePermissionLink(SQLModel, table=True):

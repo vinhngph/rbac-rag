@@ -1,22 +1,23 @@
+from functools import cached_property
+from typing import List
+from uuid import UUID
+
 from fastapi import HTTPException, status
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
-from typing import List
-from uuid import UUID
-from functools import cached_property
 
+from app.core.constants import PermissionName
 from app.core.exceptions.app_exception import AppException
 from app.core.messages import ErrorMessages, SystemMessages
-from app.core.constants import PermissionName
-from app.models.user import User
-from app.models.permission import Permission
-from app.models.role import Role, RootRoleCreate, RootRoleUpdate, RoleCreate, RoleUpdate
 from app.models.links import UserRolePermissionLink
-from app.schemas.member import MemberRead, MemberDict, MemberCreate, MemberUpdate
-from app.schemas.department import DepartmentContext
-from app.repositories.user import UserRepository
-from app.repositories.role import RoleRepository
+from app.models.permission import Permission
+from app.models.role import Role, RoleCreate, RoleUpdate, RootRoleCreate, RootRoleUpdate
+from app.models.user import User
 from app.repositories.permission import PermissionRepository
+from app.repositories.role import RoleRepository
+from app.repositories.user import UserRepository
+from app.schemas.department import DepartmentContext
+from app.schemas.member import MemberCreate, MemberDict, MemberRead, MemberUpdate
 
 
 class RoleService:

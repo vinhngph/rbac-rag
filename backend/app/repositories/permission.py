@@ -1,12 +1,13 @@
-from sqlmodel.ext.asyncio.session import AsyncSession
-from sqlmodel import select, col
 from typing import List
 from uuid import UUID
 
-from app.repositories.base import BaseRepository
-from app.models.permission import Permission
-from app.models.links.user_role_permission import UserRolePermissionLink
+from sqlmodel import col, select
+from sqlmodel.ext.asyncio.session import AsyncSession
+
 from app.core.constants import PermissionName
+from app.models.links.user_role_permission import UserRolePermissionLink
+from app.models.permission import Permission
+from app.repositories.base import BaseRepository
 
 
 class PermissionRepository(BaseRepository[Permission]):

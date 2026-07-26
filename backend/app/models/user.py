@@ -1,16 +1,16 @@
-from sqlmodel import SQLModel, Field, Relationship, AutoString
-from pydantic import EmailStr, HttpUrl
-from typing import List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional
 from uuid import UUID, uuid4
-from typing import TYPE_CHECKING, Any
+
+from pydantic import EmailStr, HttpUrl
+from sqlmodel import AutoString, Field, Relationship, SQLModel
 
 from app.core.types import NonEmptyString
 
 if TYPE_CHECKING:
-    from app.models.role import Role
+    from app.models.chat_session import ChatSession
     from app.models.knowledge import Knowledge
     from app.models.links import UserRolePermissionLink
-    from app.models.chat_session import ChatSession
+    from app.models.role import Role
 
 
 class UserBase(SQLModel):

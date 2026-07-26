@@ -1,11 +1,12 @@
-from sqlmodel import SQLModel, Field, Relationship
-from uuid import UUID, uuid4
 from typing import TYPE_CHECKING, Any, List, Optional
+from uuid import UUID, uuid4
+
+from sqlmodel import Field, Relationship, SQLModel
 
 if TYPE_CHECKING:
-    from app.models.user import User
     from app.models.knowledge import Knowledge
     from app.models.links import UserRolePermissionLink
+    from app.models.user import User
 
 
 class RoleBase(SQLModel):

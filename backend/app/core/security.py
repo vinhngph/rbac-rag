@@ -1,6 +1,7 @@
+from datetime import datetime, timedelta, timezone
+
 from jwt import encode as jwt_encode  # type: ignore
 from pwdlib import PasswordHash
-from datetime import datetime, timedelta, timezone
 
 from app.core.config import settings
 from app.models.user import User, UserAT
