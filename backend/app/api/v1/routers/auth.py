@@ -18,7 +18,7 @@ async def login(response: Response, login_data: UserLogin, db: DB_Session):
         key=settings.JWT_AT_KEY,
         value=access_token,
         httponly=True,
-        secure=False if settings.DEBUG == "true" else True,
+        secure=settings.DEBUG != 1,
         samesite="lax",
         max_age=int(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
@@ -36,7 +36,7 @@ async def register(response: Response, user_in: UserRegister, db: DB_Session):
         key=settings.JWT_AT_KEY,
         value=access_token,
         httponly=True,
-        secure=False if settings.DEBUG == "true" else True,
+        secure=settings.DEBUG != 1,
         samesite="lax",
         max_age=int(settings.JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60),
     )
