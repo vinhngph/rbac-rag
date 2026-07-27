@@ -25,9 +25,11 @@ ENV PATH="/app/venv/bin:$PATH"
 
 WORKDIR /app
 
-COPY --from=BUILDER /app/venv /app/venv
+USER nonroot
 
-COPY . .
+COPY --from=BUILDER --chown=nonroot:nonroot /app/venv /app/venv
+
+COPY --chown=nonroot:nonroot . .
 
 EXPOSE 8000
 
