@@ -9,10 +9,7 @@ class Settings(BaseSettings):
     PROJECT_NAME: NonEmptyString = "RBAC-RAG"
 
     # PostgreSQL
-    POSTGRES_USER: NonEmptyString
-    POSTGRES_PASSWORD: NonEmptyString
-    POSTGRES_SERVER: NonEmptyString
-    POSTGRES_DB: NonEmptyString
+    DATABASE_URI: NonEmptyString
 
     # Qdrant
     QDRANT_SERVER: NonEmptyString
