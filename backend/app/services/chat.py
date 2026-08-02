@@ -1,20 +1,10 @@
-from asyncio import to_thread as async_to_thread
 from collections.abc import AsyncIterable
 from functools import cached_property
-from gc import collect as gc_collect
 from uuid import UUID, uuid4
 
 from ollama import AsyncClient, RequestError, ResponseError
 from qdrant_client.http.models import Document
 from sqlmodel.ext.asyncio.session import AsyncSession
-from torch.backends.mps import is_available as mps_is_available
-from torch.cuda import (
-    empty_cache as cuda_empty_cache,
-)
-from torch.cuda import (
-    is_available as cuda_is_available,
-)
-from torch.mps import empty_cache as mps_empty_cache
 
 from app.core.config import settings
 from app.core.constants import PermissionName
@@ -31,19 +21,6 @@ from app.repositories.knowledge import KnowledgeRepository
 from app.repositories.permission import PermissionRepository
 from app.repositories.role import RoleRepository
 from app.repositories.vector import VectorRepository
-from app.services.embed import embed_chunks
-
-
-def _get_embedding_and_cleanup(text: str) -> list[float]:
-    vector = embed_chunks([text])[0]
-
-    gc_collect()
-
-    if cuda_is_available():
-        cuda_empty_cache()
-    elif mps_is_available():
-        mps_empty_cache()
-    return vector
 
 
 class ChatService:
@@ -174,14 +151,9 @@ class ChatService:
                     knowledge_ids.append(str(k.id))
 
         # Embedding user message
-        if settings.QDRANT_API_KEY:
-            user_message_vector = Document(
-                text=user_chat_message.content, model=settings.EMBEDDING_MODEL
-            )
-        else:
-            user_message_vector = await async_to_thread(
-                _get_embedding_and_cleanup, user_chat_message.content
-            )
+        user_message_vector = Document(
+            text=user_chat_message.content, model=settings.EMBEDDING_MODEL
+        )
 
         context_text = ""
         rs_knowledge_ids: list[str] = []

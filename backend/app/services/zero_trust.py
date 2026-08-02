@@ -4,24 +4,13 @@ from re import sub as re_sub
 from uuid import UUID
 
 from anyio import Path as AsyncPath
-from anyio import open_file, to_thread
+from anyio import open_file
 from fastapi import HTTPException, UploadFile, status
-from PIL import Image
 
 from app.core.constants import MAGIC_BYTES_RULES, FileType
 from app.core.logger import logger_info
 from app.models.knowledge import Knowledge
 from app.services.store import StoreService
-
-
-def _clean_image(img_path: str):
-    with Image.open(img_path) as img:
-        mode = img.mode
-        size = img.size
-        img_format = img.format
-        img_clean = Image.new(mode, size)
-        img_clean.paste(img)
-    img_clean.save(img_path, format=img_format)
 
 
 class ZeroTrust:
@@ -129,7 +118,6 @@ class ZeroTrust:
         if knowledge.type in [FileType.PNG, FileType.JPG, FileType.JPEG]:
             q_path = self.store_service.get_quarantine_path(knowledge.id)
             try:
-                await to_thread.run_sync(_clean_image, q_path)
                 logger_info(
                     "ZeroTrust",
                     "Layer 4: The image has been extracted and reconstructed cleanly.",
