@@ -5,7 +5,6 @@ from uuid import UUID, uuid4
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from qdrant_client.models import PointStruct
 
-from app.clients.ollama import ollama_client
 from app.core.config import settings
 from app.core.constants import KnowledgeStatus
 from app.core.logger import logger_error, logger_info
@@ -96,7 +95,7 @@ async def _run_rag_pipeline(knowledge_id: UUID):
 
             points: list[PointStruct] = []
 
-            embedding_service = EmbeddingService(ollama_client)
+            embedding_service = EmbeddingService(app_qdrant_client)
 
             for chunk in chunks:
                 vector = await embedding_service.embed(chunk)
