@@ -2,10 +2,11 @@ from collections.abc import AsyncIterable
 from functools import cached_property
 from uuid import UUID, uuid4
 
-from ollama import AsyncClient, RequestError, ResponseError
+from ollama import RequestError, ResponseError
 from qdrant_client.http.models import Document
 from sqlmodel.ext.asyncio.session import AsyncSession
 
+from app.clients.ollama import ollama_client
 from app.core.config import settings
 from app.core.constants import PermissionName
 from app.core.exceptions.app_exception import AppException
@@ -209,14 +210,6 @@ class ChatService:
             }
         )
 
-        ollama_client = AsyncClient(
-            host=settings.OLLAMA_HOST,
-            headers={
-                "Authorization": f"Bearer {settings.OLLAMA_API_KEY}"
-                if settings.OLLAMA_API_KEY
-                else None
-            },
-        )
         try:
             response_stream = await ollama_client.chat(  # type: ignore
                 model=settings.LLM_MODEL,
