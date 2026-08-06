@@ -78,6 +78,6 @@ app.include_router(knowledge.router)
 app.include_router(chat.router)
 
 
-@app.get("/health", tags=["System"])
+@app.api_route("/health", methods=["GET", "HEAD"], tags=["System"])
 async def health_check():
     return {"status": "healthy"}
