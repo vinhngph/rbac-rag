@@ -6,13 +6,11 @@ from app.core.types import NonEmptyString
 
 
 class Settings(BaseSettings):
+    DEBUG: bool = False
     PROJECT_NAME: NonEmptyString = "RBAC-RAG"
 
     # PostgreSQL
-    POSTGRES_USER: NonEmptyString
-    POSTGRES_PASSWORD: NonEmptyString
-    POSTGRES_SERVER: NonEmptyString
-    POSTGRES_DB: NonEmptyString
+    DATABASE_URI: NonEmptyString
 
     # Qdrant
     QDRANT_SERVER: NonEmptyString
@@ -30,7 +28,6 @@ class Settings(BaseSettings):
     LLM_MODEL: NonEmptyString
 
     # System
-    DEBUG: int
     JWT_AT_KEY: NonEmptyString
     JWT_SECRET_KEY: NonEmptyString
     JWT_ALGORITHM: NonEmptyString
@@ -41,10 +38,6 @@ class Settings(BaseSettings):
 
     # Front-end
     FRONTEND_ORIGIN: NonEmptyString
-
-    @property
-    def SQLALCHEMY_DATABASE_URI(self) -> str:
-        return f"postgresql+asyncpg://{self.POSTGRES_USER}:{self.POSTGRES_PASSWORD}@{self.POSTGRES_SERVER}/{self.POSTGRES_DB}"
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 

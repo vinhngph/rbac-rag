@@ -37,9 +37,7 @@ async def lifespan(app: FastAPI):
         await vector_repo.ensure_collection()
         logger_info("System", f"{settings.QDRANT_COLLECTION} ready.")
     except Exception as e:
-        logger_error(
-            "System", f"Failed to connect {settings.QDRANT_COLLECTION}: {e!s}"
-        )
+        logger_error("System", f"Failed to connect {settings.QDRANT_COLLECTION}: {e!s}")
 
     yield
 
@@ -51,7 +49,7 @@ async def lifespan(app: FastAPI):
         pass
 
 
-app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan, debug=settings.DEBUG == 1)
+app = FastAPI(title=settings.PROJECT_NAME, lifespan=lifespan, debug=settings.DEBUG)
 
 origins = [settings.FRONTEND_ORIGIN]
 

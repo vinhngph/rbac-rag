@@ -5,6 +5,7 @@ from qdrant_client.models import (
     FieldCondition,
     Filter,
     MatchAny,
+    PointStruct,
     VectorParams,
 )
 
@@ -30,6 +31,9 @@ class VectorRepository:
                 field_name="knowledge_id",
                 field_schema=PayloadSchemaType.KEYWORD,
             )
+
+    async def store(self, points: list[PointStruct]) -> None:
+        await self.client.upsert(collection_name=self.collection_name, points=points)
 
     async def search_context(
         self,
