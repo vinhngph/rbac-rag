@@ -16,7 +16,6 @@ from app.db.qdrant import app_qdrant_client
 from app.db.session import engine
 from app.repositories.vector import VectorRepository
 from app.services.worker.knowledge import knowledge_worker_daemon
-from app.services.zero_trust import ZeroTrust
 
 
 @asynccontextmanager
@@ -26,9 +25,6 @@ async def lifespan(app: FastAPI):
 
     async with AsyncSession(engine) as session:
         await seed_db(session)
-
-    zero_trust = ZeroTrust()
-    await zero_trust.initialize()
 
     try:
         logger_info("System", f"Connecting {settings.QDRANT_COLLECTION}")
