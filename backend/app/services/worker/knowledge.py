@@ -77,42 +77,41 @@ async def _run_rag_pipeline(knowledge_id: UUID):
             return
         try:
             store_service = StoreService()
-            file_path = store_service.get_safe_path(knowledge.id)
+            with store_service.get_file_path_context(knowledge.id) as file_path:
+                knowledge.status = KnowledgeStatus.EXTRACTING
+                await db.commit()
 
-            knowledge.status = KnowledgeStatus.EXTRACTING
-            await db.commit()
+                extracted_text = await run_marker_in_isolated_process(file_path)
 
-            extracted_text = await run_marker_in_isolated_process(file_path)
+                knowledge.status = KnowledgeStatus.CHUNKING
+                await db.commit()
 
-            knowledge.status = KnowledgeStatus.CHUNKING
-            await db.commit()
+                text_splitter = RecursiveCharacterTextSplitter()
+                chunks = text_splitter.split_text(extracted_text)
 
-            text_splitter = RecursiveCharacterTextSplitter()
-            chunks = text_splitter.split_text(extracted_text)
+                knowledge.status = KnowledgeStatus.EMBEDDING
+                await db.commit()
 
-            knowledge.status = KnowledgeStatus.EMBEDDING
-            await db.commit()
+                points: list[PointStruct] = []
 
-            points: list[PointStruct] = []
+                embedding_service = EmbeddingService(app_qdrant_client)
 
-            embedding_service = EmbeddingService(app_qdrant_client)
-
-            for chunk in chunks:
-                vector = await embedding_service.embed(chunk)
-                points.append(
-                    PointStruct(
-                        id=str(uuid4()),
-                        payload={"text": chunk, "knowledge_id": str(knowledge.id)},
-                        vector=vector,
+                for chunk in chunks:
+                    vector = await embedding_service.embed(chunk)
+                    points.append(
+                        PointStruct(
+                            id=str(uuid4()),
+                            payload={"text": chunk, "knowledge_id": str(knowledge.id)},
+                            vector=vector,
+                        )
                     )
+
+                await app_qdrant_client.upsert(
+                    collection_name=settings.QDRANT_COLLECTION, points=points
                 )
 
-            await app_qdrant_client.upsert(
-                collection_name=settings.QDRANT_COLLECTION, points=points
-            )
-
-            knowledge.status = KnowledgeStatus.COMPLETED
-            await db.commit()
+                knowledge.status = KnowledgeStatus.COMPLETED
+                await db.commit()
         except Exception as e:
             logger_error("RAG", str(e))
             knowledge.status = KnowledgeStatus.FAILED
