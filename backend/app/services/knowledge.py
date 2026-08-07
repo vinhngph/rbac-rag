@@ -1,11 +1,11 @@
 from functools import cached_property
-from uuid import UUID
+from uuid import UUID, uuid4
 
 from fastapi import UploadFile
 from sqlmodel import select
 from sqlmodel.ext.asyncio.session import AsyncSession
 
-from app.core.constants import KnowledgeStatus, PermissionName
+from app.core.constants import FileType, KnowledgeStatus, PermissionName
 from app.core.exceptions.app_exception import AppException
 from app.core.messages import ErrorMessages, SystemMessages
 from app.models.knowledge import Knowledge, KnowledgeUpdate
@@ -14,7 +14,6 @@ from app.repositories.knowledge import KnowledgeRepository
 from app.repositories.permission import PermissionRepository
 from app.repositories.role import RoleRepository
 from app.services.store import StoreService
-from app.services.zero_trust import ZeroTrust
 
 
 class KnowledgeService:
@@ -55,8 +54,38 @@ class KnowledgeService:
         ):
             raise AppException(403, ErrorMessages.MISSING_PERMISSIONS)
 
-        zero_trust = ZeroTrust()
-        knowledge = await zero_trust.execute_security_pipeline(file, user.id, role_id)
+        # Detect file type from MIME type
+        type_mapping = {
+            "application/pdf": FileType.PDF,
+            "image/png": FileType.PNG,
+            "image/jpeg": FileType.JPG,
+            "image/jpg": FileType.JPG,
+        }
+
+        if not file.content_type:
+            raise AppException(
+                400, "Unsupported file type. Please upload PDF or images."
+            )
+
+        file_type = type_mapping.get(file.content_type)
+        if not file_type:
+            raise AppException(
+                400, "Unsupported file type. Please upload PDF or images."
+            )
+
+        # Create Knowledge record
+        knowledge = Knowledge(
+            name=file.filename if file.filename else str(uuid4()),
+            type=file_type,
+            status=KnowledgeStatus.SCANNING,
+            role_id=role_id,
+            author_id=user.id,
+        )
+
+        store_service = StoreService()
+
+        # Save directly to S3
+        await store_service.save_file(file, knowledge.id)
 
         await self.knowledge_repo.add_knowledge(knowledge)
 
@@ -222,4 +251,4 @@ class KnowledgeService:
 
         store_service = StoreService()
 
-        return (store_service.get_safe_path(knowledge.id), knowledge)
+        return (store_service.get_file_path(knowledge.id), knowledge)
