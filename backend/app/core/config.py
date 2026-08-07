@@ -39,6 +39,7 @@ class Settings(BaseSettings):
     S3_SECRET_KEY: NonEmptyString
     S3_REGION: str = "auto"
     S3_ENDPOINT_URL: NonEmptyString
+    MAX_FILE_SIZE: int = 10 * 1024 * 1024
 
     # Front-end
     FRONTEND_ORIGIN: NonEmptyString
