@@ -77,7 +77,7 @@ async def _run_rag_pipeline(knowledge_id: UUID):
             return
         try:
             store_service = StoreService()
-            file_path = store_service.get_safe_path(knowledge.id)
+            file_path = store_service.get_file_path(knowledge.id)
 
             knowledge.status = KnowledgeStatus.EXTRACTING
             await db.commit()
