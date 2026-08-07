@@ -34,7 +34,11 @@ class Settings(BaseSettings):
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: float
 
     # Store service
-    STORAGE_DIR: NonEmptyString
+    S3_BUCKET_NAME: NonEmptyString
+    S3_ACCESS_KEY: NonEmptyString
+    S3_SECRET_KEY: NonEmptyString
+    S3_REGION: str = "auto"
+    S3_ENDPOINT_URL: NonEmptyString
 
     # Front-end
     FRONTEND_ORIGIN: NonEmptyString
