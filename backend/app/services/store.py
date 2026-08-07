@@ -1,5 +1,6 @@
 import os
 import tempfile
+from contextlib import contextmanager
 from uuid import UUID
 
 import boto3
@@ -23,7 +24,7 @@ class StoreService:
         )
         self.bucket = settings.S3_BUCKET_NAME
 
-    def get_file_path(self, file_id: UUID):
+    def _download_file(self, file_id: UUID) -> str:
         """Download file from S3 to a temporary local path"""
         key = str(file_id)
 
@@ -38,6 +39,20 @@ class StoreService:
             raise FileNotFoundError(f"File {file_id} not found on S3: {e}")
 
         return local_path
+
+    def get_file_path(self, file_id: UUID) -> str:
+        """Download file from S3 to a temporary local path"""
+        return self._download_file(file_id)
+
+    @contextmanager
+    def get_file_path_context(self, file_id: UUID):
+        """Download file from S3 to a temporary local path and auto-delete it after use"""
+        local_path = self._download_file(file_id)
+        try:
+            yield local_path
+        finally:
+            if os.path.exists(local_path):
+                os.remove(local_path)
 
     async def delete_file(self, file_id: UUID):
         """Delete file from S3"""
