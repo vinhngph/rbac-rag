@@ -10,7 +10,7 @@ from app.api.v1.routers import auth, chat, departments, knowledge, role, user
 from app.core.config import settings
 from app.core.exceptions.app_exception import AppException
 from app.core.exceptions.http_handler import http_exception_handler
-from app.core.logger import logger_error, logger_info
+from app.core.logger import logger_info
 from app.core.seed_db import seed_db
 from app.db.qdrant import app_qdrant_client
 from app.db.session import engine
@@ -26,14 +26,11 @@ async def lifespan(app: FastAPI):
     async with AsyncSession(engine) as session:
         await seed_db(session)
 
-    try:
-        logger_info("System", f"Connecting {settings.QDRANT_COLLECTION}")
+    logger_info("System", f"Connecting {settings.QDRANT_COLLECTION}")
 
-        vector_repo = VectorRepository(app_qdrant_client)
-        await vector_repo.ensure_collection()
-        logger_info("System", f"{settings.QDRANT_COLLECTION} ready.")
-    except Exception as e:
-        logger_error("System", f"Failed to connect {settings.QDRANT_COLLECTION}: {e!s}")
+    vector_repo = VectorRepository(app_qdrant_client)
+    await vector_repo.ensure_collection()
+    logger_info("System", f"{settings.QDRANT_COLLECTION} ready.")
 
     yield
 
