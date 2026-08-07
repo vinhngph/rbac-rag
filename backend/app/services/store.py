@@ -1,10 +1,10 @@
-from os import makedirs
-from os.path import abspath, commonpath
-from os.path import join as path_join
+import os
+import tempfile
 from uuid import UUID
 
-from anyio import Path as AsyncPath
-from anyio import open_file
+import boto3
+from botocore.client import Config
+from botocore.exceptions import ClientError
 from fastapi import UploadFile
 
 from app.core.config import settings
@@ -12,105 +12,56 @@ from app.core.config import settings
 
 class StoreService:
     def __init__(self) -> None:
-        self.storage_dir = abspath(settings.STORAGE_DIR)
-        self.quarantine_dir = path_join(self.storage_dir, "quarantine")
-        self.safe_dir = path_join(self.storage_dir, "safe")
+        # Initialize S3 Client
+        self.s3 = boto3.client(
+            "s3",
+            aws_access_key_id=settings.S3_ACCESS_KEY,
+            aws_secret_access_key=settings.S3_SECRET_KEY,
+            region_name=settings.S3_REGION,
+            endpoint_url=settings.S3_ENDPOINT_URL,
+            config=Config(signature_version="s3v4"),
+        )
+        self.bucket = settings.S3_BUCKET_NAME
 
-        makedirs(self.quarantine_dir, exist_ok=True)
-        makedirs(self.safe_dir, exist_ok=True)
+    def get_file_path(self, file_id: UUID):
+        """Download file from S3 to a temporary local path"""
+        key = str(file_id)
 
-    def get_quarantine_path(self, file_id: UUID):
-        full_path = abspath(path_join(self.quarantine_dir, str(file_id)))
-
-        if commonpath([self.quarantine_dir, full_path]) != self.quarantine_dir:
-            raise ValueError("Security Alert: Path Traversal attack detected!")
-
-        return full_path
-
-    def get_safe_path(self, file_id: UUID):
-        full_path = abspath(path_join(self.safe_dir, str(file_id)))
-
-        if commonpath([self.safe_dir, full_path]) != self.safe_dir:
-            raise ValueError("Security Alert: Path Traversal attack detected!")
-
-        return full_path
-
-    async def delete_from_quarantine(self, file_id: UUID):
-        q_path = self.get_quarantine_path(file_id)
-        async_q_path = AsyncPath(q_path)
+        with tempfile.NamedTemporaryFile(delete=False) as tmp:
+            local_path = tmp.name
 
         try:
-            await async_q_path.unlink()
-        except FileNotFoundError:
-            pass
-        except (IsADirectoryError, PermissionError):
-            raise ValueError(
-                "Security Alert: Attempted to delete a directory! Activity logged."
-            )
+            self.s3.download_file(self.bucket, key, local_path)
+        except ClientError as e:
+            if os.path.exists(local_path):
+                os.remove(local_path)
+            raise FileNotFoundError(f"File {file_id} not found on S3: {e}")
 
-    async def delete_from_safe(self, file_id: UUID):
-        s_path = self.get_safe_path(file_id)
-        async_s_path = AsyncPath(s_path)
+        return local_path
 
+    async def delete_file(self, file_id: UUID):
+        """Delete file from S3"""
         try:
-            await async_s_path.unlink()
-        except FileNotFoundError:
+            self.s3.delete_object(Bucket=self.bucket, Key=str(file_id))
+        except ClientError:
             pass
-        except (IsADirectoryError, PermissionError):
-            raise ValueError(
-                "Security Alert: Attempted to delete a directory! Activity logged."
-            )
 
-    async def save_to_quarantine_zone(
-        self, file: UploadFile, file_id: UUID, max_size: int = 10 * 1024 * 1024
-    ):
-        """Save uploaded file to quarantine zone"""
-
-        full_path = self.get_quarantine_path(file_id)
-        async_full_path = AsyncPath(full_path)
-
-        await async_full_path.parent.mkdir(parents=True, exist_ok=True)
+    async def save_file(self, file: UploadFile, file_id: UUID):
+        """Upload file directly to S3 and validate size"""
+        key = str(file_id)
 
         await file.seek(0)
 
-        total_bytes = 0
-
         try:
-            async with await open_file(full_path, "wb") as buffer:
-                chunk_size = 1024 * 1024
-                while chunk := await file.read(chunk_size):
-                    total_bytes += len(chunk)
-                    if total_bytes > max_size:
-                        raise ValueError(
-                            "Security Alert: File exceeds maximum allowed size during transmission."
-                        )
-                    await buffer.write(chunk)
-        except Exception as e:
-            await self.delete_from_quarantine(file_id)
-            raise e
+            self.s3.upload_fileobj(file.file, self.bucket, key)
 
-    async def move_to_safe_zone(self, file_id: UUID):
-        q_path = self.get_quarantine_path(file_id)
-        s_path = self.get_safe_path(file_id)
-
-        async_q_path = AsyncPath(q_path)
-        async_s_path = AsyncPath(s_path)
-
-        if await async_s_path.exists():
-            await self.delete_from_quarantine(file_id)
-            raise FileExistsError(
-                f"Conflict: File already exists in safe zone at {file_id}"
-            )
-
-        await async_s_path.parent.mkdir(parents=True, exist_ok=True)
-
-        try:
-            await async_q_path.rename(s_path)
-        except FileNotFoundError:
-            await self.delete_from_quarantine(file_id)
-            raise FileNotFoundError("Security Alert: File not found in quarantine.")
-        except IsADirectoryError:
-            await self.delete_from_quarantine(file_id)
-            raise ValueError("Security Alert: Target is a directory, not a file.")
-
-        return s_path
+            # Validate size after upload
+            response = self.s3.head_object(Bucket=self.bucket, Key=key)
+            if response["ContentLength"] > settings.MAX_FILE_SIZE:
+                await self.delete_file(file_id)
+                raise ValueError(
+                    f"File exceeds maximum allowed size of {settings.MAX_FILE_SIZE} bytes."
+                )
+        except ClientError:
+            await self.delete_file(file_id)
+            raise
