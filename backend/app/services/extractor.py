@@ -1,6 +1,6 @@
 from os.path import exists as path_exists
 
-from fitz import open as fitz_open  # type: ignore
+from pymupdf import open as fitz_open
 
 from app.core.logger import logger_info
 
