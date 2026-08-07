@@ -1,3 +1,4 @@
+import os
 from asyncio import sleep as async_sleep
 from collections.abc import AsyncIterable
 from json import dumps as json_dumps
@@ -6,6 +7,7 @@ from uuid import UUID
 
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Header,
     HTTPException,
     status,
@@ -25,13 +27,18 @@ router = APIRouter(prefix="/knowledges", tags=["Knowledge Base"])
 
 @router.get("/{knowledge_id}", response_class=FileResponse)
 async def get_knowledge_file(
-    knowledge_id: UUID, current_user: CurrentUser, db: DB_Session
+    knowledge_id: UUID,
+    current_user: CurrentUser,
+    db: DB_Session,
+    background_tasks: BackgroundTasks,
 ):
     knowledge_service = KnowledgeService(db)
 
     file_path, knowledge = await knowledge_service.get_knowledge_file(
         knowledge_id, current_user
     )
+
+    background_tasks.add_task(os.remove, file_path)
 
     return FileResponse(
         path=file_path,
