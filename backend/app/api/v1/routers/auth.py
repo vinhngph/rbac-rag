@@ -1,15 +1,21 @@
-from fastapi import APIRouter, Response
+from fastapi import APIRouter, HTTPException, Response, status
 
 from app.api.dependencies import DB_Session
 from app.core.config import settings
 from app.models.user import UserLogin, UserRegister
 from app.services.auth import AuthService
+from app.services.turnstile import verify_turnstile_token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
 
 @router.post("/login")
 async def login(response: Response, login_data: UserLogin, db: DB_Session):
+    if not await verify_turnstile_token(login_data.turnstile_token or ""):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Turnstile token"
+        )
+
     auth_service = AuthService(db)
 
     access_token = await auth_service.login(login_data)
@@ -28,6 +34,11 @@ async def login(response: Response, login_data: UserLogin, db: DB_Session):
 
 @router.post("/register")
 async def register(response: Response, user_in: UserRegister, db: DB_Session):
+    if not await verify_turnstile_token(user_in.turnstile_token or ""):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail="Invalid Turnstile token"
+        )
+
     auth_service = AuthService(db)
 
     access_token = await auth_service.register(user_in)
