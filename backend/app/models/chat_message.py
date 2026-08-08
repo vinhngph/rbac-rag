@@ -16,6 +16,8 @@ from sqlmodel import (
     UUID as sa_UUID,
 )
 
+from app.core.types import NonEmptyString
+
 if TYPE_CHECKING:
     from app.models.chat_session import ChatSession
 
@@ -28,7 +30,7 @@ class ChatMessageRole(str, Enum):
 class ChatMessageBase(SQLModel):
     role: ChatMessageRole = Field(nullable=False)
 
-    content: str = Field(sa_column=Column(Text, nullable=False))
+    content: NonEmptyString = Field(sa_column=Column(Text, nullable=False))
 
     knowledge_ids: list[UUID] = Field(
         default=[], sa_column=Column(ARRAY(sa_UUID(as_uuid=True)))
