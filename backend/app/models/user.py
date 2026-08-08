@@ -58,6 +58,6 @@ class UserRead(UserBase):
 
 
 class UserAT(SQLModel):
-    sub: str
+    sub: NonEmptyString
     exp: int
     iat: int
