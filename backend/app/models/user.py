@@ -44,11 +44,13 @@ class User(UserBase, table=True):
 
 class UserRegister(UserBase):
     plain_text_password: NonEmptyString
+    turnstile_token: NonEmptyString
 
 
 class UserLogin(SQLModel):
     email: EmailStr
     plain_text_password: NonEmptyString
+    turnstile_token: NonEmptyString
 
 
 class UserRead(UserBase):
