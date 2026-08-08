@@ -43,6 +43,7 @@ class Settings(BaseSettings):
 
     # Front-end
     FRONTEND_ORIGIN: NonEmptyString
+    TURNSTILE_SECRET_KEY: NonEmptyString
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=True)
 
