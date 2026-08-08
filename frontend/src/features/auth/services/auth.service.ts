@@ -1,17 +1,19 @@
 import { api } from "../../../core/api/axios";
 
 export const login = (data: {
-  email: string,
-  plain_text_password: string
+  email: string;
+  plain_text_password: string;
+  turnstile_token: string;
 }) => {
   return api.post("/auth/login", data);
 };
 
 export const register = (data: {
-  email: string,
-  name: string,
-  avatar_url?: string | null,
-  plain_text_password: string
+  email: string;
+  name: string;
+  avatar_url?: string | null;
+  plain_text_password: string;
+  turnstile_token: string;
 }) => {
   return api.post("/auth/register", data);
 };

@@ -1,13 +1,15 @@
 import { AlertCircle, Bot, Eye, EyeOff, X } from "lucide-react";
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import { APP_CONFIG } from "../../../core/config";
 
 import { getMe, login, register } from "../services/auth.service";
 import { useAuth } from "../hooks/useAuth";
 import { useErrorHandler } from "../../../shared/hooks/useErrorHandler";
+import { useTurnstile } from "../../../shared/hooks/useTurnstile";
 import RequestButton from "../../../shared/components/RequestButton";
 import { useQueryClient } from "@tanstack/react-query";
+import { useThemeStore } from "../../../shared/store/theme.store";
 
 type Tab = "login" | "register";
 
@@ -22,17 +24,27 @@ function AuthModal() {
   const [isShowPassword, setIsShowPassword] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const { isDarkMode } = useThemeStore();
+
+  const {
+    containerRef,
+    token,
+    reset: resetTurnstile,
+  } = useTurnstile({
+    sitekey: APP_CONFIG.TURNSTILE_SITE_KEY || "",
+    theme: isDarkMode ? "dark" : "light",
+  });
 
   const { setUser } = useAuth();
   const { handleCatch } = useErrorHandler();
 
-  const handleClose = () => { navigate("/"); };
+  const handleClose = () => {
+    navigate("/");
+  };
 
   const handleDisable = () => {
-    if (tab === "login")
-      return !(email && password && !loading);
-    else
-      return !(name && email && password && !loading);
+    if (tab === "login") return !(email && password && !loading);
+    else return !(name && email && password && !loading);
   };
 
   const handleSubmit = async () => {
@@ -40,10 +52,25 @@ function AuthModal() {
     setLoading(true);
 
     try {
+      if (!token) {
+        setError("Please complete the security check");
+        setLoading(false);
+        return;
+      }
+
       if (tab === "login") {
-        await login({ email: email, plain_text_password: password });
+        await login({
+          email: email,
+          plain_text_password: password,
+          turnstile_token: token,
+        });
       } else {
-        await register({ email: email, name: name, plain_text_password: password });
+        await register({
+          email: email,
+          name: name,
+          plain_text_password: password,
+          turnstile_token: token,
+        });
       }
 
       const res = await getMe();
@@ -65,10 +92,12 @@ function AuthModal() {
     await handleSubmit();
   };
 
+  useEffect(() => {
+    resetTurnstile();
+  }, [resetTurnstile, tab]);
+
   return (
-    <div
-      className="fixed inset-0 z-50 flex items-center justify-center"
-    >
+    <div className="fixed inset-0 z-50 flex items-center justify-center">
       {/* Button - Blur overlay */}
       <button
         className="absolute inset-0 bg-surface-active backdrop-blur-sm w-full h-full border-none"
@@ -76,8 +105,7 @@ function AuthModal() {
       />
 
       {/* Modal card */}
-      <div className="relative z-10 w-full max-w-sm mx-4 bg-bg-modal border border-border-subtle rounded-2xl shadow-2xl shadow-black/60 overflow-hidden"
-      >
+      <div className="relative z-10 w-full max-w-sm mx-4 bg-bg-modal border border-border-subtle rounded-2xl shadow-2xl shadow-black/60 overflow-hidden">
         {/* Close button */}
         <button
           onClick={handleClose}
@@ -95,7 +123,9 @@ function AuthModal() {
             {APP_CONFIG.APP_NAME}
           </h2>
           <p className="text-sm text-text-muted mt-1">
-            {tab === "login" ? "Welcome back" : `Start using ${APP_CONFIG.APP_NAME}`}
+            {tab === "login"
+              ? "Welcome back"
+              : `Start using ${APP_CONFIG.APP_NAME}`}
           </p>
         </div>
 
@@ -107,9 +137,10 @@ function AuthModal() {
               onClick={() => {
                 setTab(t);
               }}
-              className={`flex-1 py-1.5 text-sm rounded-lg transition-all font-medium cursor-pointer ${tab === t
-                ? "bg-surface-active text-text shadow-sm"
-                : "text-text-muted hover:text-text/60"
+              className={`flex-1 py-1.5 text-sm rounded-lg transition-all font-medium cursor-pointer ${
+                tab === t
+                  ? "bg-surface-active text-text shadow-sm"
+                  : "text-text-muted hover:text-text/60"
               }`}
             >
               {t === "login" ? "Login" : "Register"}
@@ -118,10 +149,7 @@ function AuthModal() {
         </div>
 
         {/* Form */}
-        <form
-          className="px-6 pb-6 space-y-3"
-          onSubmit={handleOnSubmit}
-        >
+        <form className="px-6 pb-6 space-y-3" onSubmit={handleOnSubmit}>
           {/* Name */}
           {tab === "register" && (
             <div className="space-y-1.5">
@@ -173,7 +201,11 @@ function AuthModal() {
                   onClick={() => setIsShowPassword(!isShowPassword)}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-text/30 hover:text-text/60 transition-colors cursor-pointer"
                 >
-                  {isShowPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                  {isShowPassword ? (
+                    <EyeOff className="w-4 h-4" />
+                  ) : (
+                    <Eye className="w-4 h-4" />
+                  )}
                 </button>
               </div>
             </label>
@@ -186,6 +218,9 @@ function AuthModal() {
               <p className="text-xs text-red-400 leading-relaxed">{error}</p>
             </div>
           )}
+
+          {/* Turnstile */}
+          <div ref={containerRef}></div>
 
           {/* Submit */}
           <RequestButton
