@@ -1,7 +1,7 @@
 from typing import TYPE_CHECKING, Any
 from uuid import UUID, uuid4
 
-from pydantic import EmailStr, HttpUrl
+from pydantic import EmailStr, HttpUrl, field_validator
 from sqlmodel import AutoString, Field, Relationship, SQLModel
 
 from app.core.types import NonEmptyString
