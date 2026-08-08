@@ -220,7 +220,9 @@ function AuthModal() {
           )}
 
           {/* Turnstile */}
-          <div ref={containerRef}></div>
+          <div className="flex justify-center w-full">
+            <div ref={containerRef}></div>
+          </div>
 
           {/* Submit */}
           <RequestButton
