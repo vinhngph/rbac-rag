@@ -6,7 +6,11 @@ const envSchema = z.object({
   TURNSTILE_SITE_KEY: z.string(),
 });
 
-const runtimeEnv = globalThis.__ENV__ || {};
+const runtimeEnv = {
+  APP_NAME: import.meta.env.VITE_APP_NAME,
+  APP_BE_API: import.meta.env.VITE_APP_BE_API,
+  TURNSTILE_SITE_KEY: import.meta.env.VITE_TURNSTILE_SITE_KEY,
+};
 
 const parsedEnv = envSchema.safeParse(runtimeEnv);
 
