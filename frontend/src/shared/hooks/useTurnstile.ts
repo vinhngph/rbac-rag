@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState, useCallback } from "react";
 
 interface TurnstileConfig {
   sitekey: string;
@@ -89,12 +89,12 @@ export function useTurnstile(config: TurnstileConfig) {
     };
   }, [config.sitekey]);
 
-  const reset = () => {
+  const reset = useCallback(() => {
     if (widgetIdRef.current) {
       window.turnstile?.reset(widgetIdRef.current);
       setToken(null);
     }
-  };
+  }, []);
 
   return { containerRef, token, reset };
 }
