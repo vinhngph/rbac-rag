@@ -13,7 +13,7 @@ from app.models.user import User
 def get_access_token_from_cookie(request: Request) -> str:
     """Get Access Token (access_token) from cookies"""
 
-    ac_token = request.cookies.get(settings.JWT_AT_KEY)
+    ac_token = request.cookies.get(settings.JWT_AT_NAME)
     if not ac_token:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

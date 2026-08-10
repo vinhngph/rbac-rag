@@ -21,7 +21,7 @@ async def login(response: Response, login_data: UserLogin, db: DB_Session):
     access_token = await auth_service.login(login_data)
 
     response.set_cookie(
-        key=settings.JWT_AT_KEY,
+        key=settings.JWT_AT_NAME,
         value=access_token,
         httponly=True,
         secure=not settings.DEBUG,
@@ -44,7 +44,7 @@ async def register(response: Response, user_in: UserRegister, db: DB_Session):
     access_token = await auth_service.register(user_in)
 
     response.set_cookie(
-        key=settings.JWT_AT_KEY,
+        key=settings.JWT_AT_NAME,
         value=access_token,
         httponly=True,
         secure=not settings.DEBUG,
@@ -57,6 +57,6 @@ async def register(response: Response, user_in: UserRegister, db: DB_Session):
 
 @router.post("/logout")
 async def logout(response: Response):
-    response.delete_cookie(key=settings.JWT_AT_KEY)
+    response.delete_cookie(key=settings.JWT_AT_NAME)
 
     return {"msg": "Logged out"}
