@@ -33,6 +33,7 @@ class Settings(BaseSettings):
     JWT_SECRET_KEY: NonEmptyString
     JWT_ALGORITHM: NonEmptyString
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: float
+    JWT_REFRESH_TOKEN_EXPIRE_DAYS: int | None = None
 
     # Store service
     S3_BUCKET_NAME: NonEmptyString

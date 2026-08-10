@@ -3,6 +3,7 @@ from app.models.chat_session import ChatSession
 from app.models.knowledge import Knowledge
 from app.models.permission import Permission
 from app.models.role import Role
+from app.models.session import Session
 from app.models.user import User
 
-__all__ = ["ChatMessage", "ChatSession", "Knowledge", "Permission", "Role", "User"]
+__all__ = ["ChatMessage", "ChatSession", "Knowledge", "Permission", "Role", "Session", "User"]
