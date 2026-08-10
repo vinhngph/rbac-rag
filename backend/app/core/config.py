@@ -28,8 +28,8 @@ class Settings(BaseSettings):
     LLM_MODEL: NonEmptyString
 
     # System
-    JWT_AT_NAME = "jwt_access"
-    JWT_RF_NAME = "jwt_refresh"
+    JWT_AT_NAME: NonEmptyString = "jwt_access"
+    JWT_RF_NAME: NonEmptyString = "jwt_refresh"
     JWT_SECRET_KEY: NonEmptyString
     JWT_ALGORITHM: NonEmptyString
     JWT_ACCESS_TOKEN_EXPIRE_MINUTES: float
